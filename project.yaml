@@ -1,12 +1,89 @@
 version: '3.0'
 
 expectations:
-  population_size: 1000
+
+  population_size: 100000
 
 actions:
 
-  generate_study_population:
+  ## # # # # # # # # # # # # # # # # # # # 
+  ## DO NOT EDIT project.yaml DIRECTLY 
+  ## This file is created by create-project.R 
+  ## Edit and run create-project.R to update the project.yaml 
+  ## # # # # # # # # # # # # # # # # # # # 
+  ## # # # # # # # # # # # # # # # # # # # 
+  ## Pre-server scripts 
+  ## # # # # # # # # # # # # # # # # # # # 
+  ## # # # # # # # # # # # # # # # # # # # 
+  ## Extract and tidy 
+  ## # # # # # # # # # # # # # # # # # # # 
+
+  extract:
     run: cohortextractor:latest generate_cohort --study-definition study_definition
+      --output-format feather
+    needs: []
     outputs:
       highly_sensitive:
-        cohort: output/input.csv
+        cohort: output/input.feather
+
+  data_process:
+    run: r:latest analysis/data_process.R
+    needs:
+    - extract
+    outputs:
+      highly_sensitive:
+        processed: output/data/data_processed.rds
+        vaxlong: output/data/data_vaxlong.rds
+
+  data_process_long:
+    run: r:latest analysis/data_process_long.R
+    needs:
+    - data_process
+    outputs:
+      highly_sensitive:
+        processed: output/data/data_long*.rds
+
+  data_selection:
+    run: r:latest analysis/data_selection.R
+    needs:
+    - data_process
+    outputs:
+      highly_sensitive:
+        data: output/data/data_cohort.rds
+      moderately_sensitive:
+        flow: output/data/flowchart.csv
+
+  ## # # # # # # # # # # # # # # # # # # # 
+  ## Descriptive stats 
+  ## # # # # # # # # # # # # # # # # # # # 
+  ## # # # # # # # # # # # # # # # # # # # 
+  ## Models 
+  ## # # # # # # # # # # # # # # # # # # # 
+  ## ###  Positive SARS-CoV-2 Test 
+
+  model_seqtrialcox_pfizer_postest:
+    run: r:latest analysis/model_seqtrialcox.R pfizer postest
+    needs:
+    - data_selection
+    - data_process_long
+    outputs:
+      highly_sensitive:
+        rds: output/models/seqtrialcox/pfizer/postest/model_*.rds
+      moderately_sensitive:
+        txt: output/models/seqtrialcox/pfizer/postest/model_*.txt
+        csv: output/models/seqtrialcox/pfizer/postest/model_*.csv
+
+  report_seqtrialcox_pfizer_postest:
+    run: r:latest analysis/report_seqtrialcox.R pfizer postest
+    needs:
+    - model_seqtrialcox_pfizer_postest
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/pfizer/postest/report_*.csv
+        svg: output/models/seqtrialcox/pfizer/postest/report_*.svg
+        png: output/models/seqtrialcox/pfizer/postest/report_*.png
+
+  ## # # # # # # # # # # # # # # # # # # # 
+  ## Reports 
+  ## # # # # # # # # # # # # # # # # # # # 
+
