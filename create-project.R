@@ -55,15 +55,6 @@ action <- function(
 }
 
 
-# comment <- function(
-#   x = "#"
-# ){
-#   comment <- list(NULL)
-#   names(comment) = paste0("# ", x)
-#   comment
-# }
-#comment("blah")
-
 ## model action function ----
 action_model <- function(
   treatment, outcome
@@ -121,6 +112,8 @@ actions_list <- splice(
 
 
   comment("# # # # # # # # # # # # # # # # # # #", "Pre-server scripts", "# # # # # # # # # # # # # # # # # # #"),
+
+  # do not incorporate into project for now -- just run locally
 
   # action(
   #   name = "checkyaml",
@@ -267,20 +260,18 @@ actions_list <- splice(
 
   comment("###  Positive SARS-CoV-2 Test"),
   action_model("pfizer", "postest"),
-  # action_model("az", "postest"),
-  # action_model("moderna", "postest"),
-  #
-  #
-  # comment("###  COVID-19 unplanned admission"),
-  # action_model("pfizer", "covidadmitted"),
-  # action_model("az", "covidadmitted"),
-  # action_model("moderna", "covidadmitted"),
-  #
-  #
-  # comment("###  COVID-19 death"),
-  # action_model("pfizer", "coviddeath"),
-  # action_model("az", "coviddeath"),
-  # action_model("moderna", "coviddeath"),
+  action_model("az", "postest"),
+  action_model("moderna", "postest"),
+
+  comment("###  COVID-19 unplanned admission"),
+  action_model("pfizer", "covidadmitted"),
+  action_model("az", "covidadmitted"),
+  action_model("moderna", "covidadmitted"),
+
+  comment("###  COVID-19 death"),
+  action_model("pfizer", "coviddeath"),
+  action_model("az", "coviddeath"),
+  action_model("moderna", "coviddeath"),
 
   comment("# # # # # # # # # # # # # # # # # # #", "Reports", "# # # # # # # # # # # # # # # # # # #")
 
@@ -307,7 +298,7 @@ if (Sys.getenv("OPENSAFELY_BACKEND") %in% c("expectations", "tpp")){
   thisprojectsplit <- str_split(thisproject, "\n")
   currentproject <- readLines(here("project.yaml"))
 
-  stopifnot("project.yaml is not up-to-date with create-project.R. Please run create-project.R before running further actions." = identical(thisprojectsplit, currentproject))
+  stopifnot("project.yaml is not up-to-date with create-project.R.  Run create-project.R before running further actions." = identical(thisprojectsplit, currentproject))
 
 # if running manually, output new project as normal
 } else if (Sys.getenv("OPENSAFELY_BACKEND") %in% c("")){
