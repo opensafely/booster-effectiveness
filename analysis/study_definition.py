@@ -738,7 +738,7 @@ covid_test_date=patients.with_test_result_in_sgss(
     ast = patients.with_these_clinical_events(
       codelists.ast,
       returning="binary_flag",
-      on_or_before="index_date - 1 day,
+      on_or_before="index_date - 1 day",
     ),
     # Asthma systemic steroid prescription code in month 1
     astrxm1=patients.with_these_medications(
@@ -756,7 +756,7 @@ covid_test_date=patients.with_test_result_in_sgss(
     astrxm3=patients.with_these_medications(
       codelists.astrx,
       returning="binary_flag",
-      between= ["index_date - 90", "index_date - 61 days"],
+      between= ["index_date - 90 days", "index_date - 61 days"],
     ),
 
   ),
