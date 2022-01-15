@@ -206,17 +206,17 @@ sim_list = lst(
 
 
 
-  prior_covid_test_day = bn_node(
+  covid_test_0_day = bn_node(
     ~as.integer(runif(n=1, index_day-100, index_day-1)),
     missing_rate = ~0.7
   ),
 
-  prior_primary_care_covid_case_day = bn_node(
+  primary_care_covid_case_0_day = bn_node(
     ~as.integer(runif(n=1, index_day-100, index_day-1)),
     missing_rate = ~0.99
   ),
 
-  prior_covidadmitted_day = bn_node(
+  covidadmitted_0_day = bn_node(
     ~as.integer(runif(n=1, index_day-100, index_day-1)),
     missing_rate = ~0.995
   ),

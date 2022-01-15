@@ -189,7 +189,7 @@ data_processed <- data_extract %>%
 
     prior_tests_cat = cut(prior_covid_test_frequency, breaks=c(0, 1, 2, 3, Inf), labels=c("0", "1", "2", "3+"), right=FALSE),
 
-    prior_covid_infection = !is.na(positive_test_0_date) | !is.na(prior_covidadmitted_date) | !is.na(prior_primary_care_covid_case_date),
+    prior_covid_infection = !is.na(positive_test_0_date) | !is.na(covidadmitted_0_date) | !is.na(primary_care_covid_case_0_date),
 
     cause_of_death = fct_case_when(
       !is.na(coviddeath_date) ~ "covid-related",
