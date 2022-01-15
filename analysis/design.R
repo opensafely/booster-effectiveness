@@ -14,10 +14,10 @@ fs::dir_create(here("lib", "design"))
 # define key dates ----
 
 study_dates <- lst(
-  studystart_date = "2021-09-01", #start of follow-up
-  studyend_date = "2021-12-31", # end of follow-up
+  studystart_date = "2021-09-16", #start of follow-up thursday 16 sepetember first booster jabs administered in england
+  studyend_date = "2021-12-29", # end of follow-up 15 weeks after start
   lastvax2_date = "2021-08-01", # don't recruit anyone with second vaccination after this date
-  lastvax3_date = "2021-12-01", # end of recruitment
+  lastvax3_date = "2021-12-08", # end of recruitment -- 12 weeks after start
   firstpfizer_date = "2020-12-08", # first pfizer vaccination in national roll-out
   firstaz_date = "2021-01-04", # first az vaccination in national roll-out
   firstmoderna_date = "2021-04-13", # first moderna vaccination in national roll-out

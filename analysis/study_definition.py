@@ -15,7 +15,7 @@ import codelists
 import json
 
 # import study dates
-with open("./output/design/study-dates.json") as f:
+with open("./lib/design/study-dates.json") as f:
   study_dates = json.load(f)
 
 # change these in design.R if necessary
@@ -175,10 +175,10 @@ study = StudyDefinition(
       covid_vax_disease_2_date
     """,
     registered=patients.registered_as_of(
-      "covid_vax_disease_2_date",
+      "index_date - 1 day",
     ),
     has_died=patients.died_from_any_cause(
-      on_or_before="covid_vax_disease_2_date",
+      on_or_before="index_date - 1 day",
       returning="binary_flag",
     ),
     
@@ -260,19 +260,19 @@ study = StudyDefinition(
   ###############################################################################
   
   has_follow_up_previous_6weeks=patients.registered_with_one_practice_between(
-    start_date="covid_vax_disease_2_date - 42 days",
-    end_date="covid_vax_disease_2_date",
+    start_date="index_date - 42 days",
+    end_date="index_date",
   ),
   
   dereg_date=patients.date_deregistered_from_all_supported_practices(
-    on_or_after="covid_vax_disease_2_date + 84 days",
+    on_or_after="index_date",
     date_format="YYYY-MM-DD",
   ),
   
   
   # https://github.com/opensafely/risk-factors-research/issues/49
   age=patients.age_as_of( 
-    "covid_vax_disease_2_date + 84 days",
+    "index_date - 1 day",
   ),
   
   age_march2020=patients.age_as_of( 
@@ -298,7 +298,7 @@ study = StudyDefinition(
       # set maximum to avoid any impossibly extreme values being classified as obese
     },
     bmi_value=patients.most_recent_bmi(
-      on_or_after="covid_vax_disease_2_date - 5 years",
+      on_or_after="index_date - 5 years",
       minimum_age_at_measurement=16
     ),
     return_expectations={
@@ -374,7 +374,7 @@ study = StudyDefinition(
   ################################################
   # practice pseudo id
   practice_id=patients.registered_practice_as_of(
-    "covid_vax_disease_2_date + 84 days",
+    "index_date - 1 day",
     returning="pseudo_id",
     return_expectations={
       "int": {"distribution": "normal", "mean": 1000, "stddev": 100},
@@ -384,7 +384,7 @@ study = StudyDefinition(
   
   # msoa
   msoa=patients.address_as_of(
-    "covid_vax_disease_2_date + 84 days",
+    "index_date - 1 day",
     returning="msoa",
     return_expectations={
       "rate": "universal",
@@ -397,7 +397,7 @@ study = StudyDefinition(
   
   # stp is an NHS administration region based on geography
   stp=patients.registered_practice_as_of(
-    "covid_vax_disease_2_date + 84 days",
+    "index_date - 1 day",
     returning="stp_code",
     return_expectations={
       "rate": "universal",
@@ -419,7 +419,7 @@ study = StudyDefinition(
   ),
   # NHS administrative region
   region=patients.registered_practice_as_of(
-    "covid_vax_disease_2_date + 84 days",
+    "index_date - 1 day",
     returning="nuts1_region_name",
     return_expectations={
       "rate": "universal",
@@ -443,7 +443,7 @@ study = StudyDefinition(
   ## IMD - quintile
   
   imd=patients.address_as_of(
-    "covid_vax_disease_2_date + 84 days",
+    "index_date - 1 day",
     returning="index_of_multiple_deprivation",
     round_to_nearest=100,
     return_expectations={
@@ -453,7 +453,7 @@ study = StudyDefinition(
   
   #rurality
   rural_urban=patients.address_as_of(
-    "covid_vax_disease_2_date + 84 days",
+    "index_date - 1 day",
     returning="rural_urban_classification",
     return_expectations={
       "rate": "universal",
@@ -511,14 +511,14 @@ study = StudyDefinition(
       test_result="positive",
       returning="date",
       date_format="YYYY-MM-DD",
-      on_or_before="covid_vax_disease_2_date + 83 days",
+      on_or_before="index_date - 1 day",
       find_last_match_in_period=True,
       restrict_to_earliest_specimen_date=False,
   ),
   
   **covid_test_date_X(
       name = "positive_test",
-      index_date = "covid_vax_disease_2_date + 84 days",
+      index_date = "index_date",
       n = 6,
       test_result="positive",
   ),
@@ -612,7 +612,7 @@ study = StudyDefinition(
   
   
   # Positive cae identification prior to vaccination
-  prior_primary_care_covid_case_date=patients.with_these_clinical_events(
+  primary_care_covid_case_0_date=patients.with_these_clinical_events(
     combine_codelists(
       codelists.covid_primary_care_code,
       codelists.covid_primary_care_positive_test,
@@ -620,23 +620,23 @@ study = StudyDefinition(
     ),
     returning="date",
     date_format="YYYY-MM-DD",
-    on_or_before="covid_vax_disease_2_date + 84 days",
+    on_or_before="index_date - 1 day",
     find_first_match_in_period=True,
   ),
 
   # Positive covid admission prior to vaccination
-  prior_covidadmitted_date=patients.admitted_to_hospital(
+  covidadmitted_0_date=patients.admitted_to_hospital(
     returning="date_admitted",
     with_these_diagnoses=codelists.covid_icd10,
-    on_or_before="covid_vax_disease_2_date + 84 days",
+    on_or_before="index_date - 1 day",
     date_format="YYYY-MM-DD",
     find_first_match_in_period=True,
   ),
 
-  prior_covid_test_date=patients.with_test_result_in_sgss(
+  covid_test_0_date=patients.with_test_result_in_sgss(
     pathogen="SARS-CoV-2",
     test_result="any",
-    on_or_before="covid_vax_disease_2_date + 84 days",
+    on_or_before="index_date - 1 day",
     returning="date", # need "count" here but not yet available
     date_format="YYYY-MM-DD",
     find_first_match_in_period=True,
@@ -646,7 +646,7 @@ study = StudyDefinition(
   prior_covid_test_frequency=patients.with_test_result_in_sgss(
     pathogen="SARS-CoV-2",
     test_result="any",
-    between=[days(studystart_date, -90), days(studystart_date, -1)],
+    between=["index_date - 182 days", "index_date - 1 day"],
     returning="number_of_matches_in_period", # need "count" here but not yet available
     date_format="YYYY-MM-DD",
     find_first_match_in_period=True,
@@ -663,7 +663,7 @@ study = StudyDefinition(
 covid_test_date=patients.with_test_result_in_sgss(
   pathogen="SARS-CoV-2",
   test_result="any",
-  on_or_after="covid_vax_disease_2_date + 84 days",
+  on_or_after="index_date",
   find_first_match_in_period=True,
   restrict_to_earliest_specimen_date=False,
   returning="date",
@@ -673,7 +673,7 @@ covid_test_date=patients.with_test_result_in_sgss(
   # ANY EMERGENCY ATTENDANCE
   covidemergency_date=patients.attended_emergency_care(
     returning="date_arrived",
-    on_or_after="covid_vax_disease_2_date + 84 days",
+    on_or_after="index_date",
     with_these_diagnoses = codelists.covid_emergency,
     date_format="YYYY-MM-DD",
     find_first_match_in_period=True,
@@ -684,7 +684,7 @@ covid_test_date=patients.with_test_result_in_sgss(
     returning="date_admitted",
     with_these_diagnoses=codelists.covid_icd10,
     with_admission_method=["21", "22", "23", "24", "25", "2A", "2B", "2C", "2D", "28"],
-    on_or_after="covid_vax_disease_2_date + 84 days",
+    on_or_after="index_date",
     date_format="YYYY-MM-DD",
     find_first_match_in_period=True,
   ),
@@ -694,7 +694,7 @@ covid_test_date=patients.with_test_result_in_sgss(
     returning="days_in_critical_care",
     with_these_diagnoses=codelists.covid_icd10,
     with_admission_method=["21", "22", "23", "24", "25", "2A", "2B", "2C", "2D", "28"],
-    on_or_after="covid_vax_disease_2_date + 84 days",
+    on_or_after="index_date",
     date_format="YYYY-MM-DD",
     find_first_match_in_period=True,
     return_expectations={
@@ -732,31 +732,31 @@ covid_test_date=patients.with_test_result_in_sgss(
     astadm=patients.with_these_clinical_events(
       codelists.astadm,
       returning="binary_flag",
-      on_or_before="covid_vax_disease_2_date + 84 days",
+      on_or_before="index_date - 1 day",
     ),
     # Asthma Diagnosis code
     ast = patients.with_these_clinical_events(
       codelists.ast,
       returning="binary_flag",
-      on_or_before="covid_vax_disease_2_date + 84 days",
+      on_or_before="index_date - 1 day,
     ),
     # Asthma systemic steroid prescription code in month 1
     astrxm1=patients.with_these_medications(
       codelists.astrx,
       returning="binary_flag",
-      between=["covid_vax_disease_2_date + 57 days", "covid_vax_disease_2_date + 84 days"],
+      between=["index_date - 30 days", "index_date - 1 day"],
     ),
     # Asthma systemic steroid prescription code in month 2
     astrxm2=patients.with_these_medications(
       codelists.astrx,
       returning="binary_flag",
-      between=["covid_vax_disease_2_date + 25 days", "covid_vax_disease_2_date + 56 days"],
+      between=["index_date - 60 days", "index_date - 31 days"],
     ),
     # Asthma systemic steroid prescription code in month 3
     astrxm3=patients.with_these_medications(
       codelists.astrx,
       returning="binary_flag",
-      between= ["covid_vax_disease_2_date", "covid_vax_disease_2_date + 24 days"],
+      between= ["index_date - 90", "index_date - 61 days"],
     ),
 
   ),
@@ -765,7 +765,7 @@ covid_test_date=patients.with_test_result_in_sgss(
   chronic_neuro_disease=patients.with_these_clinical_events(
     codelists.cns_cov,
     returning="binary_flag",
-    on_or_before="covid_vax_disease_2_date + 84 days",
+    on_or_before="index_date - 1 day",
   ),
 
   # Chronic Respiratory Disease
@@ -774,7 +774,7 @@ covid_test_date=patients.with_test_result_in_sgss(
     resp_cov=patients.with_these_clinical_events(
       codelists.resp_cov,
       returning="binary_flag",
-      on_or_before="covid_vax_disease_2_date + 84 days",
+      on_or_before="index_date - 1 day",
     ),
   ),
 
@@ -788,7 +788,7 @@ covid_test_date=patients.with_test_result_in_sgss(
       codelists.bmi_stage,
       returning="date",
       find_last_match_in_period=True,
-      on_or_before="covid_vax_disease_2_date + 84 days",
+      on_or_before="index_date - 1 day",
       date_format="YYYY-MM-DD",
     ),
 
@@ -797,7 +797,7 @@ covid_test_date=patients.with_test_result_in_sgss(
       returning="date",
       find_last_match_in_period=True,
       ignore_missing_values=True,
-      between= ["bmi_stage_date", "covid_vax_disease_2_date + 84 days"],
+      between= ["bmi_stage_date", "index_date - 1 day"],
       date_format="YYYY-MM-DD",
     ),
 
@@ -806,7 +806,7 @@ covid_test_date=patients.with_test_result_in_sgss(
       returning="date",
       ignore_missing_values=True,
       find_last_match_in_period=True,
-      on_or_before="covid_vax_disease_2_date + 84 days",
+      on_or_before="index_date - 1 day",
       date_format="YYYY-MM-DD",
     ),
 
@@ -815,7 +815,7 @@ covid_test_date=patients.with_test_result_in_sgss(
       returning="numeric_value",
       ignore_missing_values=True,
       find_last_match_in_period=True,
-      on_or_before="covid_vax_disease_2_date + 84 days",
+      on_or_before="index_date - 1 day",
     ),
 
   ),
@@ -826,7 +826,7 @@ covid_test_date=patients.with_test_result_in_sgss(
       codelists.diab,
       returning="date",
       find_last_match_in_period=True,
-      on_or_before="covid_vax_disease_2_date + 84 days",
+      on_or_before="index_date - 1 day",
       date_format="YYYY-MM-DD",
     ),
 
@@ -834,7 +834,7 @@ covid_test_date=patients.with_test_result_in_sgss(
       codelists.dmres,
       returning="date",
       find_last_match_in_period=True,
-      on_or_before="covid_vax_disease_2_date + 84 days",
+      on_or_before="index_date - 1 day",
       date_format="YYYY-MM-DD",
     ),
   ),
@@ -847,7 +847,7 @@ covid_test_date=patients.with_test_result_in_sgss(
       codelists.sev_mental,
       returning="date",
       find_last_match_in_period=True,
-      on_or_before="covid_vax_disease_2_date + 84 days",
+      on_or_before="index_date - 1 day",
       date_format="YYYY-MM-DD",
     ),
     # Remission codes relating to Severe Mental Illness
@@ -855,7 +855,7 @@ covid_test_date=patients.with_test_result_in_sgss(
       codelists.smhres,
       returning="date",
       find_last_match_in_period=True,
-      on_or_before="covid_vax_disease_2_date + 84 days",
+      on_or_before="index_date - 1 day",
       date_format="YYYY-MM-DD",
     ),
   ),
@@ -865,7 +865,7 @@ covid_test_date=patients.with_test_result_in_sgss(
   chronic_heart_disease=patients.with_these_clinical_events(
     codelists.chd_cov,
     returning="binary_flag",
-    on_or_before="covid_vax_disease_2_date + 84 days",
+    on_or_before="index_date - 1 day",
   ),
 
   chronic_kidney_disease=patients.satisfying(
@@ -879,7 +879,7 @@ covid_test_date=patients.with_test_result_in_sgss(
       codelists.ckd15,
       returning="date",
       find_last_match_in_period=True,
-      on_or_before="covid_vax_disease_2_date + 84 days",
+      on_or_before="index_date - 1 day",
       date_format="YYYY-MM-DD",
     ),
 
@@ -888,7 +888,7 @@ covid_test_date=patients.with_test_result_in_sgss(
       codelists.ckd35,
       returning="date",
       find_last_match_in_period=True,
-      on_or_before="covid_vax_disease_2_date + 84 days",
+      on_or_before="index_date - 1 day",
       date_format="YYYY-MM-DD",
     ),
 
@@ -896,7 +896,7 @@ covid_test_date=patients.with_test_result_in_sgss(
     ckd=patients.with_these_clinical_events(
       codelists.ckd_cov,
       returning="binary_flag",
-      on_or_before="covid_vax_disease_2_date + 84 days",
+      on_or_before="index_date - 1 day",
     ),
   ),
 
@@ -905,7 +905,7 @@ covid_test_date=patients.with_test_result_in_sgss(
   chronic_liver_disease=patients.with_these_clinical_events(
     codelists.cld,
     returning="binary_flag",
-    on_or_before="covid_vax_disease_2_date + 84 days",
+    on_or_before="index_date - 1 day",
   ),
 
 
@@ -916,13 +916,13 @@ covid_test_date=patients.with_test_result_in_sgss(
     immdx=patients.with_these_clinical_events(
       codelists.immdx_cov,
       returning="binary_flag",
-      on_or_before="covid_vax_disease_2_date + 84 days",
+      on_or_before="index_date - 1 day",
     ),
     # Immunosuppression medication codes
     immrx=patients.with_these_medications(
       codelists.immrx,
       returning="binary_flag",
-      between=["covid_vax_disease_2_date - 84 days", "covid_vax_disease_2_date + 84 days"]
+      between=["index_date - 182 days", "index_date - 1 day"]
     ),
   ),
 
@@ -930,14 +930,14 @@ covid_test_date=patients.with_test_result_in_sgss(
   asplenia=patients.with_these_clinical_events(
     codelists.spln_cov,
     returning="binary_flag",
-    on_or_before="covid_vax_disease_2_date + 84 days",
+    on_or_before="index_date - 1 day",
   ),
 
   # Wider Learning Disability
   learndis=patients.with_these_clinical_events(
     codelists.learndis,
     returning="binary_flag",
-    on_or_before="covid_vax_disease_2_date + 84 days",
+    on_or_before="index_date - 1 day",
   ),
 
 
@@ -946,7 +946,7 @@ covid_test_date=patients.with_test_result_in_sgss(
   #   codelists.hhld_imdef,
   #   returning="date",
   #   find_last_match_in_period=True,
-  #   on_or_before="covid_vax_disease_2_date",
+  #   on_or_before="index_date - 1 day",
   #   date_format="YYYY-MM-DD",
   # ),
   #
@@ -959,7 +959,7 @@ covid_test_date=patients.with_test_result_in_sgss(
   #   codelists.carer,
   #   returning="date",
   #   find_last_match_in_period=True,
-  #   on_or_before="covid_vax_disease_2_date",
+  #   on_or_before="index_date - 1 day",
   #   date_format="YYYY-MM-DD",
   # ),
   # # No longer a carer codes
@@ -967,7 +967,7 @@ covid_test_date=patients.with_test_result_in_sgss(
   #   codelists.notcarer,
   #   returning="date",
   #   find_last_match_in_period=True,
-  #   on_or_before="covid_vax_disease_2_date"",
+  #   on_or_before="index_date - 1 day",
   #   date_format="YYYY-MM-DD",
   # ),
   # # Employed by Care Home codes
@@ -975,7 +975,7 @@ covid_test_date=patients.with_test_result_in_sgss(
   #   codelists.carehomeemployee,
   #   returning="date",
   #   find_last_match_in_period=True,
-  #   on_or_before="covid_vax_disease_2_date",
+  #   on_or_before="index_date - 1 day",
   #   date_format="YYYY-MM-DD",
   # ),
   # # Employed by nursing home codes
@@ -983,7 +983,7 @@ covid_test_date=patients.with_test_result_in_sgss(
   #   codelists.nursehomeemployee,
   #   returning="date",
   #   find_last_match_in_period=True,
-  #   on_or_before="covid_vax_disease_2_date",
+  #   on_or_before="index_date - 1 day",
   #   date_format="YYYY-MM-DD",
   # ),
   # # Employed by domiciliary care provider codes
@@ -991,14 +991,14 @@ covid_test_date=patients.with_test_result_in_sgss(
   #   codelists.domcareemployee,
   #   returning="date",
   #   find_last_match_in_period=True,
-  #   on_or_before="covid_vax_disease_2_date",
+  #   on_or_before="index_date - 1 day",
   #   date_format="YYYY-MM-DD",
   # ),
 
   cev_ever = patients.with_these_clinical_events(
     codelists.shield,
     returning="binary_flag",
-    on_or_before = "covid_vax_disease_2_date + 84 days",
+    on_or_before = "index_date - 1 day",
     find_last_match_in_period = True,
   ),
 
@@ -1009,7 +1009,7 @@ covid_test_date=patients.with_test_result_in_sgss(
     severely_clinically_vulnerable=patients.with_these_clinical_events(
       codelists.shield,
       returning="binary_flag",
-      on_or_before = "covid_vax_disease_2_date + 84 days",
+      on_or_before = "index_date - 1 day",
       find_last_match_in_period = True,
     ),
 
@@ -1022,7 +1022,7 @@ covid_test_date=patients.with_test_result_in_sgss(
     ### NOT SHIELDED GROUP (medium and low risk) - only flag if later than 'shielded'
     less_vulnerable=patients.with_these_clinical_events(
       codelists.nonshield,
-      between=["date_severely_clinically_vulnerable + 1 day", "covid_vax_disease_2_date + 83 days"],
+      between=["date_severely_clinically_vulnerable + 1 day", "index_date - 1 day",],
     ),
 
   ),
