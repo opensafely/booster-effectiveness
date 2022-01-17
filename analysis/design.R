@@ -88,3 +88,7 @@ variable_labels <- list(
   set_names(., map_chr(., all.vars))
 
 write_rds(variable_labels, here("lib", "design", "variable-labels.rds"))
+
+# where to split follow-up time after recruitment
+postbaselinecuts <- seq(0,7*12, 7)
+write_rds(postbaselinecuts, here("lib", "design", "postbaselinecuts.rds"))

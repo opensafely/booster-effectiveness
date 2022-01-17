@@ -48,8 +48,6 @@ study_dates <-
   jsonlite::read_json(path=here("lib", "design", "study-dates.json")) %>%
   map(as.Date)
 
-postvaxcuts <- seq(0,7*12, 7)
-
 model_tidy <- read_csv(fs::path(output_dir, "model_tidy.csv"))
 
 model_effects <- model_tidy %>%

@@ -42,17 +42,17 @@ source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "survival.R"))
 
 
+postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
+
 # create output directories ----
 
 output_dir <- here("output", "models", "seqtrialcox", treatment, outcome)
 fs::dir_create(output_dir)
 
-
-
 ## create special log file ----
 cat(glue("## script info for {outcome} ##"), "  \n", file = fs::path(output_dir, glue("model_log.txt")), append = FALSE)
 
-## function to pass additional log text
+## functions to pass additional log info to seperate file
 logoutput <- function(...){
   cat(..., file = fs::path(output_dir, glue("model_log.txt")), sep = "\n  ", append = TRUE)
   cat("\n", file = fs::path(output_dir, glue("model_log.txt")), sep = "\n  ", append = TRUE)
@@ -80,7 +80,7 @@ study_dates <-
   jsonlite::read_json(path=here("lib", "design", "study-dates.json")) %>%
   map(as.Date)
 
-postvaxcuts <- seq(0,7*12, 7)
+
 
 ## import metadata ----
 events <- read_rds(here("lib", "design", "event-variables.rds"))
@@ -184,20 +184,6 @@ if(removeobjects) rm(data_cohort)
 
 # one row per vaccination or outcome or censoring event ----
 data_events <- local({
-
-  # one row per patient per post-vaccination week
-  postvax_days <- data_tte %>%
-    select(patient_id) %>%
-    uncount(weights = length(postvaxcuts), .id="id_postvax") %>%
-    mutate(
-      dayssincevax = postvaxcuts[id_postvax],
-      dayssincevax_pw = factor(paste0(postvaxcuts[id_postvax], "-", postvaxcuts[id_postvax+1]-1))
-    ) %>%
-    select(patient_id, dayssincevax, dayssincevax_pw) %>%
-    left_join(data_tte %>% select(patient_id, tte_treatment), by="patient_id") %>%
-    mutate(
-      day=dayssincevax+tte_treatment
-    )
 
   ## person-time dataset of vaccination status + outcome
   data_events <-
@@ -411,19 +397,24 @@ sample_untreated <- function(treatment, censor, id, max_trial_day=NULL, idname="
 }
 
 
-## strata loop
+## strata loop ----
+# match controls to boosted participants based on
+# jcvi group, region, and doses 1 and 2
+
+
+strata_variables <- c("jcvi_group", "vax12_type", "region")
 
 strata <-
 data_baseline %>%
-  group_by(jcvi_group, region) %>%
+  group_by(across(all_of(strata_variables))) %>%
   summarise(
     n=n(),
     .groups="drop"
   ) %>%
   mutate(
-    strata_id = row_number()
+    strata_id = row_number(),
+    strata_name = paste(!!!syms(strata_variables), sep=" ")
   )
-
 
 data_samples0 <- local({
 
@@ -433,11 +424,13 @@ data_samples0 <- local({
 
     stratum <- filter(strata, strata_id==id)
 
+    message(stratum$strata_name)
+
     tte_stratum <-
       stratum %>%
       left_join(
         data_baseline,
-        by=c("jcvi_group", "region")
+        by=strata_variables
       ) %>%
       select(patient_id) %>%
       left_join(
@@ -512,23 +505,22 @@ data_seqtrialcox <- local({
     ) %>%
     select(-tstart2, -tstop2) %>%
 
-        # add time-non-varying info
+    # add time-non-varying info
     left_join(
-      data_baseline %>% select(-jcvi_group, -region),
+      data_baseline %>% select(-all_of(strata_variables)),
       by=c("patient_id")
     ) %>%
 
-    # remaining variables
+    # remaining variables that combine both
     mutate(
       vax2_dayssince = vax2_to_startdate+trial_time,
       postest_dayssince = tstart - postest_mostrecent,
       postest_status = fct_case_when(
         is.na(postest_dayssince) & !prior_covid_infection ~ "No previous infection",
-        between(postest_dayssince, 0, 21) ~ "Positive test <= 21 days",
-        postest_dayssince>21 | prior_covid_infection ~ "Positive test > 21 days",
+        between(postest_dayssince, 0, 21) ~ "Positive test <= 21 days ago",
+        postest_dayssince>21 | prior_covid_infection ~ "Positive test > 21 days ago",
         TRUE ~ NA_character_
       ),
-      #admitted_dayssince = tstart - admitted_mostrecent,
     )
 
   ## create treatment timescale variables ----
@@ -536,10 +528,10 @@ data_seqtrialcox <- local({
   # one row per patient per post-recruitment split time
   fup_split <-
     data_samples %>%
-    uncount(weights = length(postvaxcuts), .id="id_postvax") %>%
+    uncount(weights = length(postbaselinecuts), .id="id_postvax") %>%
     mutate(
-      fup_time = postvaxcuts[id_postvax],
-      recruit_dayssincepw = timesince_cut(fup_time+trial_time, postvaxcuts-1),
+      fup_time = postbaselinecuts[id_postvax],
+      recruit_dayssincepw = timesince_cut(fup_time+trial_time, postbaselinecuts-1),
     ) %>%
     droplevels() %>%
     select(
