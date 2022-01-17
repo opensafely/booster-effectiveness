@@ -226,21 +226,18 @@ actions_list <- splice(
   #     svg = "output/descriptive/km/plot_survival*.svg"
   #   )
   # ),
-  #
-  # action(
-  #   name = "descr_vaxdate",
-  #   run = "r:latest analysis/descriptive/vax_date.R",
-  #   needs = list("data_selection"),
-  #   highly_sensitive = lst(
-  #     rds = "output/descriptive/vaxdate/*.rds"
-  #   ),
-  #   moderately_sensitive = lst(
-  #     png = "output/descriptive/vaxdate/*.png",
-  #     pdf = "output/descriptive/vaxdate/*.pdf",
-  #     svg = "output/descriptive/vaxdate/*.svg"
-  #   )
-  # ),
-  #
+
+  action(
+    name = "descr_vaxdate",
+    run = "r:latest analysis/descriptive/vax_date.R",
+    needs = list("data_selection"),
+    moderately_sensitive = lst(
+      png = "output/descriptive/vaxdate/*.png",
+      pdf = "output/descriptive/vaxdate/*.pdf",
+      svg = "output/descriptive/vaxdate/*.svg"
+    )
+  ),
+
   # action(
   #   name = "descr_eventdate",
   #   run = "r:latest analysis/descriptive/event_date.R",

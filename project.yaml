@@ -56,6 +56,17 @@ actions:
   ## # # # # # # # # # # # # # # # # # # # 
   ## Descriptive stats 
   ## # # # # # # # # # # # # # # # # # # # 
+
+  descr_vaxdate:
+    run: r:latest analysis/descriptive/vax_date.R
+    needs:
+    - data_selection
+    outputs:
+      moderately_sensitive:
+        png: output/descriptive/vaxdate/*.png
+        pdf: output/descriptive/vaxdate/*.pdf
+        svg: output/descriptive/vaxdate/*.svg
+
   ## # # # # # # # # # # # # # # # # # # # 
   ## Models 
   ## # # # # # # # # # # # # # # # # # # # 
