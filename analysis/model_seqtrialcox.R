@@ -468,6 +468,7 @@ data_samples <-
   mutate(
     trial_day = trial_time+1,
     treated_patient_id = paste0(treated, "_", patient_id),
+    tte_recruitment = trial_time,
     tte_stop = if_else(treated==1L, tte_stop, pmin(tte_stop, tte_treatment, na.rm=TRUE))
   )
 
@@ -488,9 +489,8 @@ data_seqtrialcox <- local({
       data1 = data_samples,
       data2 = data_samples,
       id = treated_patient_id,
-      tstart = trial_time,
-      tstop = tte_stop,
-      ind_outcome = event(tte_outcome)
+      tstart = tte_recruitment,
+      tstop = tte_stop
     ) %>%
     select(-id, -starts_with("tte")) %>%
 
@@ -528,15 +528,16 @@ data_seqtrialcox <- local({
   # one row per patient per post-recruitment split time
   fup_split <-
     data_samples %>%
-    uncount(weights = length(postbaselinecuts), .id="id_postvax") %>%
+    uncount(weights = length(postbaselinecuts)-1, .id="period_id") %>%
     mutate(
-      fup_time = postbaselinecuts[id_postvax],
-      recruit_dayssincepw = timesince_cut(fup_time+trial_time, postbaselinecuts-1),
+      fup_time = postbaselinecuts[period_id],
+      fup_period = timesince_cut(fup_time, postbaselinecuts-1),
+      trial_time = trial_time + fup_time
     ) %>%
     droplevels() %>%
     select(
-      patient_id, treated, treated_patient_id, trial_time, fup_time,
-      recruit_dayssincepw
+      patient_id, treated, treated_patient_id, period_id, trial_time, fup_time,
+      fup_period
    )
 
   # add post-recruitment periods to data
@@ -544,23 +545,32 @@ data_seqtrialcox <- local({
     # re-initialise tmerge object
     tmerge(
       data1 = data_st0,
-      data2 = data_st0,
+      data2 = data_samples,
       id = treated_patient_id,
-      tstart = tstart,
-      tstop = tstop
+      tstart = trial_time,
+      tstop = tte_stop,
+      ind_outcome = event(tte_outcome)
     ) %>%
     # add post-recruitment periods
     tmerge(
       data1 = .,
       data2 = fup_split,
       id = treated_patient_id,
-      recruit_dayssincepw = tdc(fup_time+trial_time, recruit_dayssincepw)
+      fup_period = tdc(trial_time, fup_period),
+      treated_period = tdc(trial_time, period_id)
     ) %>%
     mutate(
       id = NULL,
-      #fup_day = tstart - tte_trial,
-      #tstart = tstart - tte_trial,
-      #tstop = tstop - tte_trial
+      # time-zero is recruitment day
+      tstart = tstart - trial_time,
+      tstop = tstop - trial_time
+    ) %>%
+    fastDummies::dummy_cols(select_columns = c("treated_period"), remove_selected_columns=TRUE) %>%
+    mutate(
+      across(
+        starts_with("treated_period"),
+        ~if_else(treated==1, .x, 0L)
+      )
     )
 
   data_st
@@ -568,15 +578,25 @@ data_seqtrialcox <- local({
 })
 logoutput_datasize(data_seqtrialcox)
 
+write_rds(data_seqtrialcox, fs::path(output_dir, "model_data_seqtrialcox.rds"))
 
 # outcome frequency
-outcomes_per_treated <- table(days = data_seqtrialcox$recruit_dayssincepw, outcome=data_seqtrialcox$ind_outcome, treated=data_seqtrialcox$treated)
+outcomes_per_treated <- table(days = data_seqtrialcox$fup_period, outcome=data_seqtrialcox$ind_outcome, treated=data_seqtrialcox$treated)
 logoutput_table(outcomes_per_treated)
 
-# define model formulae
+## define model formulae ----
+
+treated_period_variables <- data_seqtrialcox %>% select(starts_with("treated_period")) %>% names()
 
 # unadjusted
-formula_vaxonly <- Surv(tstart, tstop, ind_outcome) ~ treated:strata(recruit_dayssincepw)
+formula_vaxonly <- as.formula(
+  str_c(
+    "Surv(tstart, tstop, ind_outcome) ~ ",
+    str_c(treated_period_variables, collapse = " + ")
+  )
+)
+
+#formula_vaxonly <- Surv(tstart, tstop, ind_outcome) ~ treated:strata(fup_period)
 
 # cox stratification
 formula_strata <- . ~ . +
@@ -663,6 +683,7 @@ cox_model <- function(number, formula_cox){
       .before = 1
     )
 
+  # remove data to save space (it's already saved above)
   coxmod$data <- NULL
   write_rds(coxmod, fs::path(output_dir, glue("model_obj{number}.rds")), compress="gz")
 
