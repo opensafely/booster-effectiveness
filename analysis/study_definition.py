@@ -214,7 +214,7 @@ study = StudyDefinition(
     name = "covid_vax_moderna",
     index_date = "1900-01-01",
     n = 4,
-    product_name_matches="COVID-19 mRNA (nucleoside modified) Vaccine Moderna 0.1mg/0.5mL dose dispersion for inj MDV",
+    product_name_matches="COVID-19 mRNA Vaccine Spikevax (nucleoside modified) 0.1mg/0.5mL dose disp for inj MDV (Moderna)",
   ),
   
   
