@@ -14,7 +14,7 @@ import codelists
 # import json module
 import json
 
-# import study dates
+# import study dates defined in "design.R" script
 with open("./lib/design/study-dates.json") as f:
   study_dates = json.load(f)
 
@@ -27,29 +27,26 @@ firstaz_date = study_dates["firstaz_date"]
 firstmoderna_date = study_dates["firstmoderna_date"]
 
 
-from datetime import datetime, timedelta
-def days(datestring, days):
-  
-  dt = datetime.strptime(datestring, "%Y-%m-%d").date()
-  dt_add = dt + timedelta(days)
-  datestring_add = datetime.strftime(dt_add, "%Y-%m-%d")
-
-  return datestring_add
+## Functions for extracting a series of time dependent variables
+# These define study defintion variable signatures such that
+# variable_1_date is the the first event date on or after the index date
+# variable_2_date is the first event date strictly after variable_2_date
+# ...
+# variable_n_date is the first event date strictly after variable_n-1_date
 
 
-## functions for extracting time dependent variables
-
-
-def vaccination_date_X(name, index_date, n, product_name_matches):
-  
+def vaccination_date_X(name, index_date, n, product_name_matches=None, target_disease_matches=None):
+  # vaccination date, given product_name
   def var_signature(
     name,
     on_or_after,
-    product_name_matches
+    product_name_matches,
+    target_disease_matches
   ):
     return {
       name: patients.with_tpp_vaccination_record(
         product_name_matches=product_name_matches,
+        target_disease_matches=target_disease_matches,
         on_or_after=on_or_after,
         find_first_match_in_period=True,
         returning="date",
@@ -57,18 +54,19 @@ def vaccination_date_X(name, index_date, n, product_name_matches):
       ),
     }
     
-  variables = var_signature(f"{name}_1_date", index_date, product_name_matches)
+  variables = var_signature(f"{name}_1_date", index_date, product_name_matches, target_disease_matches)
   for i in range(2, n+1):
     variables.update(var_signature(
       f"{name}_{i}_date", 
       f"{name}_{i-1}_date + 1 days", 
-      product_name_matches
+      product_name_matches,
+      target_disease_matches
     ))
   return variables
 
 
 def covid_test_date_X(name, index_date, n, test_result):
-    
+  # covid test date (result can be "any", "positive", or "negative")
   def var_signature(name, on_or_after, test_result):
     return {
       name: patients.with_test_result_in_sgss(
@@ -90,7 +88,7 @@ def covid_test_date_X(name, index_date, n, test_result):
 def emergency_attendance_date_X(
   name, index_date, n
 ):
-    
+  # emeregency attendance dates
   def var_signature(name, on_or_after):
     return {
       name: patients.attended_emergency_care(
@@ -108,6 +106,7 @@ def emergency_attendance_date_X(
 
 
 def admitted_date_X(
+  # hospital admission dates, given admission method and patient classification
   name, index_name, index_date, n, returning, 
   with_these_diagnoses=None, 
   with_admission_method=None, 
@@ -153,6 +152,7 @@ def admitted_date_X(
 
 # Specifiy study defeinition
 study = StudyDefinition(
+  
   # Configure the expectations framework
   default_expectations={
     "date": {"earliest": "2020-01-01", "latest": studyend_date},
@@ -185,12 +185,8 @@ study = StudyDefinition(
   ),
   
   
-  ###############################################################################
-  # COVID VACCINATION
-  ###############################################################################
-  
   #################################################################
-  ## COVID VACCINATION
+  ## Covid vaccine dates
   #################################################################
   
   # pfizer
@@ -198,7 +194,7 @@ study = StudyDefinition(
     name = "covid_vax_pfizer",
     index_date = "1900-01-01",
     n = 4,
-    product_name_matches="COVID-19 mRNA Vaccine Comirnaty 30micrograms/0.3ml dose conc for susp for inj MDV (Pfizer)",
+    product_name_matches="COVID-19 mRNA Vaccine Comirnaty 30micrograms/0.3ml dose conc for susp for inj MDV (Pfizer)"
   ),
   
   # az
@@ -206,7 +202,7 @@ study = StudyDefinition(
     name = "covid_vax_az",
     index_date = "1900-01-01",
     n = 4,
-    product_name_matches="COVID-19 Vac AstraZeneca (ChAdOx1 S recomb) 5x10000000000 viral particles/0.5ml dose sol for inj MDV",
+    product_name_matches="COVID-19 Vac AstraZeneca (ChAdOx1 S recomb) 5x10000000000 viral particles/0.5ml dose sol for inj MDV"
   ),
   
   # moderna
@@ -214,49 +210,19 @@ study = StudyDefinition(
     name = "covid_vax_moderna",
     index_date = "1900-01-01",
     n = 4,
-    product_name_matches="COVID-19 mRNA Vaccine Spikevax (nucleoside modified) 0.1mg/0.5mL dose disp for inj MDV (Moderna)",
+    product_name_matches="COVID-19 mRNA Vaccine Spikevax (nucleoside modified) 0.1mg/0.5mL dose disp for inj MDV (Moderna)"
   ),
   
-  
-  #################################################################
-  ## COVID VACCINATION TYPE = any based on disease target
-  #################################################################
-  
-  covid_vax_disease_1_date=patients.with_tpp_vaccination_record(
-    target_disease_matches="SARS-2 CORONAVIRUS",
-    on_or_after=firstpossiblevax_date,
-    find_first_match_in_period=True,
-    returning="date",
-    date_format="YYYY-MM-DD",
+  # any covid vaccine
+    **vaccination_date_X(
+    name = "covid_vax_disease",
+    index_date = "1900-01-01",
+    n = 4,
+    target_disease_matches="SARS-2 CORONAVIRUS"
   ),
   
-  covid_vax_disease_2_date=patients.with_tpp_vaccination_record(
-    target_disease_matches="SARS-2 CORONAVIRUS",
-    on_or_after="covid_vax_disease_1_date + 1 days",
-    find_first_match_in_period=True,
-    returning="date",
-    date_format="YYYY-MM-DD",
-  ),
-
-  covid_vax_disease_3_date=patients.with_tpp_vaccination_record(
-    target_disease_matches="SARS-2 CORONAVIRUS",
-    on_or_after="covid_vax_disease_2_date + 1 days",
-    find_first_match_in_period=True,
-    returning="date",
-    date_format="YYYY-MM-DD",
-  ),
-  
-  covid_vax_disease_4_date=patients.with_tpp_vaccination_record(
-    target_disease_matches="SARS-2 CORONAVIRUS",
-    on_or_after="covid_vax_disease_3_date + 1 days",
-    find_first_match_in_period=True,
-    returning="date",
-    date_format="YYYY-MM-DD",
-  ),
-  
-
   ###############################################################################
-  # ADMIN AND DEMOGRAPHICS
+  ## Admin and demogrpahics
   ###############################################################################
   
   has_follow_up_previous_6weeks=patients.registered_with_one_practice_between(
@@ -270,16 +236,15 @@ study = StudyDefinition(
   ),
   
   
-  # https://github.com/opensafely/risk-factors-research/issues/49
   age=patients.age_as_of( 
     "index_date - 1 day",
   ),
   
+  # for jcvi group definitions
   age_march2020=patients.age_as_of( 
     "2020-03-31",
   ),
   
-  # https://github.com/opensafely/risk-factors-research/issues/46
   sex=patients.sex(
     return_expectations={
       "rate": "universal",
@@ -314,40 +279,8 @@ study = StudyDefinition(
     },
   ),
   
-  
-  
-  # ETHNICITY IN 16 CATEGORIES
-  # ethnicity_16=patients.with_these_clinical_events(
-  #     ethnicity_16,
-  #     returning="category",
-  #     find_last_match_in_period=True,
-  #     include_date_of_match=False,
-  #     return_expectations={
-  #         "category": {
-  #             "ratios": {
-  #                 "1": 0.0625,
-  #                 "2": 0.0625,
-  #                 "3": 0.0625,
-  #                 "4": 0.0625,
-  #                 "5": 0.0625,
-  #                 "6": 0.0625,
-  #                 "7": 0.0625,
-  #                 "8": 0.0625,
-  #                 "9": 0.0625,
-  #                 "10": 0.0625,
-  #                 "11": 0.0625,
-  #                 "12": 0.0625,
-  #                 "13": 0.0625,
-  #                 "14": 0.0625,
-  #                 "15": 0.0625,
-  #                 "16": 0.0625,
-  #             }
-  #         },
-  #         "incidence": 0.75,
-  #     },
-  # ),
-  
-  # ETHNICITY IN 6 CATEGORIES
+
+  # Ethnicity in 6 categories
   ethnicity = patients.with_these_clinical_events(
     codelists.ethnicity,
     returning="category",
@@ -369,9 +302,9 @@ study = StudyDefinition(
     },
   ),
   
-  ################################################
-  ###### PRACTICE AND PATIENT ADDRESS VARIABLES ##
-  ################################################
+  ################################################################################################
+  ## Practice and patient ID variables
+  ################################################################################################
   # practice pseudo id
   practice_id=patients.registered_practice_as_of(
     "index_date - 1 day",
@@ -501,9 +434,9 @@ study = StudyDefinition(
   ),
   
 
-  ################################################
-  ############ pre-vaccine events ################
-  ################################################
+  ################################################################################################
+  ## Pre- and during- study event dates
+  ################################################################################################
 
   # positive covid test
   positive_test_0_date=patients.with_test_result_in_sgss(
@@ -632,7 +565,8 @@ study = StudyDefinition(
     date_format="YYYY-MM-DD",
     find_first_match_in_period=True,
   ),
-
+  
+  # covid PCR test dates from SGSS
   covid_test_0_date=patients.with_test_result_in_sgss(
     pathogen="SARS-CoV-2",
     test_result="any",
@@ -641,6 +575,16 @@ study = StudyDefinition(
     date_format="YYYY-MM-DD",
     find_first_match_in_period=True,
     restrict_to_earliest_specimen_date=False,
+  ),
+  
+  covid_test_date=patients.with_test_result_in_sgss(
+    pathogen="SARS-CoV-2",
+    test_result="any",
+    on_or_after="index_date",
+    find_first_match_in_period=True,
+    restrict_to_earliest_specimen_date=False,
+    returning="date",
+    date_format="YYYY-MM-DD",
   ),
 
   prior_covid_test_frequency=patients.with_test_result_in_sgss(
@@ -654,23 +598,7 @@ study = StudyDefinition(
   ),
 
 
-  ################################################
-  ############ events during study period ########
-  ################################################
-
-
-  # SGSS TEST
-covid_test_date=patients.with_test_result_in_sgss(
-  pathogen="SARS-CoV-2",
-  test_result="any",
-  on_or_after="index_date",
-  find_first_match_in_period=True,
-  restrict_to_earliest_specimen_date=False,
-  returning="date",
-  date_format="YYYY-MM-DD",
-),
-
-  # ANY EMERGENCY ATTENDANCE
+  # any emergency attendance
   covidemergency_date=patients.attended_emergency_care(
     returning="date_arrived",
     on_or_after="index_date",
@@ -679,7 +607,7 @@ covid_test_date=patients.with_test_result_in_sgss(
     find_first_match_in_period=True,
   ),
 
-  # COVID-RELATED UNPLANNED HOSPITAL ADMISSION
+  # Covid-related unplanned hospital admissions
   covidadmitted_date=patients.admitted_to_hospital(
     returning="date_admitted",
     with_these_diagnoses=codelists.covid_icd10,
@@ -689,7 +617,7 @@ covid_test_date=patients.with_test_result_in_sgss(
     find_first_match_in_period=True,
   ),
 
-  # COVID-RELATED UNPLANNED HOSPITAL ADMISSION DAYS IN CRITICAL CARE
+  # Covid-related unplanned ICU hospital admissions
   covidadmitted_ccdays=patients.admitted_to_hospital(
     returning="days_in_critical_care",
     with_these_diagnoses=codelists.covid_icd10,
@@ -703,14 +631,14 @@ covid_test_date=patients.with_test_result_in_sgss(
     },
   ),
 
-  # COVID-RELATED DEATH
+  # Covid-related death
   coviddeath_date=patients.with_these_codes_on_death_certificate(
     codelists.covid_icd10,
     returning="date_of_death",
     date_format="YYYY-MM-DD",
   ),
   
-  # ALL-CAUSE DEATH
+  # All-cause death
   death_date=patients.died_from_any_cause(
     returning="date_of_death",
     date_format="YYYY-MM-DD",
@@ -718,7 +646,7 @@ covid_test_date=patients.with_test_result_in_sgss(
 
 
   ############################################################
-  ######### CLINICAL CO-MORBIDITIES ##########################
+  ## Clinical information as at index date
   ############################################################
   # From PRIMIS
 
