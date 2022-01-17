@@ -257,17 +257,14 @@ actions_list <- splice(
 
   comment("###  Positive SARS-CoV-2 Test"),
   action_model("pfizer", "postest"),
-  action_model("az", "postest"),
   action_model("moderna", "postest"),
 
   comment("###  COVID-19 unplanned admission"),
   action_model("pfizer", "covidadmitted"),
-  action_model("az", "covidadmitted"),
   action_model("moderna", "covidadmitted"),
 
   comment("###  COVID-19 death"),
   action_model("pfizer", "coviddeath"),
-  action_model("az", "coviddeath"),
   action_model("moderna", "coviddeath"),
 
   comment("# # # # # # # # # # # # # # # # # # #", "Reports", "# # # # # # # # # # # # # # # # # # #")
