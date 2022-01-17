@@ -185,6 +185,7 @@ plot_count <-
     expand = expansion(c(0, NA))
   )+
   scale_fill_brewer(type="qual", palette="Set2")+
+  scale_colour_brewer(type="qual", palette="Set2")+
   labs(
     x="Date",
     y="Booster vaccines per day",
@@ -380,6 +381,7 @@ plot_count_region <-
     expand = expansion(c(0, NA))
   )+
   scale_fill_brewer(type="qual", palette="Set2")+
+  scale_colour_brewer(type="qual", palette="Set2")+
   labs(
     x="Date",
     y="Booster vaccines per day",
