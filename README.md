@@ -4,7 +4,7 @@ This study estimates effectiveness of booster doses
 
 ## Repository navigation
 
--   The [protocol is in the OpenSAFELY Google drive](https://docs.google.com/document/d/1Lu_ZEhCxKpMaPs4U_WsLR-Swb3mD7y8sP-49xibt-N8/edit#)
+-   The [protocol is in the OpenSAFELY Google drive](https://docs.google.com/document/d/1Lu_ZEhCxKpMaPs4U_WsLR-Swb3mD7y8sP-49xibt-N8/edit#) (restricted access only).
 
 -   If you are interested in how we defined our codelists, look in the [`codelists/`](./codelists/) directory.
 
