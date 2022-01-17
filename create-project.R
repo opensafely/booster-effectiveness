@@ -263,6 +263,10 @@ actions_list <- splice(
   action_model("pfizer", "covidadmitted"),
   action_model("moderna", "covidadmitted"),
 
+  comment("###  COVID-19 ICU/Critical care admission"),
+  action_model("pfizer", "covidcc"),
+  action_model("moderna", "covidcc"),
+
   comment("###  COVID-19 death"),
   action_model("pfizer", "coviddeath"),
   action_model("moderna", "coviddeath"),

@@ -162,6 +162,52 @@ actions:
         svg: output/models/seqtrialcox/moderna/covidadmitted/report_*.svg
         png: output/models/seqtrialcox/moderna/covidadmitted/report_*.png
 
+  ## ###  COVID-19 ICU/Critical care admission 
+
+  model_seqtrialcox_pfizer_covidcc:
+    run: r:latest analysis/model_seqtrialcox.R pfizer covidcc
+    needs:
+    - data_selection
+    - data_process_long
+    outputs:
+      highly_sensitive:
+        rds: output/models/seqtrialcox/pfizer/covidcc/model_*.rds
+      moderately_sensitive:
+        txt: output/models/seqtrialcox/pfizer/covidcc/model_*.txt
+        csv: output/models/seqtrialcox/pfizer/covidcc/model_*.csv
+
+  report_seqtrialcox_pfizer_covidcc:
+    run: r:latest analysis/report_seqtrialcox.R pfizer covidcc
+    needs:
+    - model_seqtrialcox_pfizer_covidcc
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/pfizer/covidcc/report_*.csv
+        svg: output/models/seqtrialcox/pfizer/covidcc/report_*.svg
+        png: output/models/seqtrialcox/pfizer/covidcc/report_*.png
+
+  model_seqtrialcox_moderna_covidcc:
+    run: r:latest analysis/model_seqtrialcox.R moderna covidcc
+    needs:
+    - data_selection
+    - data_process_long
+    outputs:
+      highly_sensitive:
+        rds: output/models/seqtrialcox/moderna/covidcc/model_*.rds
+      moderately_sensitive:
+        txt: output/models/seqtrialcox/moderna/covidcc/model_*.txt
+        csv: output/models/seqtrialcox/moderna/covidcc/model_*.csv
+
+  report_seqtrialcox_moderna_covidcc:
+    run: r:latest analysis/report_seqtrialcox.R moderna covidcc
+    needs:
+    - model_seqtrialcox_moderna_covidcc
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/moderna/covidcc/report_*.csv
+        svg: output/models/seqtrialcox/moderna/covidcc/report_*.svg
+        png: output/models/seqtrialcox/moderna/covidcc/report_*.png
+
   ## ###  COVID-19 death 
 
   model_seqtrialcox_pfizer_coviddeath:
