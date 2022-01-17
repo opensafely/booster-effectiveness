@@ -229,7 +229,7 @@ actions_list <- splice(
 
   action(
     name = "descr_vaxdate",
-    run = "r:latest analysis/descriptive/vax_date.R",
+    run = "r:latest analysis/vax_date.R",
     needs = list("data_selection"),
     moderately_sensitive = lst(
       png = "output/descriptive/vaxdate/*.png",

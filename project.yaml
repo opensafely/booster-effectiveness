@@ -58,7 +58,7 @@ actions:
   ## # # # # # # # # # # # # # # # # # # # 
 
   descr_vaxdate:
-    run: r:latest analysis/descriptive/vax_date.R
+    run: r:latest analysis/vax_date.R
     needs:
     - data_selection
     outputs:
