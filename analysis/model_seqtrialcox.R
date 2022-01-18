@@ -325,7 +325,7 @@ logoutput_datasize(data_timevarying)
 
 
 # function to get sample non-treated without replacement over time
-sample_untreated <- function(treatment, censor, id, max_trial_day=NULL, idname="patient_id"){
+sample_untreated <- function(treatment, censor, id, max_trial_day=NULL, min_arm_size=1L, idname="patient_id"){
   # for each time point:
   # TRUE if treatment occurs
   # TRUE with probability of `n/sum(event==FALSE & not-already-selected)` if outcome has not occurred
@@ -364,13 +364,17 @@ sample_untreated <- function(treatment, censor, id, max_trial_day=NULL, idname="
     # treated participants
     trial_ids1 <- id[(treatment %in% trial_time) & (censor > trial_time)]
     n_treated <- length(trial_ids1)
+    if(n_treated < min_arm_size) {
+      message("Number of treated people for trial=",trial," is less than ", min_arm_size, ". Skipping this trial.")
+      next
+    }
     # candidate controls (anyone who hasn't been treated yet (treatment>trial_time), censored yet (censor>trial_time), and anyone who hasn't already been selected as a control (candidate0ids from trial-1))
     candidate0ids <- id[ (censor>trial_time) & ((treatment > trial_time) | is.na(treatment)) & (id %in% candidate0ids)]
     # actual controls - select first n candidates according to ranked id
     trial_ids0 <- candidate0ids[dplyr::dense_rank(candidate0ids)<=n_treated]
 
     if(length(trial_ids0) != n_treated) {
-      message("not enough remaining untreated candidates for trial=",trial,". Outputting samples up to trial=",trial-1)
+      message("not enough remaining untreated candidates for trial=",trial,". Outputting samples up to trial=",trial-1, ".")
       break
     }
 
