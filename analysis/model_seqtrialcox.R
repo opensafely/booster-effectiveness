@@ -41,8 +41,14 @@ library('survival')
 source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "survival.R"))
 
-
 postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
+
+if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
+  recruitment_period_cutoff <- 0.1
+} else{
+  recruitment_period_cutoff <- read_rds(here("lib", "design", "recruitment_period_cutoff.rds"))
+}
+
 
 # create output directories ----
 
@@ -95,10 +101,62 @@ data_cohort <- read_rds(here("output", "data", "data_cohort.rds"))
 
 logoutput_datasize(data_cohort)
 
+
+
+### rolling average of boosting per strata ----
+select_recruitment_period <- function(index, x, min_x){
+
+  max_index <- length(x)
+  # start recruiting when x exceeds min_x, and stop recruiting when x is less than min_x
+  start <- match(TRUE, x>=min_x) # recruitment start = first time x is greater than min_x,
+  end <- match(TRUE, x[seq(start+1, max_index)]<min_x)+start-1 # recruitment end = first time after start that x is less than min_x
+  if (is.na(end)) end <- max_index
+  between(index, start, end)
+}
+
+matching_variables <- c("jcvi_group", "vax12_type", "region")
+
+
+data_matchingstrata_vaxcount <- data_cohort %>%
+  filter(!is.na(vax3_date), vax3_type %in% c("pfizer", "az", "moderna")) %>%
+  group_by(across(all_of(c(matching_variables, "vax3_type", "vax3_date")))) %>%
+  summarise(
+    n=n()
+  ) %>%
+  # make implicit counts explicit
+  complete(
+    vax3_date = full_seq(c(.$vax3_date), 1),
+    fill = list(n=0)
+  ) %>%
+  group_by(across(all_of(c(matching_variables, "vax3_type")))) %>%
+  arrange(across(all_of(c(matching_variables, "vax3_type", "vax3_date")))) %>%
+  mutate(
+    vax3_time = as.numeric(vax3_date - study_dates$studystart_date),
+    cumuln = cumsum(n),
+    # calculate rolling weekly average, anchored at end of period
+    rolling7n = stats::filter(n, filter = rep(1, 7), method="convolution", sides=1)/7,
+    recruit = select_recruitment_period(vax3_time+1, rolling7n, recruitment_period_cutoff)
+  )
+
+data_matchingstrata <-
+  data_cohort %>%
+  group_by(across(all_of(matching_variables))) %>%
+  summarise(
+    n=n(),
+    .groups="drop"
+  ) %>%
+  mutate(
+    strata_id = row_number(),
+    strata_name = paste(!!!syms(matching_variables), sep=" ")
+  )
+
+### event times ----
 data_tte <-
   data_cohort %>%
+  left_join(data_matchingstrata_vaxcount) %>%
   transmute(
     patient_id,
+    recruit = replace_na(recruit, FALSE),
     #day1_date = vax2_date + 84, # start follow-up on second vax day + 84
     day1_date = study_dates$studystart_date, # first trial date
 
@@ -138,12 +196,6 @@ data_tte <-
     # ),
 
   ) %>%
-  # mutate(
-  #   # re
-  #   t1 = tte_censor>0,
-  #   t2 = tte_treatment>=0 | is.na(tte_treatment),
-  #   t3 = tte_outcome>0 | is.na(tte_outcome)
-  # ) %>%
   filter(
     # remove anyone with competing vaccine on first trial day
     (competingtreatment_date>day1_date) | is.na(competingtreatment_date),
@@ -157,7 +209,14 @@ data_tte <-
     # convert logical to integer so that model coefficients print nicely in gtsummary methods
     across(where(is.logical), ~.x*1L)
   )
+
+
 logoutput_datasize(data_tte)
+
+
+
+
+## baseline variables ----
 
 data_baseline <-
   data_cohort %>%
@@ -177,46 +236,48 @@ data_baseline <-
     sev_mental,
     vax12_type,
     vax2_to_startdate =  study_dates$studystart_date - vax2_date,
+    vax3_date,
+    vax3_type,
   )
+
 logoutput_datasize(data_baseline)
+
+
+
+
 
 if(removeobjects) rm(data_cohort)
 
 # one row per vaccination or outcome or censoring event ----
-data_events <- local({
+## person-time dataset of vaccination status + outcome
+data_events <-
+  data_tte %>%
+  select(patient_id) %>%
+  tmerge(
+    data1 = .,
+    data2 = data_tte,
+    id = patient_id,
+    tstart = 0L,
+    tstop = tte_stop,
+    treatment_event = event(tte_treatment),
+    treatment_status = tdc(tte_treatment),
+    outcome_event = event(tte_outcome),
+    censor_event = event(tte_censor)
+  ) #%>%
+# tmerge(
+#   data1 = .,
+#   data2 = data_tte,
+#   id = patient_id,
+#   vax3_event = event(tte_vax3, vax3_type),
+#   vax3_status = tdc(tte_vax3, vax3_type),
+#   options= list(tdcstart="")
+# ) %>%
+# mutate(
+#   across(where(is.numeric), as.integer),
+#   vax3_event=factor(vax3_event, levels=c("", "pfizer", "az", "moderna")),
+#   vax3_status=factor(vax3_status, levels=c("", "pfizer", "az", "moderna"))
+# )
 
-  ## person-time dataset of vaccination status + outcome
-  data_events <-
-    data_tte %>%
-    select(patient_id) %>%
-    tmerge(
-      data1 = .,
-      data2 = data_tte,
-      id = patient_id,
-      tstart = 0L,
-      tstop = tte_stop,
-      treatment_event = event(tte_treatment),
-      treatment_status = tdc(tte_treatment),
-      outcome_event = event(tte_outcome),
-      censor_event = event(tte_censor)
-    ) #%>%
-    # tmerge(
-    #   data1 = .,
-    #   data2 = data_tte,
-    #   id = patient_id,
-    #   vax3_event = event(tte_vax3, vax3_type),
-    #   vax3_status = tdc(tte_vax3, vax3_type),
-    #   options= list(tdcstart="")
-    # ) %>%
-    # mutate(
-    #   across(where(is.numeric), as.integer),
-    #   vax3_event=factor(vax3_event, levels=c("", "pfizer", "az", "moderna")),
-    #   vax3_status=factor(vax3_status, levels=c("", "pfizer", "az", "moderna"))
-    # )
-
-  data_events
-
-})
 logoutput_datasize(data_events)
 
 
@@ -325,7 +386,7 @@ logoutput_datasize(data_timevarying)
 
 
 # function to get sample non-treated without replacement over time
-sample_untreated <- function(treatment, censor, id, max_trial_day=NULL, min_arm_size=1L, idname="patient_id"){
+sample_untreated <- function(treatment, censor, eligible, id, max_trial_day=NULL, min_arm_size=1L, idname="patient_id"){
   # for each time point:
   # TRUE if treatment occurs
   # TRUE with probability of `n/sum(event==FALSE & not-already-selected)` if outcome has not occurred
@@ -333,6 +394,7 @@ sample_untreated <- function(treatment, censor, id, max_trial_day=NULL, min_arm_
 
   # `treatment` is an integer giving the event time for treatment. NA if no treatment before outcome / censoring
   # `censor` is an integer giving the time to end of followup/censoring. There should not be any NAs.
+  # `eligible` is a bolean indicating if a patient is eligible for selection into the treatment arm
   # `id` is an identifier with the following properties:
   # - a) consistent between cohort extracts
   # - b) unique
@@ -346,7 +408,7 @@ sample_untreated <- function(treatment, censor, id, max_trial_day=NULL, min_arm_
   trials <- seq_len(maxday)
 
   # set candidate control ids
-  candidate0ids <- id
+  candidate_ids0 <- id
 
   dat <-
     tidyr::expand_grid(
@@ -362,20 +424,21 @@ sample_untreated <- function(treatment, censor, id, max_trial_day=NULL, min_arm_
     trial_time <- trial-1 # represent on time-to-event-since-start-date scale (= time to trial)
     # recruit participants for trial
     # treated participants
-    trial_ids1 <- id[(treatment %in% trial_time) & (censor > trial_time)]
+    trial_ids1 <- id[(treatment %in% trial_time) & (censor > trial_time) & eligible]
     n_treated <- length(trial_ids1)
-    if(n_treated < min_arm_size) {
-      message("Number of treated people for trial=",trial," is less than ", min_arm_size, ". Skipping this trial.")
-      next
-    }
+
     # candidate controls (anyone who hasn't been treated yet (treatment>trial_time), censored yet (censor>trial_time), and anyone who hasn't already been selected as a control (candidate0ids from trial-1))
-    candidate0ids <- id[ (censor>trial_time) & ((treatment > trial_time) | is.na(treatment)) & (id %in% candidate0ids)]
+    candidate_ids0 <- id[ (censor>trial_time) & ((treatment > trial_time) | is.na(treatment)) & (id %in% candidate_ids0)]
     # actual controls - select first n candidates according to ranked id
-    trial_ids0 <- candidate0ids[dplyr::dense_rank(candidate0ids)<=n_treated]
+    trial_ids0 <- candidate_ids0[dplyr::dense_rank(candidate_ids0)<=n_treated]
 
     if(length(trial_ids0) != n_treated) {
       message("not enough remaining untreated candidates for trial=",trial,". Outputting samples up to trial=",trial-1, ".")
       break
+    }
+    if(n_treated < min_arm_size) {
+      message("Number of eligible treated people for trial=",trial," is less than ", min_arm_size, ". Skipping this trial.")
+      next
     }
 
     dati <- tibble::tibble(
@@ -385,7 +448,7 @@ sample_untreated <- function(treatment, censor, id, max_trial_day=NULL, min_arm_
     )
 
     # remove already sampled individuals from list of candidate samples
-    candidate0ids <- candidate0ids[!(candidate0ids %in% dati$id)]
+    candidate_ids0 <- candidate_ids0[!(candidate_ids0 %in% dati$id)]
 
     dat <- dplyr::left_join(dat, dati, by=c("id", "treated")) %>%
       dplyr::mutate(
@@ -406,27 +469,15 @@ sample_untreated <- function(treatment, censor, id, max_trial_day=NULL, min_arm_
 # jcvi group, region, and doses 1 and 2
 
 
-strata_variables <- c("jcvi_group", "vax12_type", "region")
 
-strata <-
-data_baseline %>%
-  group_by(across(all_of(strata_variables))) %>%
-  summarise(
-    n=n(),
-    .groups="drop"
-  ) %>%
-  mutate(
-    strata_id = row_number(),
-    strata_name = paste(!!!syms(strata_variables), sep=" ")
-  )
 
 data_samples0 <- local({
 
   samples0 <- NULL
+  id<-1
+  for(id in data_matchingstrata$strata_id){
 
-  for(id in strata$strata_id){
-
-    stratum <- filter(strata, strata_id==id)
+    stratum <- filter(data_matchingstrata, strata_id==id)
 
     message(stratum$strata_name)
 
@@ -434,7 +485,7 @@ data_samples0 <- local({
       stratum %>%
       left_join(
         data_baseline,
-        by=strata_variables
+        by=matching_variables
       ) %>%
       select(patient_id) %>%
       left_join(
@@ -443,9 +494,10 @@ data_samples0 <- local({
       )
     samples_stratum <-
       sample_untreated(
-        tte_stratum$tte_treatment,
-        tte_stratum$tte_stop,
-        tte_stratum$patient_id
+        treatment = tte_stratum$tte_treatment,
+        censor = tte_stratum$tte_stop,
+        eligible = tte_stratum$recruit==1L,
+        id = tte_stratum$patient_id,
       ) %>%
       #filter(!is.na(trial_time)) %>%
       left_join(stratum, ., by=character())
@@ -511,7 +563,7 @@ data_seqtrialcox <- local({
 
     # add time-non-varying info
     left_join(
-      data_baseline %>% select(-all_of(strata_variables)),
+      data_baseline %>% select(-all_of(matching_variables)),
       by=c("patient_id")
     ) %>%
 
