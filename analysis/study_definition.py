@@ -58,7 +58,8 @@ def vaccination_date_X(name, index_date, n, product_name_matches=None, target_di
   for i in range(2, n+1):
     variables.update(var_signature(
       f"{name}_{i}_date", 
-      f"{name}_{i-1}_date + 1 days", 
+      f"{name}_{i-1}_date + 1 days",
+      ####? only 1 day gap between doses? This will capture some multiple records of the same dose and other bad data 
       product_name_matches,
       target_disease_matches
     ))
@@ -142,6 +143,8 @@ def admitted_date_X(
     variables.update(var_signature(
       f"{name}_{i}_date", 
       f"{index_name}_{i-1}_date + 1 day", 
+      ####? where you are returning date_discharged but supplying index_name=admitted_un/planned,
+      #### will this exclude any same-day discharges?
       returning, 
       with_these_diagnoses,
       with_admission_method,
@@ -150,7 +153,7 @@ def admitted_date_X(
   return variables
 
 
-# Specifiy study defeinition
+# Specify study defeinition
 study = StudyDefinition(
   
   # Configure the expectations framework
@@ -176,6 +179,7 @@ study = StudyDefinition(
     """,
     registered=patients.registered_as_of(
       "index_date - 1 day",
+      ####? why minus 1 day?
     ),
     has_died=patients.died_from_any_cause(
       on_or_before="index_date - 1 day",
@@ -193,6 +197,7 @@ study = StudyDefinition(
   **vaccination_date_X(
     name = "covid_vax_pfizer",
     index_date = "1900-01-01",
+    ####? why 1900-01-01 ? Is this overwritten by something else? 
     n = 4,
     product_name_matches="COVID-19 mRNA Vaccine Comirnaty 30micrograms/0.3ml dose conc for susp for inj MDV (Pfizer)"
   ),
@@ -222,7 +227,7 @@ study = StudyDefinition(
   ),
   
   ###############################################################################
-  ## Admin and demogrpahics
+  ## Admin and demographics
   ###############################################################################
   
   has_follow_up_previous_6weeks=patients.registered_with_one_practice_between(
@@ -243,6 +248,7 @@ study = StudyDefinition(
   # for jcvi group definitions
   age_march2020=patients.age_as_of( 
     "2020-03-31",
+    ####? this was relatively recently updated to Aug 21 in guidance (see vax report for date +link)
   ),
   
   sex=patients.sex(
@@ -445,6 +451,7 @@ study = StudyDefinition(
       returning="date",
       date_format="YYYY-MM-DD",
       on_or_before="index_date - 1 day",
+      ####? Is it worth setting an earliest date here too, in case of bad data?
       find_last_match_in_period=True,
       restrict_to_earliest_specimen_date=False,
   ),
@@ -470,8 +477,11 @@ study = StudyDefinition(
     on_or_before="index_date - 1 day",
     with_admission_method=["21", "22", "23", "24", "25", "2A", "2B", "2C", "2D", "28"],
     with_patient_classification = ["1"],
+    ####? might be useful to mention what these two filters include/exclude, or link to docs
     date_format="YYYY-MM-DD",
     find_first_match_in_period=True,
+    ####? I think this variable is intended to be the patient's latest admission prior to study start, 
+    #### so wouldn't *last* match be most appropriate?
   ),
   
   **admitted_date_X(
@@ -491,6 +501,7 @@ study = StudyDefinition(
     with_patient_classification = ["1"],
     date_format="YYYY-MM-DD",
     find_first_match_in_period=True,
+    ####? wouldn't last match be most appropriate? 
   ), 
   
   **admitted_date_X(
@@ -509,9 +520,12 @@ study = StudyDefinition(
     returning="date_admitted",
     on_or_before="index_date - 1 day",
     with_admission_method=["11", "12", "13", "81"],
+    ####? again briefly saying what this includes/excludes would be helpful
     #with_patient_classification = ["1"],
+    ####? for planned admissions could include 1 and 2, to exclude regular attendees and births
     date_format="YYYY-MM-DD",
     find_first_match_in_period=True,
+    ####? last??
   ),
   
   **admitted_date_X(
@@ -544,7 +558,8 @@ study = StudyDefinition(
   ),
   
   
-  # Positive cae identification prior to vaccination
+  # Positive case identification prior to vaccination
+  ####? This doesn't seem to relate to vaccination date?
   primary_care_covid_case_0_date=patients.with_these_clinical_events(
     combine_codelists(
       codelists.covid_primary_care_code,
@@ -558,6 +573,7 @@ study = StudyDefinition(
   ),
 
   # Positive covid admission prior to vaccination
+  ####? This doesn't seem to relate to vaccination date?
   covidadmitted_0_date=patients.admitted_to_hospital(
     returning="date_admitted",
     with_these_diagnoses=codelists.covid_icd10,
@@ -572,6 +588,7 @@ study = StudyDefinition(
     test_result="any",
     on_or_before="index_date - 1 day",
     returning="date", # need "count" here but not yet available
+    ####? this comment is also on a later variable, not needed here?
     date_format="YYYY-MM-DD",
     find_first_match_in_period=True,
     restrict_to_earliest_specimen_date=False,
@@ -591,14 +608,17 @@ study = StudyDefinition(
     pathogen="SARS-CoV-2",
     test_result="any",
     between=["index_date - 182 days", "index_date - 1 day"],
+    ####? why 182 days?
     returning="number_of_matches_in_period", # need "count" here but not yet available
     date_format="YYYY-MM-DD",
     find_first_match_in_period=True,
+    ####? this won't do anything when returning count
     restrict_to_earliest_specimen_date=False,
   ),
 
 
   # any emergency attendance
+  ####? ...for covid
   covidemergency_date=patients.attended_emergency_care(
     returning="date_arrived",
     on_or_after="index_date",
@@ -618,6 +638,8 @@ study = StudyDefinition(
   ),
 
   # Covid-related unplanned ICU hospital admissions
+  ####? just to note this will only return any cc days they had in their *first* covid admission 
+  #### in the study period
   covidadmitted_ccdays=patients.admitted_to_hospital(
     returning="days_in_critical_care",
     with_these_diagnoses=codelists.covid_icd10,
@@ -750,6 +772,8 @@ study = StudyDefinition(
 
   diabetes = patients.satisfying(
     "dmres_date < diab_date",
+    ####? does this definitely work correctly if dmres_date is Null? Or if both are Null?
+
     diab_date=patients.with_these_clinical_events(
       codelists.diab,
       returning="date",
@@ -932,6 +956,10 @@ study = StudyDefinition(
 
   cev = patients.satisfying(
     """severely_clinically_vulnerable AND NOT less_vulnerable""",
+    ####? Just to note, the shielded patient list was retired in March/April 2021 when shielding ended
+    ##### so it might be worth using that as the end date instead of index_date, as we're not sure
+    ##### what has happened to these codes since then, e.g. have doctors still been adding new
+    ##### shielding flags or low-risk flags? Depends what you're looking for really. Could investigate separately.
 
     ### SHIELDED GROUP - first flag all patients with "high risk" codes
     severely_clinically_vulnerable=patients.with_these_clinical_events(
