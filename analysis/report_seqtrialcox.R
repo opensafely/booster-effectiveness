@@ -11,6 +11,7 @@
 
 # Preliminaries ----
 
+postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 
 # import command-line arguments ----
 
@@ -51,15 +52,15 @@ study_dates <-
 model_tidy <- read_csv(fs::path(output_dir, "model_tidy.csv"))
 
 model_effects <- model_tidy %>%
-    filter(str_detect(term, fixed("treated"))) %>%
-    mutate(
-      term=str_replace(term, pattern=fixed("treated:strata(recruit_dayssincepw)"), ""),
-    ) %>%
+  filter(str_detect(term, fixed("treated"))) %>%
   mutate(
-    term_left = as.numeric(str_extract(term, "^\\d+")),
-    term_right = as.numeric(str_extract(term, "\\d+$")),
-    term_midpoint = (term_right+term_left)/2
+    period_id = str_replace(term, pattern=fixed("treated_period_"), ""),
+    term_left = postbaselinecuts[as.numeric(period_id)],
+    term_right = postbaselinecuts[as.numeric(period_id)+1],
+    term_midpoint = (term_right+term_left)/2,
+    model_descr = fct_inorder(model_descr)
   )
+
 
 write_csv(model_effects, path = fs::path(output_dir, "report_effects.csv"))
 
@@ -107,5 +108,85 @@ ggsave(filename=fs::path(output_dir, "report_effectsplot.svg"), plot_effects, wi
 ggsave(filename=fs::path(output_dir, "report_effectsplot.png"), plot_effects, width=20, height=15, units="cm")
 
 
-
-
+#
+#
+# # cumulative risk difference plots ----
+#
+# model0 <- read_rds(fs::path(output_dir, glue("model_obj0.rds")))
+# model1 <- read_rds(fs::path(output_dir, glue("model_obj1.rds")))
+# model2 <- read_rds(fs::path(output_dir, glue("model_obj2.rds")))
+# model3 <- read_rds(fs::path(output_dir, glue("model_obj3.rds")))
+#
+# data_seqtrialcox <- read_rds(fs::path(output_dir, "model_data_seqtrialcox.rds"))
+#
+# baselinehazard <- function(fit, newdata){
+#
+#   sfit <- survfit(fit, se.fit = FALSE, newdata=newdata, id=patient_id)
+#
+#   zcoef <- ifelse(is.na(coef(fit)), 0, coef(fit))
+#   offset <- sum(fit$means * zcoef)
+#   chaz <- sfit$cumhaz * exp(-offset)
+#
+#   new <- data.frame(hazard = chaz, time = sfit$time)
+#   strata <- sfit$strata
+#   if (!is.null(strata))
+#     new$strata <- factor(rep(names(strata), strata), levels = names(strata))
+#   new
+# }
+#
+#
+# ## as if everyone was treated at baseline ----
+#
+# # set every to treated
+# data_seqtrialcox1 <- data_seqtrialcox %>% mutate(treated=1)
+#
+# # cumulative baseline hazard
+# model3$data <- data_seqtrialcox
+# bh1 <- basehaz(model3, centered=FALSE)
+# test <- broom::augment(model3, data=data_seqtrialcox1)
+#
+# survfit1 <- survfit(model3, se.fit = TRUE, newdata=data_seqtrialcox1, id=patient_id)
+#
+# broom::tidy(survfit1)
+#
+# #linear predictor from cox model: beta*X
+# lp.trt1 <- predict(model3, newdata=data_seqtrialcox1, type="lp")
+#
+# #risk estimates at each observed event time for each person
+# #rows=individuals, columns=time points
+# risk.trt1 <- sapply(1:length(chaz1),FUN=function(x){1-exp(-chaz1[x]*exp(lp.trt1))})
+#
+# #now take the average across all individuals at each time point
+# risk.trt1.mean<-colMeans(risk.trt1)
+#
+#
+#
+#
+# ## as if everyone was treated at baseline ----
+#
+# # set every to treated
+# data_seqtrialcox0 <- data_seqtrialcox %>% mutate(treated=0)
+#
+# # cumulative baseline hazard
+# chaz0 <- baselinehazard(model3, newdata=data_seqtrialcox)$haz
+#
+# #linear predictor from cox model: beta*X
+# lp.trt0 <- predict(model3, newdata=data_seqtrialcox0, type="lp")
+#
+# #risk estimates at each observed event time for each person
+# #rows=individuals, columns=time points
+# risk.trt0 <- sapply(1:length(chaz0),FUN=function(x){1-exp(-chaz0[x]*exp(lp.trt0))})
+#
+# #now take the average across all individuals at each time point
+# risk.trt0.mean<-colMeans(risk.trt0)
+#
+#
+#
+#
+# times<-survfit(model3, se.fit = FALSE, newdata=data_seqtrialcox)$time
+#
+# plot(times,risk.trt1.mean,type="s",col="blue")
+# points(times,risk.trt0.mean,type="s",add=T,col="red")
+#
+#
+#
