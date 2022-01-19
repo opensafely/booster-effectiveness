@@ -109,6 +109,7 @@ select_recruitment_period <- function(index, x, min_x){
   max_index <- length(x)
   # start recruiting when x exceeds min_x, and stop recruiting when x is less than min_x
   start <- match(TRUE, x>=min_x) # recruitment start = first time x is greater than min_x,
+  if (is.na(start)) start <- max_index+1
   end <- match(TRUE, x[seq(start+1, max_index)]<min_x)+start-1 # recruitment end = first time after start that x is less than min_x
   if (is.na(end)) end <- max_index
 
