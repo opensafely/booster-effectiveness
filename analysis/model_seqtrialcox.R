@@ -21,7 +21,7 @@ if(length(args)==0){
   # use for interactive testing
   removeobjects <- FALSE
   treatment <- "pfizer"
-  outcome <- "admitted"
+  outcome <- "covidadmitted"
 } else {
   removeobjects <- TRUE
   treatment <- args[[1]]
@@ -134,7 +134,7 @@ data_matchingstrata <-
 data_matchingstrata_vaxcount <-
   data_cohort %>%
   filter(!is.na(vax3_date), vax3_type %in% c("pfizer", "az", "moderna")) %>%
-  group_by(across(all_of(c(matching_variables, "vax3_type", "vax3_date")))) %>%
+  group_by(across(all_of(matching_variables)), vax3_type, vax3_date) %>%
   summarise(
     n=n()
   ) %>%
@@ -143,8 +143,9 @@ data_matchingstrata_vaxcount <-
     vax3_date = full_seq(c(.$vax3_date), 1),
     fill = list(n=0)
   ) %>%
-  group_by(across(all_of(c(matching_variables, "vax3_type")))) %>%
-  arrange(across(all_of(c(matching_variables, "vax3_type", "vax3_date")))) %>%
+  arrange(across(all_of(matching_variables)), vax3_type, vax3_date) %>%
+  ungroup() %>%
+  group_by(across(all_of(matching_variables)), vax3_type) %>%
   mutate(
     vax3_time = as.numeric(vax3_date - study_dates$studystart_date),
     cumuln = cumsum(n),
