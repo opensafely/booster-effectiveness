@@ -26,13 +26,24 @@ actions:
       highly_sensitive:
         cohort: output/input.feather
 
+  extract_report:
+    run: cohort-report:v3.0.0 output/input.feather
+    needs:
+    - extract
+    outputs:
+      moderately_sensitive:
+        html: output/data/reports/extract/*.html
+        png: output/data/reports/extract/*.png
+    config:
+      output_path: output/data/reports/extract/
+
   data_process:
     run: r:latest analysis/data_process.R
     needs:
     - extract
     outputs:
       highly_sensitive:
-        processed: output/data/data_processed.rds
+        rds: output/data/data_processed.rds
         vaxlong: output/data/data_vaxlong.rds
 
   data_process_long:
@@ -50,8 +61,20 @@ actions:
     outputs:
       highly_sensitive:
         data: output/data/data_cohort.rds
+        feather: output/data/data_cohort.feather
       moderately_sensitive:
         flow: output/data/flowchart.csv
+
+  cohort_report:
+    run: cohort-report:v3.0.0 output/data/data_cohort.feather
+    needs:
+    - data_selection
+    outputs:
+      moderately_sensitive:
+        html: output/data/reports/cohort/*.html
+        png: output/data/reports/cohort/*.png
+    config:
+      output_path: output/data/reports/cohort/
 
   ## # # # # # # # # # # # # # # # # # # # 
   ## Descriptive stats 

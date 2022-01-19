@@ -75,6 +75,7 @@ data_cohort <- data_criteria %>%
   left_join(data_processed, by="patient_id") %>%
   droplevels()
 write_rds(data_cohort, here("output", "data", "data_cohort.rds"), compress="gz")
+arrow::write_feather(data_cohort, here("output", "data", "data_cohort.feather"))
 
 data_flowchart <- data_criteria %>%
   transmute(

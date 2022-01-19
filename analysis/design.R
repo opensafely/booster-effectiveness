@@ -92,3 +92,9 @@ write_rds(variable_labels, here("lib", "design", "variable-labels.rds"))
 # where to split follow-up time after recruitment
 postbaselinecuts <- seq(0,7*12, 7)
 write_rds(postbaselinecuts, here("lib", "design", "postbaselinecuts.rds"))
+
+
+# cut-off for rolling 7 day average, that determines recruitment period
+recruitment_period_cutoff <- 50
+write_rds(recruitment_period_cutoff, here("lib", "design", "recruitment_period_cutoff.rds"))
+

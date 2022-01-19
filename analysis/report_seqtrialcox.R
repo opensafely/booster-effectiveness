@@ -11,6 +11,7 @@
 
 # Preliminaries ----
 
+postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 
 # import command-line arguments ----
 
@@ -51,15 +52,15 @@ study_dates <-
 model_tidy <- read_csv(fs::path(output_dir, "model_tidy.csv"))
 
 model_effects <- model_tidy %>%
-    filter(str_detect(term, fixed("treated"))) %>%
-    mutate(
-      term=str_replace(term, pattern=fixed("treated:strata(recruit_dayssincepw)"), ""),
-    ) %>%
+  filter(str_detect(term, fixed("treated"))) %>%
   mutate(
-    term_left = as.numeric(str_extract(term, "^\\d+")),
-    term_right = as.numeric(str_extract(term, "\\d+$")),
-    term_midpoint = (term_right+term_left)/2
+    period_id = str_replace(term, pattern=fixed("treated_period_"), ""),
+    term_left = postbaselinecuts[as.numeric(period_id)],
+    term_right = postbaselinecuts[as.numeric(period_id)+1],
+    term_midpoint = (term_right+term_left)/2,
+    model_descr = fct_inorder(model_descr)
   )
+
 
 write_csv(model_effects, path = fs::path(output_dir, "report_effects.csv"))
 
@@ -105,7 +106,5 @@ plot_effects
 
 ggsave(filename=fs::path(output_dir, "report_effectsplot.svg"), plot_effects, width=20, height=15, units="cm")
 ggsave(filename=fs::path(output_dir, "report_effectsplot.png"), plot_effects, width=20, height=15, units="cm")
-
-
 
 
