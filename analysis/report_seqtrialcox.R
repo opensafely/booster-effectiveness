@@ -11,8 +11,6 @@
 
 # Preliminaries ----
 
-postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
-
 # import command-line arguments ----
 
 args <- commandArgs(trailingOnly=TRUE)
@@ -48,6 +46,8 @@ output_dir <- here("output", "models", "seqtrialcox", treatment, outcome)
 study_dates <-
   jsonlite::read_json(path=here("lib", "design", "study-dates.json")) %>%
   map(as.Date)
+
+postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 
 model_tidy <- read_csv(fs::path(output_dir, "model_tidy.csv"))
 
