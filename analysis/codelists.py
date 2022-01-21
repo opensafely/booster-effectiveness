@@ -25,7 +25,7 @@ covid_primary_care_code = codelist_from_csv(
     column="CTV3ID",
 )
 
-covid_primary_care_sequalae = codelist_from_csv(
+covid_primary_care_sequelae = codelist_from_csv(
     "codelists/opensafely-covid-identification-in-primary-care-probable-covid-sequelae.csv",
     system="ctv3",
     column="CTV3ID",
@@ -34,7 +34,7 @@ covid_primary_care_sequalae = codelist_from_csv(
 covid_primary_care_probable_combined = combine_codelists(
     covid_primary_care_positive_test,
     covid_primary_care_code,
-    covid_primary_care_sequalae,
+    covid_primary_care_sequelae,
 )
 covid_primary_care_suspected_covid_advice = codelist_from_csv(
     "codelists/opensafely-covid-identification-in-primary-care-suspected-covid-advice.csv",
