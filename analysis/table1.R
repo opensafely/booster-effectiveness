@@ -17,10 +17,10 @@ source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "redaction.R"))
 
 ## create output directories ----
-fs::dir_create(here("output", "descriptive", "tables"))
+fs::dir_create(here("output", "descriptive", "table1"))
 
 ## import metadata ----
-var_labels <- read_rds(here("lib", "design", "variable-labels-update.rds"))
+var_labels <- read_rds(here("lib", "design", "variable-labels.rds"))
 
 #list_formula <- read_rds(here("output", "data", "metadata_formulas.rds"))
 #list2env(list_formula, globalenv())
@@ -63,9 +63,9 @@ raw_stats <- tab_summary_baseline_redacted$meta_data %>%
   select(var_label, df_stats) %>%
   unnest(df_stats)
 
-write_csv(tab_summary_baseline_redacted$table_body, here("output", "descriptive", "tables", "table1.csv"))
+write_csv(tab_summary_baseline_redacted$table_body, here("output", "descriptive", "table1", "table1.csv"))
 #write_csv(tab_summary_baseline_redacted$df_by, here("output", "descriptive", "tables", "table1_by.csv"))
-gtsave(as_gt(tab_summary_baseline_redacted), here("output", "descriptive", "tables", "table1.html"))
+gtsave(as_gt(tab_summary_baseline_redacted), here("output", "descriptive", "table1", "table1.html"))
 
 
 ## baseline variables by jcvi group
@@ -89,9 +89,9 @@ raw_stats <- tab_summary_jcvi_redacted$meta_data %>%
   select(var_label, df_stats) %>%
   unnest(df_stats)
 
-write_csv(tab_summary_jcvi_redacted$table_body, here("output", "descriptive", "tables", "table1_by_jcvi_group.csv"))
+write_csv(tab_summary_jcvi_redacted$table_body, here("output", "descriptive", "table1", "table1_by_jcvi_group.csv"))
 #write_csv(tab_summary_jcvi_redacted$df_by, here("output", "descriptive", "tables", "table1_jcvi_by.csv"))
-gtsave(as_gt(tab_summary_jcvi_redacted), here("output", "descriptive", "tables", "table1_by_jcvi_group.html"))
+gtsave(as_gt(tab_summary_jcvi_redacted), here("output", "descriptive", "table1", "table1_by_jcvi_group.html"))
 
 
 

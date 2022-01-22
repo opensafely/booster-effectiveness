@@ -145,7 +145,7 @@ redact_tblsummary <- function(x, threshold, redact_chr=NA_character_){
       by = fct_recode(by, .fun=!!!name_stat_by)
     ) %>%
     pivot_wider(
-      id_cols = c(variable, var_type, var_label, row_type, label), # removed var_class
+      id_cols = c(variable, var_type, var_class, var_label, row_type, label), # removed var_class
       names_from = by,
       values_from = display
     )

@@ -54,8 +54,7 @@ write_rds(metadata_events, here("lib", "design", "event-variables.rds"))
 
 ## variable labels
 variable_labels <- list(
-  vax1_type ~ "Vaccine type",
-  vax1_type_descr ~ "Vaccine type",
+  vax12_type ~ "Vaccine type (doses 1 and 2)",
   age ~ "Age",
   ageband ~ "Age",
   sex ~ "Sex",
@@ -64,6 +63,8 @@ variable_labels <- list(
   region ~ "Region",
   rural_urban_group ~ "Rural/urban category",
   stp ~ "STP",
+  jcvi_group ~ "JCVI group",
+  cev ~ "Clinically extremely vulnerable",
 
   sev_obesity ~ "Body Mass Index > 40 kg/m^2",
 
