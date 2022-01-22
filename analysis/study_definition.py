@@ -549,7 +549,7 @@ study = StudyDefinition(
     combine_codelists(
       codelists.covid_primary_care_code,
       codelists.covid_primary_care_positive_test,
-      codelists.covid_primary_care_sequalae,
+      codelists.covid_primary_care_sequelae,
     ),
     returning="date",
     date_format="YYYY-MM-DD",
