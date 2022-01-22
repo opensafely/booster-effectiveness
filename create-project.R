@@ -212,18 +212,18 @@ actions_list <- splice(
 
   comment("# # # # # # # # # # # # # # # # # # #", "Descriptive stats", "# # # # # # # # # # # # # # # # # # #"),
 
-  # action(
-  #   name = "descr_table1",
-  #   run = "r:latest analysis/descriptive/table1.R",
-  #   needs = list("data_selection"),
-  #   # highly_sensitive = lst(
-  #   #   rds = "output/descriptive/tables/table1*.rds"
-  #   # ),
-  #   moderately_sensitive = lst(
-  #     html = "output/descriptive/tables/table1*.html",
-  #     csv = "output/descriptive/tables/table1*.csv"
-  #   )
-  # ),
+  action(
+    name = "descriptive_table1",
+    run = "r:latest analysis/table1.R",
+    needs = list("data_selection"),
+    # highly_sensitive = lst(
+    #   rds = "output/descriptive/tables/table1*.rds"
+    # ),
+    moderately_sensitive = lst(
+      html = "output/descriptive/table1/*.html",
+      csv = "output/descriptive/table1/*.csv"
+    )
+  ),
   #
   # action(
   #   name = "descr_irr",
@@ -254,7 +254,7 @@ actions_list <- splice(
   # ),
 
   action(
-    name = "descr_vaxdate",
+    name = "descriptive_vaxdate",
     run = "r:latest analysis/vax_date.R",
     needs = list("data_selection"),
     moderately_sensitive = lst(

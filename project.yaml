@@ -80,7 +80,16 @@ actions:
   ## Descriptive stats 
   ## # # # # # # # # # # # # # # # # # # # 
 
-  descr_vaxdate:
+  descriptive_table1:
+    run: r:latest analysis/table1.R
+    needs:
+    - data_selection
+    outputs:
+      moderately_sensitive:
+        html: output/descriptive/table1/*.html
+        csv: output/descriptive/table1/*.csv
+
+  descriptive_vaxdate:
     run: r:latest analysis/vax_date.R
     needs:
     - data_selection
