@@ -31,6 +31,10 @@ This study estimates effectiveness of booster doses
     -   `outcome`, for example `postest` for positive SARS-CoV-2 test or `covidadmitted` COVID-19 hospitalisation
          included.
 -   [`report_seqtrialcox.R`](./analysis/R/report_seqtrialcox.R) outputs summary information, effect estimates, and marginalised cumulative incidence estimates for the Cox models from `model_seqtrialcox.R`. This script uses the `treatment` and `outcome` arguments to pick up the correct models from this script.
+-   [`combine_seqtrialcox`](./analysis/R/combine_seqtrialcox.R) collects effect estimates for each treatment and outcome, and puts them in one plot.
+-   [`vax_date.R`](./analysis/R/vax_date.R) plots vaccination counts by JCVI group and region.
+-   [`table1.R`](./analysis/R/vax_date.R) reports patient characteristics at the study start date.
+-   
 
 ## Manuscript
 
