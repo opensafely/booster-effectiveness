@@ -134,7 +134,7 @@ sim_list = lst(
     ~as.integer(rnorm(n=1, mean=60, sd=15))
   ),
 
-  age_march2020 = bn_node(~age),
+  age_august2021 = bn_node(~age),
 
   sex = bn_node(
     ~rfactor(n=1, levels = c("F", "M"), p = c(0.51, 0.49)),
@@ -234,16 +234,6 @@ sim_list = lst(
   covidemergency_day = bn_node(
     ~as.integer(runif(n=1, index_day, index_day+300)),
     missing_rate = ~0.95
-  ),
-
-  covidadmitted_day = bn_node(
-    ~as.integer(runif(n=1, index_day, index_day+300)),
-    missing_rate = ~0.95
-  ),
-
-  covidadmitted_ccdays = bn_node(
-    ~rfactor(n=1, levels = 0:3, p = c(0.7, 0.1, 0.1, 0.1)),
-    needs = "covidadmitted_day"
   ),
 
   coviddeath_day = bn_node(
@@ -469,6 +459,64 @@ sim_list = lst(
   discharged_planned_6_day = bn_node(
     ~as.integer(runif(n=1, admitted_planned_6_day+1, admitted_planned_6_day+20)),
     needs="admitted_planned_6_day"
+  ),
+
+
+  covidadmitted_1_day = bn_node(
+    ~as.integer(runif(n=1, index_day, index_day+100)),
+    missing_rate = ~0.7
+  ),
+  covidadmitted_2_day = bn_node(
+    ~as.integer(runif(n=1, covidadmitted_1_day+1, covidadmitted_1_day+30)),
+    missing_rate = ~0.9,
+    needs = "covidadmitted_1_day"
+  ),
+  covidadmitted_3_day = bn_node(
+    ~as.integer(runif(n=1, covidadmitted_2_day+1, covidadmitted_2_day+30)),
+    missing_rate = ~0.9,
+    needs = "covidadmitted_2_day"
+  ),
+  covidadmitted_4_day = bn_node(
+    ~as.integer(runif(n=1, covidadmitted_3_day+1, covidadmitted_3_day+30)),
+    missing_rate = ~0.9,
+    needs = "covidadmitted_3_day"
+  ),
+  covidadmitted_5_day = bn_node(
+    ~as.integer(runif(n=1, covidadmitted_4_day+1, covidadmitted_4_day+30)),
+    missing_rate = ~0.9,
+    needs = "covidadmitted_4_day"
+  ),
+  covidadmitted_6_day = bn_node(
+    ~as.integer(runif(n=1, covidadmitted_5_day+1, covidadmitted_5_day+30)),
+    missing_rate = ~0.9,
+    needs = "covidadmitted_5_day"
+  ),
+
+
+
+  covidadmitted_ccdays_1 = bn_node(
+    ~rfactor(n=1, levels = 0:3, p = c(0.7, 0.1, 0.1, 0.1)),
+    needs = "covidadmitted_1_day"
+  ),
+  covidadmitted_ccdays_2 = bn_node(
+    ~rfactor(n=1, levels = 0:3, p = c(0.7, 0.1, 0.1, 0.1)),
+    needs = "covidadmitted_2_day"
+  ),
+  covidadmitted_ccdays_3 = bn_node(
+    ~rfactor(n=1, levels = 0:3, p = c(0.7, 0.1, 0.1, 0.1)),
+    needs = "covidadmitted_3_day"
+  ),
+  covidadmitted_ccdays_4 = bn_node(
+    ~rfactor(n=1, levels = 0:3, p = c(0.7, 0.1, 0.1, 0.1)),
+    needs = "covidadmitted_4_day"
+  ),
+  covidadmitted_ccdays_5 = bn_node(
+    ~rfactor(n=1, levels = 0:3, p = c(0.7, 0.1, 0.1, 0.1)),
+    needs = "covidadmitted_5_day"
+  ),
+  covidadmitted_ccdays_6 = bn_node(
+    ~rfactor(n=1, levels = 0:3, p = c(0.7, 0.1, 0.1, 0.1)),
+    needs = "covidadmitted_6_day"
   ),
 
 )

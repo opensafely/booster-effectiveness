@@ -58,7 +58,8 @@ def vaccination_date_X(name, index_date, n, product_name_matches=None, target_di
   for i in range(2, n+1):
     variables.update(var_signature(
       f"{name}_{i}_date", 
-      f"{name}_{i-1}_date + 1 days", 
+      f"{name}_{i-1}_date + 1 days",
+      # pick up subsequent vaccines occurring one day or later -- people with unrealistic dosing intervals are later excluded
       product_name_matches,
       target_disease_matches
     ))
@@ -113,7 +114,9 @@ def admitted_date_X(
   with_patient_classification=None
 ):
   def var_signature(
-    name, on_or_after, returning, 
+    name, 
+    on_or_after, 
+    returning,
     with_these_diagnoses, 
     with_admission_method, 
     with_patient_classification
@@ -142,6 +145,9 @@ def admitted_date_X(
     variables.update(var_signature(
       f"{name}_{i}_date", 
       f"{index_name}_{i-1}_date + 1 day", 
+      # we cannot pick up more than one admission per day
+      # but "+ 1 day" is necessary to ensure we don't always pick up the same admission
+      # some admissions will therefore be lost
       returning, 
       with_these_diagnoses,
       with_admission_method,
@@ -150,7 +156,59 @@ def admitted_date_X(
   return variables
 
 
-# Specifiy study defeinition
+def admitted_daysincritcare_X(
+  # hospital admission dates, given admission method and patient classification
+  name, index_name, index_date, n,  
+  with_these_diagnoses=None, 
+  with_admission_method=None, 
+  with_patient_classification=None
+):
+  def var_signature(
+    name, on_or_after,  
+    with_these_diagnoses, 
+    with_admission_method, 
+    with_patient_classification
+  ):
+    return {
+      name: patients.admitted_to_hospital(
+        returning = "days_in_critical_care",
+        on_or_after = on_or_after,
+        find_first_match_in_period = True,
+        date_format = "YYYY-MM-DD",
+        with_these_diagnoses = with_these_diagnoses,
+        with_admission_method = with_admission_method,
+        with_patient_classification = with_patient_classification,
+        return_expectations={
+        "category": {"ratios": {"0": 0.75, "1": 0.20,  "2": 0.05}},
+        "incidence": 0.5,
+      },
+	   )
+    }
+  
+  variables = var_signature(
+    f"{name}_1", 
+    index_date, 
+    with_these_diagnoses,
+    with_admission_method,
+    with_patient_classification
+  )
+  for i in range(2, n+1):
+    variables.update(var_signature(
+      f"{name}_{i}", 
+      f"{index_name}_{i-1}_date + 1 day", 
+      with_these_diagnoses,
+      with_admission_method,
+      with_patient_classification
+    ))
+  return variables
+
+
+
+
+
+
+
+# Specify study defeinition
 study = StudyDefinition(
   
   # Configure the expectations framework
@@ -163,6 +221,7 @@ study = StudyDefinition(
   },
   
   index_date = studystart_date,
+  
   # This line defines the study population
   population=patients.satisfying(
     """
@@ -174,6 +233,7 @@ study = StudyDefinition(
       AND 
       covid_vax_disease_2_date
     """,
+    # we define baseline variables on the day _before_ the study date (start date = day of first possible booster vaccination)
     registered=patients.registered_as_of(
       "index_date - 1 day",
     ),
@@ -192,7 +252,9 @@ study = StudyDefinition(
   # pfizer
   **vaccination_date_X(
     name = "covid_vax_pfizer",
-    index_date = "1900-01-01",
+    # use 1900 to capture all possible recorded covid vaccinations, including date errors
+    # any vaccines occurring before national rollout are later excluded
+    index_date = "1900-01-01", 
     n = 4,
     product_name_matches="COVID-19 mRNA Vaccine Comirnaty 30micrograms/0.3ml dose conc for susp for inj MDV (Pfizer)"
   ),
@@ -222,7 +284,7 @@ study = StudyDefinition(
   ),
   
   ###############################################################################
-  ## Admin and demogrpahics
+  ## Admin and demographics
   ###############################################################################
   
   has_follow_up_previous_6weeks=patients.registered_with_one_practice_between(
@@ -241,8 +303,8 @@ study = StudyDefinition(
   ),
   
   # for jcvi group definitions
-  age_march2020=patients.age_as_of( 
-    "2020-03-31",
+  age_august2021=patients.age_as_of( 
+    "2020-08-31",
   ),
   
   sex=patients.sex(
@@ -445,6 +507,7 @@ study = StudyDefinition(
       returning="date",
       date_format="YYYY-MM-DD",
       on_or_before="index_date - 1 day",
+      # no earliest date set, which assumes any date errors are for tests occurring before study start date
       find_last_match_in_period=True,
       restrict_to_earliest_specimen_date=False,
   ),
@@ -468,10 +531,12 @@ study = StudyDefinition(
   admitted_unplanned_0_date=patients.admitted_to_hospital(
     returning="date_admitted",
     on_or_before="index_date - 1 day",
+    # see https://github.com/opensafely-core/cohort-extractor/pull/497 for codes
+    # see https://docs.opensafely.org/study-def-variables/#sus for more info
     with_admission_method=["21", "22", "23", "24", "25", "2A", "2B", "2C", "2D", "28"],
-    with_patient_classification = ["1"],
+    with_patient_classification = ["1"], # ordinary admissions only
     date_format="YYYY-MM-DD",
-    find_first_match_in_period=True,
+    find_last_match_in_period=True,
   ),
   
   **admitted_date_X(
@@ -480,17 +545,21 @@ study = StudyDefinition(
     index_name = "admitted_unplanned",
     index_date = "index_date",
     returning="date_admitted",
+    # see https://github.com/opensafely-core/cohort-extractor/pull/497 for codes
+    # see https://docs.opensafely.org/study-def-variables/#sus for more info
     with_admission_method=["21", "22", "23", "24", "25", "2A", "2B", "2C", "2D", "28"],
-    with_patient_classification = ["1"],
+    with_patient_classification = ["1"], # ordinary admissions only
   ),
   
   discharged_unplanned_0_date=patients.admitted_to_hospital(
     returning="date_discharged",
     on_or_before="index_date - 1 day",
+    # see https://github.com/opensafely-core/cohort-extractor/pull/497 for codes
+    # see https://docs.opensafely.org/study-def-variables/#sus for more info
     with_admission_method=["21", "22", "23", "24", "25", "2A", "2B", "2C", "2D", "28"],
-    with_patient_classification = ["1"],
+    with_patient_classification = ["1"], # ordinary admissions only
     date_format="YYYY-MM-DD",
-    find_first_match_in_period=True,
+    find_last_match_in_period=True,
   ), 
   
   **admitted_date_X(
@@ -499,8 +568,10 @@ study = StudyDefinition(
     index_name = "admitted_unplanned",
     index_date = "index_date",
     returning="date_discharged",
+    # see https://github.com/opensafely-core/cohort-extractor/pull/497 for codes
+    # see https://docs.opensafely.org/study-def-variables/#sus for more info
     with_admission_method=["21", "22", "23", "24", "25", "2A", "2B", "2C", "2D", "28"],
-    with_patient_classification = ["1"],
+    with_patient_classification = ["1"], # ordinary admissions only
   ),
   
   
@@ -508,10 +579,12 @@ study = StudyDefinition(
   admitted_planned_0_date=patients.admitted_to_hospital(
     returning="date_admitted",
     on_or_before="index_date - 1 day",
+    # see https://github.com/opensafely-core/cohort-extractor/pull/497 for codes
+    # see https://docs.opensafely.org/study-def-variables/#sus for more info
     with_admission_method=["11", "12", "13", "81"],
-    #with_patient_classification = ["1"],
+    with_patient_classification = ["1", "2"], # ordinary and day-case admissions only 
     date_format="YYYY-MM-DD",
-    find_first_match_in_period=True,
+    find_last_match_in_period=True,
   ),
   
   **admitted_date_X(
@@ -520,17 +593,21 @@ study = StudyDefinition(
     index_name = "admitted_planned",
     index_date = "index_date",
     returning="date_admitted",
+    # see https://github.com/opensafely-core/cohort-extractor/pull/497 for codes
+    # see https://docs.opensafely.org/study-def-variables/#sus for more info
     with_admission_method=["11", "12", "13", "81"],
-    #with_patient_classification = ["1"],
+    with_patient_classification = ["1", "2"], # ordinary and day-case admissions only
   ),
   
   discharged_planned_0_date=patients.admitted_to_hospital(
     returning="date_discharged",
     on_or_before="index_date - 1 day",
+    # see https://github.com/opensafely-core/cohort-extractor/pull/497 for codes
+    # see https://docs.opensafely.org/study-def-variables/#sus for more info
     with_admission_method=["11", "12", "13", "81"],
-    #with_patient_classification = ["1"],
+    with_patient_classification = ["1", "2"], # ordinary and day-case admissions only
     date_format="YYYY-MM-DD",
-    find_first_match_in_period=True,
+    find_first_match_in_period=True
   ), 
   
   **admitted_date_X(
@@ -539,12 +616,45 @@ study = StudyDefinition(
     index_name = "admitted_planned",
     index_date = "index_date",
     returning="date_discharged",
+    # see https://github.com/opensafely-core/cohort-extractor/pull/497 for codes
+    # see https://docs.opensafely.org/study-def-variables/#sus for more info
     with_admission_method=["11", "12", "13", "81"],
-    #with_patient_classification = ["1"],
+    with_patient_classification = ["1", "2"] # ordinary and day-case admissions only
   ),
   
   
-  # Positive cae identification prior to vaccination
+  ## Covid-related unplanned ICU hospital admissions 
+  # we only need first admission for covid-related hospitalisation outcome,
+  # but to identify first ICU / critical care admission date, we need sequential admissions
+  # this assumes that a spell that is subsequent and contiguous to a covid-related admission is also coded with a code in codelists.covid_icd10
+  **admitted_date_X(
+    name = "covidadmitted",
+    n = 6,
+    index_name = "covidadmitted",
+    index_date = "index_date",
+    returning="date_admitted",
+    # see https://github.com/opensafely-core/cohort-extractor/pull/497 for codes
+    # see https://docs.opensafely.org/study-def-variables/#sus for more info
+    with_admission_method=["21", "22", "23", "24", "25", "2A", "2B", "2C", "2D", "28"],
+    with_these_diagnoses=codelists.covid_icd10
+  ),
+  
+  ## Covid-related unplanned ICU hospital admissions -- number of days in critical care for each covid-related admission
+  **admitted_daysincritcare_X(
+    name = "covidadmitted_ccdays",
+    n = 6,
+    index_name = "covidadmitted",
+    index_date = "index_date",
+    # see https://github.com/opensafely-core/cohort-extractor/pull/497 for codes
+    # see https://docs.opensafely.org/study-def-variables/#sus for more info
+    with_admission_method=["21", "22", "23", "24", "25", "2A", "2B", "2C", "2D", "28"],
+    with_these_diagnoses=codelists.covid_icd10,
+    # not filtering on patient classification as we're interested in anyone who is "really sick due to COVID"
+    # most likely these are ordinary admissions but we'd want to know about other (potentially misclassified) admissions too
+  ),
+  
+  
+  # Positive case identification prior to study start date
   primary_care_covid_case_0_date=patients.with_these_clinical_events(
     combine_codelists(
       codelists.covid_primary_care_code,
@@ -557,7 +667,7 @@ study = StudyDefinition(
     find_first_match_in_period=True,
   ),
 
-  # Positive covid admission prior to vaccination
+  # Positive covid admission prior to study start date
   covidadmitted_0_date=patients.admitted_to_hospital(
     returning="date_admitted",
     with_these_diagnoses=codelists.covid_icd10,
@@ -571,7 +681,7 @@ study = StudyDefinition(
     pathogen="SARS-CoV-2",
     test_result="any",
     on_or_before="index_date - 1 day",
-    returning="date", # need "count" here but not yet available
+    returning="date",
     date_format="YYYY-MM-DD",
     find_first_match_in_period=True,
     restrict_to_earliest_specimen_date=False,
@@ -590,45 +700,20 @@ study = StudyDefinition(
   prior_covid_test_frequency=patients.with_test_result_in_sgss(
     pathogen="SARS-CoV-2",
     test_result="any",
-    between=["index_date - 182 days", "index_date - 1 day"],
-    returning="number_of_matches_in_period", # need "count" here but not yet available
+    between=["index_date - 182 days", "index_date - 1 day"], # 182 days = 26 weeks
+    returning="number_of_matches_in_period", 
     date_format="YYYY-MM-DD",
-    find_first_match_in_period=True,
     restrict_to_earliest_specimen_date=False,
   ),
 
 
-  # any emergency attendance
+  # any emergency attendance for covid
   covidemergency_date=patients.attended_emergency_care(
     returning="date_arrived",
     on_or_after="index_date",
     with_these_diagnoses = codelists.covid_emergency,
     date_format="YYYY-MM-DD",
     find_first_match_in_period=True,
-  ),
-
-  # Covid-related unplanned hospital admissions
-  covidadmitted_date=patients.admitted_to_hospital(
-    returning="date_admitted",
-    with_these_diagnoses=codelists.covid_icd10,
-    with_admission_method=["21", "22", "23", "24", "25", "2A", "2B", "2C", "2D", "28"],
-    on_or_after="index_date",
-    date_format="YYYY-MM-DD",
-    find_first_match_in_period=True,
-  ),
-
-  # Covid-related unplanned ICU hospital admissions
-  covidadmitted_ccdays=patients.admitted_to_hospital(
-    returning="days_in_critical_care",
-    with_these_diagnoses=codelists.covid_icd10,
-    with_admission_method=["21", "22", "23", "24", "25", "2A", "2B", "2C", "2D", "28"],
-    on_or_after="index_date",
-    date_format="YYYY-MM-DD",
-    find_first_match_in_period=True,
-    return_expectations={
-      "category": {"ratios": {"0": 0.75, "1": 0.20,  "2": 0.05}},
-      "incidence": 0.05,
-    },
   ),
 
   # Covid-related death
@@ -749,7 +834,8 @@ study = StudyDefinition(
   ),
 
   diabetes = patients.satisfying(
-    "dmres_date < diab_date",
+    "(dmres_date < diab_date) OR (diab_date AND (NOT dmres_date))",
+    
     diab_date=patients.with_these_clinical_events(
       codelists.diab,
       returning="date",
@@ -768,7 +854,7 @@ study = StudyDefinition(
   ),
 
   sev_mental=patients.satisfying(
-    "smhres_date < sev_mental_date",
+    "(smhres_date < sev_mental_date) OR (sev_mental_date AND (NOT smhres_date))",
 
     # Severe Mental Illness codes
     sev_mental_date=patients.with_these_clinical_events(
@@ -932,6 +1018,10 @@ study = StudyDefinition(
 
   cev = patients.satisfying(
     """severely_clinically_vulnerable AND NOT less_vulnerable""",
+    ##### The shielded patient list was retired in March/April 2021 when shielding ended
+    ##### so it might be worth using that as the end date instead of index_date, as we're not sure
+    ##### what has happened to these codes since then, e.g. have doctors still been adding new
+    ##### shielding flags or low-risk flags? Depends what you're looking for really. Could investigate separately.
 
     ### SHIELDED GROUP - first flag all patients with "high risk" codes
     severely_clinically_vulnerable=patients.with_these_clinical_events(
