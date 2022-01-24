@@ -286,6 +286,20 @@ actions:
         svg: output/models/seqtrialcox/moderna/coviddeath/report_*.svg
         png: output/models/seqtrialcox/moderna/coviddeath/report_*.png
 
+  combine_seqtrialcox:
+    run: r:latest analysis/combine_seqtrialcox.R
+    needs:
+    - report_seqtrialcox_pfizer_postest
+    - report_seqtrialcox_pfizer_covidadmitted
+    - report_seqtrialcox_moderna_postest
+    - report_seqtrialcox_moderna_covidadmitted
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/combined/*.csv
+        png: output/models/seqtrialcox/combined/*.png
+        pdf: output/models/seqtrialcox/combined/*.pdf
+        svg: output/models/seqtrialcox/combined/*.svg
+
   ## # # # # # # # # # # # # # # # # # # # 
   ## Reports 
   ## # # # # # # # # # # # # # # # # # # # 

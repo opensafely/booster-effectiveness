@@ -73,7 +73,7 @@ plot_effects <-
     breaks=c(0.25, 0.33, 0.5, 0.67, 0.80, 1, 1.25, 1.5, 2, 3, 4),
     sec.axis = dup_axis(name="<--  favours not boosting  /  favours boosting  -->", breaks = NULL)
   )+
-  scale_x_continuous(breaks=unique(model_effects$term_left), limits=c(min(model_effects$term_left), max(model_effects$term_right)+1), expand = c(0, 0))+
+  scale_x_continuous(breaks=postbaselinecuts, limits=c(min(postbaselinecuts), max(postbaselinecuts)+1), expand = c(0, 0))+
   scale_colour_brewer(type="qual", palette="Set2", guide=guide_legend(ncol=1))+
   labs(
     y="Hazard ratio",

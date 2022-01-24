@@ -780,8 +780,7 @@ model_glance <-
     summary3$glance,
   ) %>%
   mutate(
-    model_descr = fct_recode(as.character(model), !!!model_descr),
-    outcome = outcome
+    model_descr = fct_recode(as.character(model), !!!model_descr)
   )
 write_csv(model_glance, fs::path(output_dir, "model_glance.csv"))
 
@@ -793,8 +792,7 @@ model_tidy <-
     summary3$tidy,
   ) %>%
   mutate(
-    model_descr = fct_recode(as.character(model), !!!model_descr),
-    outcome = outcome
+    model_descr = fct_recode(as.character(model), !!!model_descr)
   )
 write_csv(model_tidy, fs::path(output_dir, "model_tidy.csv"))
 

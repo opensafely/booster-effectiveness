@@ -297,7 +297,27 @@ actions_list <- splice(
   action_model("pfizer", "coviddeath"),
   action_model("moderna", "coviddeath"),
 
+  action(
+    name = "combine_seqtrialcox",
+    run = "r:latest analysis/combine_seqtrialcox.R",
+    needs = splice(
+      as.list(
+        glue_data(
+          .x=expand_grid(treatment=c("pfizer", "moderna"), outcome=c("postest", "covidadmitted")),
+          "report_seqtrialcox_{treatment}_{outcome}"
+        )
+      )
+    ),
+    moderately_sensitive = lst(
+      csv = "output/models/seqtrialcox/combined/*.csv",
+      png = "output/models/seqtrialcox/combined/*.png",
+      pdf = "output/models/seqtrialcox/combined/*.pdf",
+      svg = "output/models/seqtrialcox/combined/*.svg",
+    )
+  ),
+
   comment("# # # # # # # # # # # # # # # # # # #", "Reports", "# # # # # # # # # # # # # # # # # # #")
+
 
 )
 
