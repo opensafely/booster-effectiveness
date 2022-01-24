@@ -80,7 +80,9 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
     apply(unmatched_types, 1, function(row) paste(paste(row, collapse=" : "), "\n"))
   )
 
-  data_extract <- data_custom_dummy
+  data_extract <- data_custom_dummy %>%
+    # because dummy data for days in critical care is factor, so that we can do zero-inflation
+    mutate(across(starts_with("covidadmitted_ccdays"), ~ as.numeric(as.character(.))))
 } else {
   data_extract <- read_feather(here("output", "input.feather")) %>%
     #because date types are not returned consistently by cohort extractor
@@ -176,14 +178,15 @@ data_processed <- data_extract %>%
 
     # https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1007737/Greenbook_chapter_14a_30July2021.pdf#page=12
     jcvi_group = fct_case_when(
-      care_home_combined | age_march2020>=80 | hscworker  ~ "1 & 2",
-      age_march2020>=75 ~ "3",
-      age_march2020>=70 | (cev & (age_march2020>=16)) ~ "4",
-      age_march2020>=65 ~ "5",
-      between(age_march2020, 16, 64.999) & cv ~ "6",
-      age_march2020>=60 ~ "7",
-      age_march2020>=55 ~ "8",
-      age_march2020>=50 ~ "9",
+      care_home_combined | hscworker  ~ "1",
+      age_august2021>=80 ~ "2",
+      age_august2021>=75 ~ "3",
+      age_august2021>=70 | (cev & (age_august2021>=16)) ~ "4",
+      age_august2021>=65 ~ "5",
+      between(age_august2021, 16, 64.999) & cv ~ "6",
+      age_august2021>=60 ~ "7",
+      age_august2021>=55 ~ "8",
+      age_august2021>=50 ~ "9",
       TRUE ~ "10"
     ),
 
@@ -197,14 +200,21 @@ data_processed <- data_extract %>%
       TRUE ~ NA_character_
     ),
 
-    covidemergency_date = pmin(covidemergency_date, covidadmitted_date, na.rm=TRUE),
+    covidemergency_date = pmin(covidemergency_date, covidadmitted_1_date, na.rm=TRUE),
 
-    covidadmitted_ccdays = as.integer(as.character(covidadmitted_ccdays)), # covidadmitted_ccdays is a factor, so convert to character then integer
+    covidcc_date = case_when(
+      covidadmitted_ccdays_1 > 0 ~ covidadmitted_1_date,
+      covidadmitted_ccdays_2 > 0 ~ covidadmitted_2_date,
+      covidadmitted_ccdays_3 > 0 ~ covidadmitted_3_date,
+      covidadmitted_ccdays_4 > 0 ~ covidadmitted_4_date,
+      covidadmitted_ccdays_5 > 0 ~ covidadmitted_5_date,
+      covidadmitted_ccdays_6 > 0 ~ covidadmitted_6_date,
+      TRUE ~ as.Date(NA_character_)
+    ),
+
     noncoviddeath_date = if_else(!is.na(death_date) & is.na(coviddeath_date), death_date, as.Date(NA_character_)),
-    covidcc_date = if_else(!is.na(covidadmitted_date) & covidadmitted_ccdays>0, covidadmitted_date, as.Date(NA_character_)),
 
   )
-
 
 # reshape vaccination data ----
 
