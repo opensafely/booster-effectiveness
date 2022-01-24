@@ -63,11 +63,33 @@ action_model <- function(
 ){
 
   splice(
+
+    action(
+      name = glue("match_seqtrialcox_{treatment}_{outcome}"),
+      run = glue("r:latest analysis/match_seqtrialcox.R"),
+      arguments = c(treatment, outcome),
+      needs = list("data_selection"),
+      highly_sensitive = lst(
+        rds = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.rds")
+      ),
+      moderately_sensitive = lst(
+        txt = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.txt"),
+        csv = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.csv"),
+        #svg = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.svg"),
+        png = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.png"),
+        pdf = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.pdf"),
+      )
+    ),
+
     action(
       name = glue("model_seqtrialcox_{treatment}_{outcome}"),
       run = glue("r:latest analysis/model_seqtrialcox.R"),
       arguments = c(treatment, outcome),
-      needs = list("data_selection", "data_process_long"),
+      needs = list(
+        glue("match_seqtrialcox_{treatment}_{outcome}"),
+        "data_selection",
+        "data_process_long"
+      ),
       highly_sensitive = lst(
         rds = glue("output/models/seqtrialcox/{treatment}/{outcome}/model_*.rds")
       ),
@@ -284,6 +306,11 @@ actions_list <- splice(
   comment("###  Positive SARS-CoV-2 Test"),
   action_model("pfizer", "postest"),
   action_model("moderna", "postest"),
+
+  comment("###  COVID-19 emergency attendance"),
+  action_model("pfizer", "covidemergency"),
+  action_model("moderna", "covidemergency"),
+
 
   comment("###  COVID-19 unplanned admission"),
   action_model("pfizer", "covidadmitted"),

@@ -70,7 +70,7 @@ plot_effects <-
   geom_linerange(aes(ymin=exp(conf.low), ymax=exp(conf.high), x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
   geom_hline(aes(yintercept=1), colour='grey')+
   scale_y_log10(
-    breaks=c(0.25, 0.33, 0.5, 0.67, 0.80, 1, 1.25, 1.5, 2, 3, 4),
+    breaks=c(0.01, 0.02, 0.05, 0.2, 0.1, 0.5, 1, 2),
     sec.axis = dup_axis(name="<--  favours not boosting  /  favours boosting  -->", breaks = NULL)
   )+
   scale_x_continuous(breaks=postbaselinecuts, limits=c(min(postbaselinecuts), max(postbaselinecuts)+1), expand = c(0, 0))+

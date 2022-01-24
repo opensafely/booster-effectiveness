@@ -53,7 +53,7 @@ recode_outcome <- c(`Positive SARS-CoV-2 test` = "postest", `Covid-related hospi
 model_metaparams <-
   expand_grid(
     treatment = factor(c("pfizer", "moderna")),
-    outcome = factor(c("postest", "covidadmitted"))#, "covidcc", "coviddeath"),
+    outcome = factor(c("postest", "covidadmitted", "covidcc", "coviddeath")),
   ) %>%
   mutate(
     treatment_descr = fct_recode(treatment,  !!!recode_treatment),
@@ -110,7 +110,7 @@ formatpercent100 <- function(x,accuracy){
   )
 }
 
-y_breaks <- c(0.01, 0.25, 0.05, 0.1, 0.25, 0.5, 1, 1.25, 1.5, 2)
+y_breaks <- c(0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2)
 
 plot_effects <-
   ggplot(data = model_effects) +
