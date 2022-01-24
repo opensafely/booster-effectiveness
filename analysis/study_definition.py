@@ -648,7 +648,9 @@ study = StudyDefinition(
     # see https://github.com/opensafely-core/cohort-extractor/pull/497 for codes
     # see https://docs.opensafely.org/study-def-variables/#sus for more info
     with_admission_method=["21", "22", "23", "24", "25", "2A", "2B", "2C", "2D", "28"],
-    with_these_diagnoses=codelists.covid_icd10
+    with_these_diagnoses=codelists.covid_icd10,
+    # not filtering on patient classification as we're interested in anyone who is "really sick due to COVID"
+    # most likely these are ordinary admissions but we'd want to know about other (potentially misclassified) admissions too
   ),
   
   
@@ -852,7 +854,7 @@ study = StudyDefinition(
   ),
 
   sev_mental=patients.satisfying(
-    "smhres_date < sev_mental_date",
+    "(smhres_date < sev_mental_date) OR (sev_mental_date AND (NOT smhres_date))",
 
     # Severe Mental Illness codes
     sev_mental_date=patients.with_these_clinical_events(
