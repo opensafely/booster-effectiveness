@@ -91,9 +91,12 @@ variable_labels <- list(
 write_rds(variable_labels, here("lib", "design", "variable-labels.rds"))
 
 # where to split follow-up time after recruitment
-postbaselinecuts <- seq(0,7*12, 7)
+postbaselinecuts <- c(0,7,seq(14,7*12, 14))
 write_rds(postbaselinecuts, here("lib", "design", "postbaselinecuts.rds"))
 
+# what matching variables
+matching_variables <- c("jcvi_group", "vax12_type", "region", "vax2_week")
+write_rds(matching_variables, here("lib", "design", "matching_variables.rds"))
 
 # cut-off for rolling 7 day average, that determines recruitment period
 recruitment_period_cutoff <- 50
