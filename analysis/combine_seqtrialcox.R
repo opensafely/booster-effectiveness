@@ -47,16 +47,14 @@ study_dates <-
 
 postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 
+events_lookup <- write_rds(here("lib", "design", "event-variables.rds"))
 
-recode_treatment <- c(`BNT162b2` = "pfizer", `mRNA-1273` = "moderna")
-recode_outcome <- c(
-  `Positive SARS-CoV-2 test` = "postest",
-  `Covid-related A&E attendance` = "covidemergency",
-  `Covid-related hospital admission` = "covidadmitted",
-  `Covid-related ICU admission` = "covidcc",
-  `COvid-related death` = "coviddeath"
-  )
+recode_treatment <- c(
+  `BNT162b2` = "pfizer",
+  `mRNA-1273` = "moderna"
+)
 
+recode_outcome <- set_names(events_lookup$event_descr, events_lookup$event)
 
 if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
   model_metaparams <-
@@ -106,9 +104,7 @@ model_effects <-
   )
 
 
-
 write_csv(model_effects, path = fs::path(output_dir, "report_effects.csv"))
-
 
 formatpercent100 <- function(x,accuracy){
   formatx <- scales::label_percent(accuracy)(x)
