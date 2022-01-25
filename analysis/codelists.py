@@ -427,3 +427,28 @@ domcareemployee = codelist_from_csv(
 )
 
 
+eol = codelist_from_csv(
+    "codelists/nhsd-primary-care-domain-refsets-palcare_cod.csv",
+    system="snomed",
+    column="code",
+)
+
+midazolam = codelist_from_csv(
+    "codelists/opensafely-midazolam-end-of-life.csv",
+    system="snomed",
+    column="dmd_id",   
+)
+
+housebound = codelist_from_csv(
+    "codelists/opensafely-housebound.csv", 
+    system="snomed", 
+    column="code"
+)
+
+no_longer_housebound = codelist_from_csv(
+    "codelists/opensafely-no-longer-housebound.csv", 
+    system="snomed", 
+    column="code"
+)
+
+

@@ -44,12 +44,15 @@ data_criteria <- data_processed %>%
     has_region = !is.na(region),
     isnot_hscworker = !hscworker,
     isnot_carehomeresident = !care_home_combined,
+    isnot_endoflife = !endoflife,
+    isnot_housebound = !housebound,
     vax1_afterfirstvaxdate = case_when(
       (vax1_type=="pfizer") & (vax1_date >= study_dates$firstpfizer_date) ~ TRUE,
       (vax1_type=="az") & (vax1_date >= study_dates$firstaz_date) ~ TRUE,
       (vax1_type=="moderna") & (vax1_date >= study_dates$firstmoderna_date) ~ TRUE,
       TRUE ~ FALSE
     ),
+
     vax2_beforelastvaxdate = !is.na(vax2_date) & (vax2_date <= study_dates$lastvax2_date),
     vax3_afterstudystartdate = (vax3_date >= study_dates$studystart_date) | is.na(vax3_date),
     vax12_homologous = vax1_type==vax2_type,
@@ -65,7 +68,9 @@ data_criteria <- data_processed %>%
         vax2_beforelastvaxdate &
         vax3_afterstudystartdate &
         isnot_hscworker &
-        isnot_carehomeresident
+        isnot_carehomeresident &
+        isnot_endoflife &
+        isnot_housebound
     ),
   )
 
@@ -82,9 +87,9 @@ data_flowchart <- data_criteria %>%
     c0 = vax1_afterfirstvaxdate & vax2_beforelastvaxdate & vax3_afterstudystartdate,
     #c1_1yearfup = c0_all & (has_follow_up_previous_year),
     c1 = c0 & (has_age & has_sex & has_imd & has_ethnicity & has_region),
-    c2 = c1 & (has_vaxgap12 & has_vaxgap23 & has_knownvax1 & has_knownvax2 ),
+    c2 = c1 & (has_vaxgap12 & has_vaxgap23 & has_knownvax1 & has_knownvax2 & vax12_homologous),
     c3 = c2 & (isnot_hscworker ),
-    c4 = c3 & (isnot_carehomeresident ),
+    c4 = c3 & (isnot_carehomeresident | isnot_endoflife),
   ) %>%
   summarise(
     across(.fns=sum)
@@ -103,9 +108,9 @@ data_flowchart <- data_criteria %>%
     criteria = fct_case_when(
       crit == "c0" ~ "Aged 18+ with 2nd dose on or before 31 Aug 2021", # paste0("Aged 18+\n with 2 doses on or before ", format(study_dates$lastvax2_date, "%d %b %Y")),
       crit == "c1" ~ "  with no missing demographic information",
-      crit == "c2" ~ "  with known 1st and 2nd dose type",
+      crit == "c2" ~ "  with known, homologous 1st and 2nd dose type",
       crit == "c3" ~ "  and not a HSC worker",
-      crit == "c4" ~ "  and not a care/nursing home resident",
+      crit == "c4" ~ "  and not a care/nursing home resident, end-of-life or housebound",
       TRUE ~ NA_character_
     )
   )

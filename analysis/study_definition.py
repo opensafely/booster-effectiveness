@@ -1044,5 +1044,49 @@ study = StudyDefinition(
     ),
 
   ),
+  
+  endoflife = patients.satisfying(
+    """
+    midazolam OR
+    endoflife_coding
+    """,
+  
+    midazolam = patients.with_these_medications(
+      codelists.midazolam,
+      returning="binary_flag",
+      on_or_before = "index_date - 1 day",
+    ),
+    
+    endoflife_coding = patients.with_these_clinical_events(
+      codelists.eol,
+      returning="binary_flag",
+      on_or_before = "index_date - 1 day",
+      find_last_match_in_period = True,
+    ),
+        
+  ),
+    
+  housebound = patients.satisfying(
+    """housebound_date
+    AND NOT no_longer_housebound
+    AND NOT moved_into_care_home
+    """,
+        
+    housebound_date=patients.with_these_clinical_events( 
+      codelists.housebound, 
+      on_or_before="index_date - 1 day",
+      find_last_match_in_period = True,
+      returning="date",
+      date_format="YYYY-MM-DD",
+    ),   
+    no_longer_housebound=patients.with_these_clinical_events( 
+      codelists.no_longer_housebound, 
+      on_or_after="housebound_date",
+    ),
+    moved_into_care_home=patients.with_these_clinical_events(
+      codelists.carehome,
+      on_or_after="housebound_date",
+    ),
+  ),
 
  )

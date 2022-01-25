@@ -281,6 +281,30 @@
       "url": "https://codelists.opensafely.org/codelist/primis-covid19-vacc-uptake/domcare/v1/",
       "downloaded_at": "2022-01-05 14:11:15.522654Z",
       "sha": "711f760dbd4869a8836a7bf6bfc062c1fc286095"
+    },
+    "nhsd-primary-care-domain-refsets-palcare_cod.csv": {
+      "id": "nhsd-primary-care-domain-refsets/palcare_cod/5fce98cf",
+      "url": "https://codelists.opensafely.org/codelist/nhsd-primary-care-domain-refsets/palcare_cod/5fce98cf/",
+      "downloaded_at": "2022-01-25 15:50:27.666561Z",
+      "sha": "777b61f976301db98e5da0c5b9ceebe48222558f"
+    },
+    "opensafely-midazolam-end-of-life.csv": {
+      "id": "opensafely/midazolam-end-of-life/4c1b3c89",
+      "url": "https://codelists.opensafely.org/codelist/opensafely/midazolam-end-of-life/4c1b3c89/",
+      "downloaded_at": "2022-01-25 15:50:27.861786Z",
+      "sha": "6478270c4b76768366bcf585622905154fb32d91"
+    },
+    "opensafely-housebound.csv": {
+      "id": "opensafely/housebound/5bc77310",
+      "url": "https://codelists.opensafely.org/codelist/opensafely/housebound/5bc77310/",
+      "downloaded_at": "2022-01-25 19:51:35.342330Z",
+      "sha": "4408752ee525151741ce050f1a20c51cd5c0116a"
+    },
+    "opensafely-no-longer-housebound.csv": {
+      "id": "opensafely/no-longer-housebound/29a88ca6",
+      "url": "https://codelists.opensafely.org/codelist/opensafely/no-longer-housebound/29a88ca6/",
+      "downloaded_at": "2022-01-25 19:51:35.558946Z",
+      "sha": "cedcdcc0354885c1aa08224072718ff6bdae7450"
     }
   }
 }
