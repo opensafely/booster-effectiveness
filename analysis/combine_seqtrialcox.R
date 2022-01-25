@@ -49,7 +49,13 @@ postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 
 
 recode_treatment <- c(`BNT162b2` = "pfizer", `mRNA-1273` = "moderna")
-recode_outcome <- c(`Positive SARS-CoV-2 test` = "postest", `Covid-related hospitalisation` = "covidadmitted")
+recode_outcome <- c(
+  `Positive SARS-CoV-2 test` = "postest",
+  `Covid-related A&E attendance` = "covidemergency",
+  `Covid-related hospital admission` = "covidadmitted",
+  `Covid-related ICU admission` = "covidcc",
+  `COvid-related death` = "coviddeath"
+  )
 
 
 if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
@@ -66,7 +72,7 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
   model_metaparams <-
     expand_grid(
       treatment = factor(c("pfizer", "moderna")),
-      outcome = factor(c("postest", "covidemergency",  "covidadmitted", "covidcc", "coviddeath")),
+      outcome = factor(c("postest", "covidemergency", "coviddeath")),
     ) %>%
     mutate(
       treatment_descr = fct_recode(treatment,  !!!recode_treatment),
