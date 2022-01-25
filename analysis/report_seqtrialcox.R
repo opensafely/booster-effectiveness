@@ -35,12 +35,15 @@ library('glue')
 library('survival')
 
 
-## Import custom user functi
+## Import custom user functions
 source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "survival.R"))
-
+source(here("lib", "functions", "redaction.R"))
 
 output_dir <- here("output", "models", "seqtrialcox", treatment, outcome)
+
+data_seqtrialcox <- read_rds(fs::path(output_dir, "model_data_seqtrialcox.rds"))
+
 
 ## import globally defined study dates and convert to "Date"
 study_dates <-
@@ -106,5 +109,107 @@ plot_effects
 
 ggsave(filename=fs::path(output_dir, "report_effectsplot.svg"), plot_effects, width=20, height=15, units="cm")
 ggsave(filename=fs::path(output_dir, "report_effectsplot.png"), plot_effects, width=20, height=15, units="cm")
+
+
+
+## incidence rates ----
+
+## Event incidence following recruitment
+
+
+
+rrCI_exact <- function(n, pt, ref_n, ref_pt, accuracy=0.001){
+
+  # use exact methods if incidence is very low for immediate post-vaccine outcomes
+  rate <- n/pt
+  ref_rate <- ref_n/ref_pt
+  rr <- rate/ref_rate
+
+  ll = ref_pt/pt * (n/(ref_n+1)) * 1/qf(2*(ref_n+1), 2*n, p = 0.05/2, lower.tail = FALSE)
+  ul = ref_pt/pt * ((n+1)/ref_n) * qf(2*(n+1), 2*ref_n, p = 0.05/2, lower.tail = FALSE)
+
+  paste0("(", scales::number_format(accuracy=accuracy)(ll), "-", scales::number_format(accuracy=accuracy)(ul), ")")
+
+}
+
+format_ratio = function(numer,denom, width=7){
+  paste0(
+    replace_na(scales::comma_format(accuracy=1)(numer), "--"),
+    " /",
+    str_pad(replace_na(scales::comma_format(accuracy=1)(denom),"--"), width=width, pad=" ")
+  )
+}
+
+incidence_rate_redacted <- local({
+
+  unredacted_treated <-
+    data_seqtrialcox %>%
+    group_by(treated, fup_period) %>%
+    summarise(
+      yearsatrisk = sum(tstop-tstart)/365.25,
+      n = sum(ind_outcome),
+      rate = n/yearsatrisk
+    ) %>%
+    ungroup()
+
+
+  unredacted_all <-
+    data_seqtrialcox %>%
+    group_by(treated) %>%
+    summarise(
+      yearsatrisk = sum(tstop-tstart)/365.25,
+      n = sum(ind_outcome),
+      rate = n/yearsatrisk
+    ) %>%
+    ungroup()
+
+  unredacted <-
+    bind_rows(
+      unredacted_treated,
+      unredacted_all
+    ) %>%
+    mutate(
+      fup_period = fct_explicit_na(fup_period, na_level="All")
+    ) %>%
+    arrange(
+      treated, fup_period
+    )
+
+  unredacted_wide <-
+    unredacted %>%
+    pivot_wider(
+      id_cols =c(fup_period),
+      names_from = treated,
+      values_from = c(yearsatrisk, n, rate),
+      names_glue = "{.value}_{treated}"
+    ) %>%
+    mutate(
+      rr = rate_1 / rate_0,
+      rrE = scales::label_number(accuracy=0.01, trim=FALSE)(rr),
+      rrCI = rrCI_exact(rate_1, yearsatrisk_1, rate_0, yearsatrisk_0, 0.01),
+    )
+
+  redacted <-
+    unredacted_wide %>%
+    mutate(
+      rate_0 = redactor2(rate_0, 5, rate_0),
+      rate_1 = redactor2(rate_1, 5, rate_1),
+
+      rr = redactor2(pmin(n_1, n_0), 5, rr),
+      rrE = redactor2(pmin(n_1, n_0), 5, rrE),
+      rrCI = redactor2(pmin(n_1, n_0), 5, rrCI),
+
+      n_0 = redactor2(n_0, 5),
+      n_1 = redactor2(n_1, 5),
+
+      q_0 = format_ratio(n_0, yearsatrisk_0),
+      q_1 = format_ratio(n_1, yearsatrisk_1),
+    )
+
+  redacted
+
+})
+
+write_csv(incidence_rate_redacted, fs::path(output_dir, "report_ir.csv"))
 
 

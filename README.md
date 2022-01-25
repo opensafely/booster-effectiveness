@@ -26,15 +26,15 @@ This study estimates effectiveness of booster doses
 -   [`data_process_long.R`](analysis/R/data_process_long.R) imports the processed data and creates one-row-per-patient-per-event datasets for the time-varying covariates.
 -   [`data_selection.R`](./analysis/R/data_selection.R) filters out participants who should not be included in the main analysis, and creates a small table used for the inclusion/exclusion flowchart.
 -   [`data_properties.R`](./analysis/R/data_properties.R) tabulates and summarises the variables in the processed data for inspection / sense-checking.
--   [`model_seqtrialcox.R`](./analysis/R/model_seqtrialcox.R) runs the sequential trial analysis. This script takes two arguments:
+-   [`match_seqtrialcox.R`](./analysis/R/match_seqtrialcox.R) runs matching algorithm to pair boosted people with unboosted people. It outputs a matched dataset (with unmatched boosts dropped) and other matching diagnostics. The script takes two arguments:
     -   `treatment`, either `pfizer` or `moderna`, indicating the brand of the booster vaccine
     -   `outcome`, for example `postest` for positive SARS-CoV-2 test or `covidadmitted` COVID-19 hospitalisation
          included.
--   [`report_seqtrialcox.R`](./analysis/R/report_seqtrialcox.R) outputs summary information, effect estimates, and marginalised cumulative incidence estimates for the Cox models from `model_seqtrialcox.R`. This script uses the `treatment` and `outcome` arguments to pick up the correct models from this script.
--   [`combine_seqtrialcox`](./analysis/R/combine_seqtrialcox.R) collects effect estimates for each treatment and outcome, and puts them in one plot.
+-   [`model_seqtrialcox.R`](./analysis/R/model_seqtrialcox.R) reports the event counts within each covariate level and runs the sequential trial analysis. The script uses the `treatment` and `outcome` arguments to pick up the correct matched data from the matching script.
+-   [`report_seqtrialcox.R`](./analysis/R/report_seqtrialcox.R) outputs summary information, effect estimates, incidence rates, and marginalised cumulative incidence estimates for the Cox models from `model_seqtrialcox.R`. The script uses the `treatment` and `outcome` arguments to pick up the correct models from the modelling script.
+-   [`combine_seqtrialcox`](./analysis/R/combine_seqtrialcox.R) collects effect estimates and incidence rates for each treatment and outcome combination, and puts them in one plot or table.
 -   [`vax_date.R`](./analysis/R/vax_date.R) plots vaccination counts by JCVI group and region.
 -   [`table1.R`](./analysis/R/vax_date.R) reports patient characteristics at the study start date.
--   
 
 ## Manuscript
 

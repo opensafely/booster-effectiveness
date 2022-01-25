@@ -340,6 +340,7 @@ actions_list <- splice(
       png = "output/models/seqtrialcox/combined/*.png",
       pdf = "output/models/seqtrialcox/combined/*.pdf",
       svg = "output/models/seqtrialcox/combined/*.svg",
+      html = "output/models/seqtrialcox/combined/*.html",
     )
   ),
 

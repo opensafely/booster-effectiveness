@@ -35,11 +35,13 @@ library('tidyverse')
 library('here')
 library('glue')
 library('survival')
+library('gt')
 
 ## Import custom user functions from lib
 
 source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "survival.R"))
+source(here("lib", "functions", "redaction.R"))
 
 postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 matching_variables <- read_rds(here("lib", "design", "matching_variables.rds"))
@@ -402,13 +404,107 @@ formula1_pw <- formula_vaxonly %>% update(formula_strata)
 formula2_pw <- formula_vaxonly %>% update(formula_strata) %>% update(formula_demog)
 formula3_pw <- formula_vaxonly %>% update(formula_strata) %>% update(formula_demog) %>% update(formula_clinical) %>% update(formula_timedependent) %>% update(formula_remove_outcome)
 
-
 model_descr = c(
   "Unadjusted" = "0",
   "region- and trial-stratified" = "1",
   "Demographic adjustment" = "2",
   "Full adjustment" = "3"
 )
+
+
+
+
+## pre-flight checks ----
+
+# event counts within each covariate level
+
+tbltab_treated <-
+  data_seqtrialcox %>%
+  select(treated, all.vars(formula3_pw), matching_variables, -starts_with("treated_period"), fup_period) %>%
+  select(where(~(!is.double(.)))) %>%
+  select(-age, -vax2_week) %>%
+  mutate(
+    across(
+      where(is.integer),
+      ~as.character(.)
+    ),
+  ) %>%
+  split(.[[1]]) %>%
+  map(~.[,-1] %>% select(everything())) %>%
+  map(
+    function(data){
+      map(data, redacted_summary_cat, redaction_threshold=0) %>%
+        bind_rows(.id="variable") %>%
+        select(-redacted, -pct_nonmiss)
+    }
+  )
+
+event_counts_treated <-
+  tbltab_treated %>%
+  bind_rows(.id = "event") %>%
+  pivot_wider(
+    id_cols=c(variable, .level),
+    names_from = event,
+    names_glue = "event{event}_{.value}",
+    values_from = c(n, pct)
+  )
+
+write_csv(event_counts_treated, fs::path(output_dir, "model_preflight_treated.csv"))
+
+
+tbltab_period <-
+  data_seqtrialcox %>%
+  select(fup_period, treated, all.vars(formula3_pw), matching_variables, -starts_with("treated_period")) %>%
+  select(where(~(!is.double(.)))) %>%
+  select(-age, -vax2_week) %>%
+  mutate(
+    across(
+      where(is.integer),
+      ~as.character(.)
+    ),
+  ) %>%
+  split(.[[1]]) %>%
+  map(~.[,-1] %>% select(everything())) %>%
+  map(
+    function(data){
+      map(data, redacted_summary_cat, redaction_threshold=0) %>%
+        bind_rows(.id="variable") %>%
+        select(-redacted, -pct_nonmiss)
+    }
+  )
+
+event_counts_period <-
+  tbltab_period %>%
+  bind_rows(.id = "fup_period") %>%
+  pivot_wider(
+    id_cols=c(variable, .level),
+    names_from = fup_period,
+    names_glue = "days {fup_period}_{.value}",
+    values_from = c(n, pct)
+  )
+
+write_csv(event_counts_period, fs::path(output_dir, "model_preflight_period.csv"))
+
+
+# gt(
+#   event_counts_treated,
+#   groupname_col="variable",
+# ) %>%
+#   tab_spanner_delim("_") %>%
+#   fmt_number(
+#     columns = ends_with(c("pct")),
+#     decimals = 1,
+#     scale_by=100,
+#     pattern = "({x})"
+#   ) %>%
+#   gtsave(
+#     filename = glue("model_preflight.html"),
+#     path=output_dir
+#   )
+
+
+## fit models ----
+
 
 opt_control <- coxph.control(iter.max = 30)
 

@@ -29,6 +29,7 @@ library('tidyverse')
 library('here')
 library('glue')
 library('survival')
+library('gt')
 
 
 ## Import custom user functi
@@ -50,15 +51,32 @@ postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 recode_treatment <- c(`BNT162b2` = "pfizer", `mRNA-1273` = "moderna")
 recode_outcome <- c(`Positive SARS-CoV-2 test` = "postest", `Covid-related hospitalisation` = "covidadmitted")
 
-model_metaparams <-
-  expand_grid(
-    treatment = factor(c("pfizer", "moderna")),
-    outcome = factor(c("postest", "covidadmitted", "covidcc", "coviddeath")),
-  ) %>%
-  mutate(
-    treatment_descr = fct_recode(treatment,  !!!recode_treatment),
-    outcome_descr = fct_recode(outcome,  !!!recode_outcome)
-  )
+
+if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
+  model_metaparams <-
+    expand_grid(
+      treatment = factor(c("pfizer")),
+      outcome = factor(c("covidadmitted")),
+    ) %>%
+    mutate(
+      treatment_descr = fct_recode(treatment,  !!!recode_treatment),
+      outcome_descr = fct_recode(outcome,  !!!recode_outcome)
+    )
+} else {
+  model_metaparams <-
+    expand_grid(
+      treatment = factor(c("pfizer", "moderna")),
+      outcome = factor(c("postest", "covidemergency",  "covidadmitted", "covidcc", "coviddeath")),
+    ) %>%
+    mutate(
+      treatment_descr = fct_recode(treatment,  !!!recode_treatment),
+      outcome_descr = fct_recode(outcome,  !!!recode_outcome)
+    )
+
+}
+
+
+## models ----
 
 model_effects <-
   model_metaparams %>%
@@ -84,20 +102,6 @@ model_effects <-
 
 
 write_csv(model_effects, path = fs::path(output_dir, "report_effects.csv"))
-
-
-# glance <-
-#   model_metaparams %>%
-#   mutate(
-#     glance = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("model_glance.csv")))),
-#   ) %>%
-#   unnest(glance) %>%
-#   mutate(
-#     model_descr = fct_inorder(model_descr),
-#   )
-#
-# write_csv(glance, path = fs::path(output_dir, "report_glance.csv"))
-
 
 
 formatpercent100 <- function(x,accuracy){
@@ -164,4 +168,76 @@ ggsave(filename=fs::path(output_dir, "report_effectsplot.svg"), plot_effects, wi
 ggsave(filename=fs::path(output_dir, "report_effectsplot.png"), plot_effects, width=20, height=15, units="cm")
 ggsave(filename=fs::path(output_dir, "report_effectsplot.pdf"), plot_effects, width=20, height=15, units="cm")
 
+
+## glance ----
+
+
+# glance <-
+#   model_metaparams %>%
+#   mutate(
+#     glance = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("model_glance.csv")))),
+#   ) %>%
+#   unnest(glance) %>%
+#   mutate(
+#     model_descr = fct_inorder(model_descr),
+#   )
+#
+# write_csv(glance, path = fs::path(output_dir, "report_glance.csv"))
+
+
+## incidence rates ----
+
+incidences <-
+  model_metaparams %>%
+  mutate(
+    ir = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_ir.csv"))))
+  ) %>%
+  unnest(ir)
+
+
+gt_incidences <-
+  incidences %>%
+  select(-treatment, -outcome, -starts_with("n_"), -starts_with("yearsatrisk_"), -rrE) %>%
+  gt(
+    groupname_col = c("treatment_descr", "outcome_descr"),
+  ) %>%
+  cols_label(
+    outcome_descr = "Outcome",
+    fup_period = "Time since recruitment",
+
+    q_0 = "Events / person-years",
+    q_1   = "Events / person-years",
+
+    rate_0 = "Incidence",
+    rate_1 = "Incidence",
+    rr = "Incidence rate ratio",
+
+    rrCI = "95% CI"
+  ) %>%
+  tab_spanner(
+    label = "Boosted",
+    columns = ends_with("1")
+  ) %>%
+  tab_spanner(
+    label = "Unboosted",
+    columns = ends_with("0")
+  ) %>%
+  fmt_number(
+    columns = starts_with(c("rate_", "rr")),
+    decimals = 2
+  ) %>%
+  fmt_missing(
+    everything(),
+    missing_text="--"
+  ) %>%
+  cols_align(
+    align = "right",
+    columns = everything()
+  ) %>%
+  cols_align(
+    align = "left",
+    columns = "fup_period"
+  )
+
+gtsave(gt_incidences, fs::path(output_dir, "report_ir.html"))
 
