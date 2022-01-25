@@ -37,7 +37,7 @@ metadata_events <- tribble(
 
   # effectiveness
   "postest", "positive_test_1_date", "Positive SARS-CoV-2 test",
-  "covidemergency", "emergency_covid_date", "COVID-19 A&E attendance",
+  "covidemergency", "covidemergency_date", "COVID-19 A&E attendance",
   "covidadmitted", "covidadmitted_1_date", "COVID-19 hospitalisation",
   "covidcc", "covidcc_date", "COVID-19 critical care",
   "coviddeath", "coviddeath_date", "COVID-19 death",
