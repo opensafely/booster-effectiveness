@@ -47,7 +47,7 @@ study_dates <-
 
 postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 
-events_lookup <- write_rds(here("lib", "design", "event-variables.rds"))
+events_lookup <- read_rds(here("lib", "design", "event-variables.rds"))
 
 recode_treatment <- c(
   `BNT162b2` = "pfizer",
