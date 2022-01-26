@@ -29,7 +29,7 @@ jsonlite::write_json(study_dates, path = here("lib", "design", "study-dates.json
 
 # define outcomes ----
 
-metadata_events <- tribble(
+events_lookup <- tribble(
   ~event, ~event_var, ~event_descr,
 
   # other
@@ -49,7 +49,7 @@ metadata_events <- tribble(
   "emergency", "emergency_date", "A&E attendance",
 )
 
-write_rds(metadata_events, here("lib", "design", "event-variables.rds"))
+write_rds(events_lookup, here("lib", "design", "event-variables.rds"))
 
 
 ## variable labels

@@ -264,6 +264,9 @@ sim_list = lst(
   cev_ever = bn_node( ~rbernoulli(n=1, p = 0.02)),
   cev = bn_node( ~rbernoulli(n=1, p = 0.02)),
 
+  endoflife = bn_node( ~rbernoulli(n=1, p = 0.001)),
+  housebound = bn_node( ~rbernoulli(n=1, p = 0.001)),
+
 
   ## time-varying
 
