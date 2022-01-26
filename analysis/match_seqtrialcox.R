@@ -22,7 +22,7 @@ if(length(args)==0){
   # use for interactive testing
   removeobjects <- FALSE
   treatment <- "pfizer"
-  outcome <- "covidadmitted"
+  outcome <- "postest"
 } else {
   removeobjects <- TRUE
   treatment <- args[[1]]
@@ -262,6 +262,10 @@ data_matched <- local({
     matching_candidates_i <-
       data_tte %>%
       arrange(patient_id) %>%
+      filter(
+        # remove anyone already censored or experienced outcome
+        tte_stop>trial_time
+      ) %>%
       mutate(
         treated = ((tte_treatment %in% trial_time) & treated_within_recruitment_period)*1,
         control_candidate = ((tte_censor > trial_time) & ((tte_treatment > trial_time) | is.na(tte_treatment)) & (patient_id %in% candidate_ids0))*1
@@ -346,12 +350,12 @@ data_matched <- local({
     }
 
     #update list of candidate controls to those who have not already been recruited
-    candidate_ids0 <- candidate_ids0[!(candidate_ids0 %in% matched$patient_id)]
+    candidate_ids0 <- candidate_ids0[!(candidate_ids0 %in% matched_i$patient_id)]
 
     matched <- bind_rows(matched, matched_i)
 
   }
-  matched
+  select(matched, -subclass)
 
 
 })

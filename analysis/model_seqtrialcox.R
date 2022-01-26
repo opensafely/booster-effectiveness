@@ -21,7 +21,7 @@ if(length(args)==0){
   # use for interactive testing
   removeobjects <- FALSE
   treatment <- "pfizer"
-  outcome <- "covidadmitted"
+  outcome <- "postest"
 } else {
   removeobjects <- TRUE
   treatment <- args[[1]]
@@ -132,7 +132,11 @@ data_baseline <-
 
 logoutput_datasize(data_baseline)
 
-data_matched <- read_rds(here("output", "models", "seqtrialcox", treatment, outcome, "match_data_matched.rds"))
+data_matched <-
+  read_rds(here("output", "models", "seqtrialcox", treatment, outcome, "match_data_matched.rds")) %>%
+  mutate(
+    treated_patient_id = paste0(treated, "_", patient_id),
+  )
 data_tte <- read_rds(here("output", "models", "seqtrialcox", treatment, outcome, "match_data_tte.rds"))
 
 if(removeobjects) rm(data_cohort)
