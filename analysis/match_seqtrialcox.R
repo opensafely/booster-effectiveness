@@ -226,204 +226,136 @@ write_rds(data_tte, here("output", "models", "seqtrialcox", treatment, outcome, 
 logoutput_datasize(data_tte)
 
 
-if(FALSE){
-# consider switching to MatchIt for speed
-# below is an example for a single trial
 library("MatchIt")
-trial_data_0 <- data_tte %>%
-  arrange(patient_id) %>%
-  mutate(
-    A = (tte_treatment==0 & !is.na(tte_treatment))*1,
-  )
 
-matching_0 <- matchit(
-  formula = A ~ region + jcvi_group + vax12_type,
-  data = trial_data_0,
-  #exact = ~ region + jcvi_group + vax12_type,
-  method = "exact",
-  replace = FALSE
-  #m.order = "data", # data is sorted on (effectively random) patient ID
-  #verbose = TRUE,
-  #ratio = 1L
-)
+data_matched <- local({
 
-match_summary <-
-  as.data.frame(matching_0$X) %>%
-  add_column(
-    subclass = matching_0$subclass,
-    treated = matching_0$treat,
-    patient_id = data0$patient_id,
-    weight = matching_0$weights,
-    trial_day = 0,
-  ) %>%
-  group_by(subclass) %>%
-  mutate(
-    n_treated = sum(treated)
-  ) %>%
-  group_by(subclass, treated) %>%
-  filter(row_number() <= n_treated) %>%
-  mutate(
-    n_control = sum(1-treated),
-    match_id = row_number()
-  ) %>%
-  arrange(subclass, match_id, desc(treated))
-}
+  ## sequential trial matching routine is as follows:
+  # each daily trial includes all n people who were vaccinated on that day (treated=1) and
+  # a random sample of n controls (treated=0) who:
+  # - had not been vaccinated on or before that day (still at risk of treatment);
+  # - had not experienced the outcome (still at risk of outcome);
+  # - had not already been selected as a control in a previous trial
+  # for each trial, all covariates, including time-dependent covariates, are chosen as at the recruitment date and do not subsequently vary through follow-up
+  # within the construct of the model, there are no time-dependent variables, only time-dependent treatment effects (modelled as piecewise constant hazards)
 
 
-# run matching for sequential trials ----
+  max_trial_day <- pmin(max(data_tte$tte_treatment, na.rm=TRUE), NA, na.rm=TRUE)
+  trials <- seq_len(max_trial_day)
 
-## sequential trial analysis is as follows:
-# each daily trial includes all n people who were vaccinated on that day (treated=1) and
-# a random sample of n controls (treated=0) who:
-# - had not been vaccinated on or before that day (still at risk of treatment);
-# - had not experienced the outcome (still at risk of outcome);
-# - had not already been selected as a control in a previous trial
-# for each trial, all covariates, including time-dependent covariates, are chosen as at the recruitment date and do not subsequently vary through follow-up
-# within the construct of the model, there are no time-dependent variables, only time-dependent treatment effects (modelled as piecewise constant hazards)
+  # initialise list of candidate controls
+  candidate_ids0 <- data_tte$patient_id
 
+  # initialise matching summary data
+  matched <- NULL
 
-# function to get sample non-treated without replacement over time
-sample_untreated <- function(treatment, censor, eligible, id, max_trial_day=NULL, min_arm_size=1L){
-  # for each time point:
-  # TRUE if treatment occurs
-  # TRUE with probability of `n/sum(event==FALSE & not-already-selected)` if outcome has not occurred
-  # based on `id` to ensure consistency of samples
-
-  # `treatment` is an integer giving the event time for treatment. NA if no treatment before outcome / censoring
-  # `censor` is an integer giving the time to end of followup/censoring. There should not be any NAs.
-  # `eligible` is a boolean indicating if a patient is eligible for selection into the treatment arm
-  # `id` is an identifier with the following properties:
-  # - a) consistent between cohort extracts
-  # - b) unique
-  # - c) completely randomly assigned (no correlation with practice ID, age, registration date, etc etc) which should be true as based on hash of true IDs
-  # - d) is an integer strictly greater than zero
-  # `max_trial_day` is maximum trial day (ie last recruitment day). select controls up to and including this time
-
-
-  # set max trial day and define trial days
-  maxday <- if(is.null(max_trial_day)) max(treatment, 0L, na.rm=TRUE) else(max_trial_day)
-  trials <- seq_len(maxday)
-
-  # set candidate control ids
-  candidate_ids0 <- id
-
-  dat0 <-
-    tidyr::expand_grid(
-      id=id,
-      treated=c(0L,1L)
-    ) %>%
-    dplyr::mutate(
-      trial_time=NA_integer_,
-    )
-
-  dat <- tibble(
-    tte_recruitment = integer(0),
-    patient_id = integer(0),
-    match_id = integer(0),
-    tte_controlistreated = integer(0),
-    treated = integer(0),
-  )
+  # matching formula
+  matching_formula <- as.formula(str_c("treated ~ ", paste(matching_variables, collapse=" + ")))
 
   for(trial in trials){
-    trial_time <- trial-1 # represent on time-to-event-since-start-date scale (= time to trial)
-    # recruit participants for trial
-    # treated participants
-    trial_ids1 <- id[(treatment %in% trial_time) & (censor > trial_time) & eligible]
-    n_treated <- length(trial_ids1)
 
-    # candidate controls (anyone who hasn't been treated yet (treatment>trial_time), censored yet (censor>trial_time), and anyone who hasn't already been selected as a control (candidate0ids from trial-1))
-    candidate_ids0 <- id[ (censor>trial_time) & ((treatment > trial_time) | is.na(treatment)) & (id %in% candidate_ids0)]
+    #cat(trial, "\n")
 
-    # actual controls - select first n candidates according to ranked id
-    trial_ids0 <- candidate_ids0[dplyr::dense_rank(candidate_ids0)<=n_treated]
-    n_controls <- length(trial_ids0)
+    trial_time <- trial-1
 
-    if(n_controls < (n_treated * 0.1)) {
-      # message("Less than ", 100*0.1, "% of treated participants were matched to a control for trial=",trial,". Skipping this trial.")
+    # set of people boosted on trial day, + their candidate controls
+    matching_candidates_i <-
+      data_tte %>%
+      arrange(patient_id) %>%
+      mutate(
+        treated = ((tte_treatment %in% trial_time) & treated_within_recruitment_period)*1,
+        control_candidate = ((tte_censor > trial_time) & ((tte_treatment > trial_time) | is.na(tte_treatment)) & (patient_id %in% candidate_ids0))*1
+      ) %>%
+      filter((treated==1L) | control_candidate)
+
+    if(sum(matching_candidates_i$treated)<1) {
+      message("Skipping trial ", trial, " - No treated people eligible for inclusion.")
       next
     }
-    # if(n_treated < min_arm_size) {
-    #   # message("Number of eligible treated people for trial=",trial," is less than ", min_arm_size, ". Skipping this trial.")
-    #   next
-    # }
 
-    # only select treated people who have been matched
-    trial_ids1 <- trial_ids1[dplyr::dense_rank(trial_ids1)<=n_controls]
-    n_treated <- length(trial_ids1)
+    n_treated_all <- sum(matching_candidates_i$treated)
 
-    stopifnot("1:1 matching" = n_treated==n_controls)
+    safely_matchit <- purrr::safely(matchit)
 
-    dati <- tibble::tibble(
-      patient_id = c(trial_ids1, trial_ids0),
-      tte_recruitment = trial_time,
-      match_id = rep(seq_len(n_treated), 2),
-      tte_controlistreated = rep(treatment[id %in% trial_ids0], 2), # censor treated participants when their matched control gets treated
-      treated = c(rep(1L,n_treated), rep(0L,n_treated)),
-    )
+    # run matching algorithm
+    matching_i <-
+      safely_matchit(
+        formula = matching_formula,
+        data = matching_candidates_i,
+        method = "exact",
+        replace = FALSE,
+        estimand = "ATE",
+        #m.order = "data", # data is sorted on (effectively random) patient ID
+        #verbose = TRUE,
+        #ratio = 1L # irritatingly you can't set this for "exact" method, so have to filter later
+      )[[1]]
 
-    # remove already sampled individuals from list of candidate samples
-    candidate_ids0 <- candidate_ids0[!(candidate_ids0 %in% dati$patient_id)]
-
-    dat <- dplyr::bind_rows(dat, dati)
-  }
-
-  dat
-}
-
-
-## matching loop ----
-# match boosted participants to controls based on matching_variables
-
-data_matchingstrata <-
-  data_matching_variables %>%
-  group_by(across(all_of(matching_variables))) %>%
-  summarise(
-    n=n(),
-    .groups="drop"
-  ) %>%
-  mutate(
-    strata_id = row_number(),
-    strata_name = paste(!!!syms(matching_variables), sep=" ")
-  )
-
-
-data_matching0 <- local({
-
-  matching0 <- NULL
-  for(id in data_matchingstrata$strata_id){
-
-    stratum <- data_matchingstrata %>%
-      filter(strata_id==id) %>%
-      select(all_of(matching_variables), strata_id)
-    # message(stratum$strata_name)
-
-    data_stratum <- left_join(stratum, data_tte, by = matching_variables)
-
-    matching_stratum <-
-      sample_untreated(
-        treatment = data_stratum$tte_treatment,
-        censor = data_stratum$tte_stop,
-        eligible = data_stratum$treated_within_recruitment_period,
-        id = data_stratum$patient_id,
+    if(is.null(matching_i)) {
+      message("Skipping trial ", trial, " - No exact matches found.")
+      next
+    }
+    # summary info for recruited people
+    # - one row per person
+    # - match_id is within matching_i
+    matched_i <-
+      as.data.frame(matching_i$X) %>%
+      add_column(
+        subclass = matching_i$subclass,
+        treated = matching_i$treat,
+        patient_id = matching_candidates_i$patient_id,
+        weight = matching_i$weights,
+        trial_day = trial,
       ) %>%
-      left_join(stratum, by=character())
 
-    matching0 <- bind_rows(matching0, matching_stratum)
+      # filter treated and controls to ensure exact 1:1 matching
+      arrange(subclass, desc(treated), patient_id) %>%
+      group_by(subclass) %>%
+      mutate(
+        n_treated = sum(treated),
+        n_control = sum(1-treated)
+      ) %>%
+      group_by(subclass, treated) %>%
+      filter(
+        row_number() <= pmin(n_treated, n_control),
+        !is.na(subclass) # equivalent to weight != 0
+      ) %>%
+      group_by(treated) %>%
+      mutate(
+        match_id = row_number()
+      ) %>%
+      arrange(subclass, match_id, desc(treated)) %>%
+      left_join(
+        matching_candidates_i %>% select(patient_id, starts_with("tte_")),
+        by = "patient_id"
+      ) %>%
+      select(-n_treated, -n_control) %>%
+      group_by(match_id) %>%
+      mutate(
+        tte_recruitment = trial_time,
+        tte_controlistreated = tte_treatment[treated==0],
+        tte_stop = pmin(tte_stop, tte_controlistreated, na.rm=TRUE),
+      ) %>%
+      ungroup()
+
+    n_treated_matched <- sum(matched_i$treated)
+
+    if(n_treated_matched < (0.1*n_treated_all)) {
+
+      message("Skipping trial ", trial, " - Only ", n_treated_matched, "boosted people out of ", n_treated_all, " (", n_treated_matched*100/n_treated_all, "%) had a match.")
+      next
+    }
+
+    #update list of candidate controls to those who have not already been recruited
+    candidate_ids0 <- candidate_ids0[!(candidate_ids0 %in% matched$patient_id)]
+
+    matched <- bind_rows(matched, matched_i)
+
   }
-  matching0
+  matched
+
+
 })
 
-data_matched <-
-  data_matching0 %>%
-  left_join(
-    data_tte %>% select(patient_id, starts_with("tte")),
-    by=c("patient_id")
-  ) %>%
-  mutate(
-    trial_day = tte_recruitment+1,
-    treated_patient_id = paste0(treated, "_", patient_id),
-    tte_stop = pmin(tte_stop, tte_controlistreated, na.rm=TRUE)
-  )
 
 write_rds(data_matched, here("output", "models", "seqtrialcox", treatment, outcome, "match_data_matched.rds"))
 
