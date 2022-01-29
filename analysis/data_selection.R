@@ -66,6 +66,7 @@ data_criteria <- data_processed %>%
         has_vaxgap12 & has_vaxgap23 & has_knownvax1 & has_knownvax2 &
         vax1_afterfirstvaxdate &
         vax2_beforelastvaxdate &
+        vax12_homologous &
         vax3_afterstudystartdate &
         isnot_hscworker &
         isnot_carehomeresident &
@@ -108,7 +109,7 @@ data_flowchart <- data_criteria %>%
     criteria = fct_case_when(
       crit == "c0" ~ "Aged 18+ with 2nd dose on or before 31 Aug 2021", # paste0("Aged 18+\n with 2 doses on or before ", format(study_dates$lastvax2_date, "%d %b %Y")),
       crit == "c1" ~ "  with no missing demographic information",
-      crit == "c2" ~ "  with known, homologous 1st and 2nd dose type",
+      crit == "c2" ~ "  with known, homologous primary vaccination course",
       crit == "c3" ~ "  and not a HSC worker",
       crit == "c4" ~ "  and not a care/nursing home resident, end-of-life or housebound",
       TRUE ~ NA_character_
