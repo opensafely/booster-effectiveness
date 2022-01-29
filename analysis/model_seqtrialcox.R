@@ -490,8 +490,6 @@ write_csv(event_counts_period, fs::path(output_dir, "model_preflight_period.csv"
 
 ### event counts within strata levels ----
 
-rmeove(formula_strata)
-
 tbltab_strata <-
   data_seqtrialcox %>%
   mutate(

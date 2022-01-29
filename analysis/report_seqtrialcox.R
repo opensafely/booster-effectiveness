@@ -215,14 +215,7 @@ write_csv(incidence_rate_redacted, fs::path(output_dir, "report_ir.csv"))
 
 ## cumulative risk differences ----
 
-formula0_pw <- formula_vaxonly
-formula1_pw <- formula_vaxonly %>% update(formula_strata)
-formula2_pw <- formula_vaxonly %>% update(formula_strata) %>% update(formula_demog)
-formula3_pw <- formula_vaxonly %>% update(formula_strata) %>% update(formula_demog) %>% update(formula_clinical) %>% update(formula_timedependent) %>% update(formula_remove_outcome)
-
-
 model3 <- read_rds(fs::path(output_dir, "model_obj3.rds"))
-
 
 tidy_surv <- broom::tidy(survfit(model3)) %>%
   group_by(strata) %>%
