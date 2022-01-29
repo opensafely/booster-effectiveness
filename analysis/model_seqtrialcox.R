@@ -247,8 +247,7 @@ data_timevarying <- local({
       id = patient_id,
       admittedplanned_status = tdc(tte, admittedplanned_status),
       options = list(tdcstart = 0L)
-    ) %>%
-    select(-id)
+    )
 
   data_timevarying
 })
@@ -265,7 +264,6 @@ data_seqtrialcox <- local({
       tstart = tte_recruitment,
       tstop = tte_stop
     ) %>%
-    select(-id) %>%
 
     # add time-varying info as at recruitment date (= tte_trial)
     left_join(
@@ -338,10 +336,10 @@ data_seqtrialcox <- local({
       tstart = tstart - tte_recruitment,
       tstop = tstop - tte_recruitment
     ) %>%
-    fastDummies::dummy_cols(select_columns = c("treated_period"), remove_selected_columns=TRUE) %>%
+    fastDummies::dummy_cols(select_columns = c("treated_period"), remove_selected_columns = TRUE) %>%
     mutate(
       across(
-        starts_with("treated_period"),
+        starts_with("treated_period_"),
         ~if_else(treated==1, .x, 0L)
       )
     )
@@ -420,7 +418,7 @@ model_descr = c(
 
 ## pre-flight checks ----
 
-# event counts within each covariate level
+### event counts within each covariate level ----
 
 tbltab_treated <-
   data_seqtrialcox %>%
@@ -455,6 +453,7 @@ event_counts_treated <-
 
 write_csv(event_counts_treated, fs::path(output_dir, "model_preflight_treated.csv"))
 
+### event counts within each follow up period ----
 
 tbltab_period <-
   data_seqtrialcox %>%
@@ -489,6 +488,47 @@ event_counts_period <-
 
 write_csv(event_counts_period, fs::path(output_dir, "model_preflight_period.csv"))
 
+### event counts within strata levels ----
+
+rmeove(formula_strata)
+
+tbltab_strata <-
+  data_seqtrialcox %>%
+  mutate(
+    strata = strata(!!!syms(all.vars(formula_strata)[-1]))
+  ) %>%
+  select(treated, strata, fup_period) %>%
+  select(where(~(!is.double(.)))) %>%
+  mutate(
+    across(
+      where(is.integer),
+      ~as.character(.)
+    ),
+  ) %>%
+  split(.[[1]]) %>%
+  map(~.[,-1] %>% select(everything())) %>%
+  map(
+    function(data){
+      map(data, redacted_summary_cat, redaction_threshold=0) %>%
+        bind_rows(.id="variable") %>%
+        select(-redacted, -pct_nonmiss)
+    }
+  )
+
+event_counts_strata <-
+  tbltab_strata %>%
+  bind_rows(.id = "event") %>%
+  pivot_wider(
+    id_cols=c(variable, .level),
+    names_from = event,
+    names_glue = "event{event}_{.value}",
+    values_from = c(n, pct)
+  )
+
+write_csv(event_counts_strata, fs::path(output_dir, "model_preflight_strata.csv"))
+
+
+
 
 # gt(
 #   event_counts_treated,
@@ -517,7 +557,7 @@ cox_model <- function(number, formula_cox){
   coxmod <- coxph(
     formula = formula_cox,
     data = data_seqtrialcox,
-    #robust = TRUE,
+    robust = TRUE,
     id = patient_id,
     na.action = "na.fail",
     control = opt_control
