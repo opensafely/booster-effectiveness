@@ -252,19 +252,21 @@ if(any(tidy_surv$n.event==0)){
 
   ## need to redo treatment-time indicators too, as overwriting `treated`` variable not enough
 
-  data_seqtrialcox1 <- data_seqtrialcox %>%
+  data_seqtrialcox1 <-
+    data_seqtrialcox %>%
     select(-starts_with("treated_period_")) %>%
     rename(treated_period=fup_period) %>%
     fastDummies::dummy_cols(select_columns = c("treated_period")) %>%
     mutate(treated=1L)
 
-  data_seqtrialcox0 <- data_seqtrialcox %>%
+  data_seqtrialcox0 <-
+    data_seqtrialcox %>%
     mutate(
       across(
         starts_with("treated_period_"),
         ~0L
       ),
-      treated==0L
+      treated = 0L
     )
 
   times <- seq_len(last(postbaselinecuts)+1)
