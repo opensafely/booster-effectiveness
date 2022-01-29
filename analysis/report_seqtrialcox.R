@@ -186,7 +186,7 @@ incidence_rate_redacted <- local({
     mutate(
       rr = rate_1 / rate_0,
       rrE = scales::label_number(accuracy=0.01, trim=FALSE)(rr),
-      rrCI = rrCI_exact(rate_1, yearsatrisk_1, rate_0, yearsatrisk_0, 0.01),
+      rrCI = rrCI_exact(n_1, yearsatrisk_1, n_0, yearsatrisk_0, 0.01),
     )
 
   redacted <-
