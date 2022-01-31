@@ -54,7 +54,7 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
   model_metaparams <-
     expand_grid(
       treatment = factor(c("pfizer")),
-      outcome = factor(c("covidadmitted")),
+      outcome = factor(c("postest")),
     ) %>%
     mutate(
       treatment_descr = fct_recode(treatment,  !!!recode_treatment),
