@@ -20,7 +20,7 @@ if(length(args)==0){
   # use for interactive testing
   removeobs <- FALSE
   treatment <- "pfizer"
-  outcome <- "covidadmitted"
+  outcome <- "postest"
 } else {
   removeobs <- TRUE
   treatment <- args[[1]]
@@ -76,7 +76,7 @@ match_summary_trial <-
   pivot_wider(
     id_cols = c(jcvi_group, trial_day),
     names_from = treated,
-    values_from = c(n, fup_sum, fu_years, fup_mean, events)
+    values_from = c(n, fup_sum, fup_years, fup_mean, events)
   )
 
 write_csv(match_summary_trial, fs::path(output_dir, "report_matchsummary_trial.csv"))
