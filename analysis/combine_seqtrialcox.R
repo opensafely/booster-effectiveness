@@ -41,12 +41,14 @@ study_dates <-
 
 postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 
+events_lookup <- read_rds(here("lib", "design", "event-variables.rds"))
 
 ## create lookup for treatment / outcome combinations ----
 
 recode_treatment <- c(`BNT162b2` = "pfizer", `mRNA-1273` = "moderna")
 recode_outcome <- c(`Positive SARS-CoV-2 test` = "postest", `Covid-related hospitalisation` = "covidadmitted")
 
+recode_outcome <- set_names(events_lookup$event_descr, events_lookup$event)
 
 if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
   model_metaparams <-
@@ -62,7 +64,7 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
   model_metaparams <-
     expand_grid(
       treatment = factor(c("pfizer", "moderna")),
-      outcome = factor(c("postest", "covidemergency",  "covidadmitted", "covidcc", "coviddeath")),
+      outcome = factor(c("postest", "covidemergency", "coviddeath")),
     ) %>%
     mutate(
       treatment_descr = fct_recode(treatment,  !!!recode_treatment),
@@ -138,7 +140,6 @@ model_effects <-
 
 
 write_csv(model_effects, path = fs::path(output_dir, "effects.csv"))
-
 
 formatpercent100 <- function(x,accuracy){
   formatx <- scales::label_percent(accuracy)(x)

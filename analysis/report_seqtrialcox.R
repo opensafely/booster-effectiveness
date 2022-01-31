@@ -405,4 +405,106 @@ incidence_rate_redacted <- local({
 
 write_csv(incidence_rate_redacted, fs::path(output_dir, "report_ir.csv"))
 
-rm(data_seqtrialcox)
+
+## cumulative risk differences ----
+
+model3 <- read_rds(fs::path(output_dir, "model_obj3.rds"))
+
+tidy_surv <- broom::tidy(survfit(model3)) %>%
+  group_by(strata) %>%
+  summarise(
+    n.event=sum(n.event),
+    n.risk=first(n.risk),
+    n.censor = sum(n.censor),
+  )
+
+if(any(tidy_surv$n.event==0)){
+  message("some strata have zero events -- cannot calculate marginalised risk.", "\n")
+} else {
+
+
+  #
+  # formula1_pw
+  #
+  # model3 <- coxph(
+  #   formula = Surv(tstop, ind_outcome) ~ treated_period_1 + strata(region),# +
+  #     #strata(region) + strata(jcvi_group) + strata(vax12_type),
+  #   data = data_seqtrialcox,
+  #  # robust = TRUE,
+  #  # id = patient_id,
+  #   na.action = "na.fail"
+  # )
+
+
+  ## need to redo treatment-time indicators too, as overwriting `treated`` variable not enough
+
+  data_seqtrialcox1 <-
+    data_seqtrialcox %>%
+    select(-starts_with("treated_period_")) %>%
+    rename(treated_period=fup_period) %>%
+    fastDummies::dummy_cols(select_columns = c("treated_period")) %>%
+    mutate(treated=1L)
+
+  data_seqtrialcox0 <-
+    data_seqtrialcox %>%
+    mutate(
+      across(
+        starts_with("treated_period_"),
+        ~0L
+      ),
+      treated = 0L
+    )
+
+  times <- seq_len(last(postbaselinecuts)+1)
+
+  surv1 <- survexp(~1, data=data_seqtrialcox1, ratetable = model3, method="ederer", times=times)# times=seq_len(end(postbaselinecuts)))
+  surv0 <-  survexp(~1, data=data_seqtrialcox0, ratetable = model3, method="ederer", times=times)# times=seq_len(end(postbaselinecuts)))
+
+  cumulrisk <-
+    tibble(
+      times,
+      surv1 = surv1$surv,
+      surv0 = surv0$surv,
+      #diff = surv1 - surv0
+    ) %>%
+    pivot_longer(
+      cols=starts_with("surv"),
+      names_to="treated",
+      values_to="surv"
+    ) %>%
+    mutate(
+      treated_descr = fct_recode(treated, `Not boosted`="surv0", `Boosted`="surv1")
+    )
+
+
+  plot_cumulrisk <- ggplot(cumulrisk)+
+    geom_step(aes(x=times, y=1-surv, group=treated_descr, colour=treated_descr))+
+    geom_hline(yintercept=0)+ geom_vline(xintercept=0)+
+    scale_x_continuous(
+      breaks = seq(0,7*52,by=14),
+      expand = expansion(0)
+    )+
+    scale_y_continuous(
+      expand = expansion(0)
+    )+
+    scale_colour_brewer(type="qual", palette="Set1")+
+    scale_fill_brewer(type="qual", palette="Set1", guide="none")+
+    labs(
+      x="Days since booster",
+      y="Cumulative incidence",
+      colour=NULL,
+      fill=NULL
+    )+
+    theme_minimal()+
+    theme(
+      legend.position=c(.05,.95),
+      legend.justification = c(0,1),
+    )
+
+
+  ggsave(filename=fs::path(output_dir, "report_cumulriskplot.svg"), plot_cumulrisk, width=20, height=15, units="cm")
+  ggsave(filename=fs::path(output_dir, "report_cumulriskplot.png"), plot_cumulrisk, width=20, height=15, units="cm")
+
+}
+
+
