@@ -20,7 +20,7 @@ if(length(args)==0){
   # use for interactive testing
   removeobjects <- FALSE
   treatment <- "pfizer"
-  outcome <- "postest"
+  outcome <- "covidadmitted"
 } else {
   removeobjects <- TRUE
   treatment <- args[[1]]
@@ -423,12 +423,11 @@ model_descr = c(
 
 tbltab0 <-
   data_seqtrialcox %>%
-  select(ind_outcome, treated, fup_period, all_of(all.vars(formula3_pw)), matching_variables, -starts_with("treated_period")) %>%
-  select(where(~(!is.double(.)))) %>%
-  select(-age, -vax2_week) %>%
+  select(ind_outcome, treated, fup_period, all_of(all.vars(formula3_pw)), all_of(matching_variables), -starts_with("treated_period")) %>%
+  select(-age, -vax2_week, -tstart, -tstop) %>%
   mutate(
     across(
-      where(is.integer),
+      where(is.numeric),
       ~as.character(.)
     ),
   )
@@ -460,7 +459,7 @@ write_csv(event_counts, fs::path(output_dir, "model_preflight.csv"))
 event_counts_period <-
   tbltab0 %>%
   split(.[c("fup_period", "ind_outcome")], sep="..") %>%
-  map(~select(.,-fup_period, -ind_outcome)) %>%
+  map(~select(., -fup_period, -ind_outcome)) %>%
   map(
     function(data){
       map(data, redacted_summary_cat, redaction_threshold=0) %>%
@@ -487,13 +486,6 @@ event_counts_strata <-
     strata = strata(!!!syms(all.vars(formula_strata)[-1]))
   ) %>%
   select(ind_outcome, strata, fup_period) %>%
-  select(where(~(!is.double(.)))) %>%
-  mutate(
-    across(
-      where(is.integer),
-      ~as.character(.)
-    ),
-  ) %>%
   split(.["ind_outcome"]) %>%
   map(~select(., -ind_outcome)) %>%
   map(
