@@ -1,17 +1,11 @@
 
 # # # # # # # # # # # # # # # # # # # # #
-# This script:
-# imports fitted cox models
-# outputs time-dependent effect estimates for booster
-#
-# The script must be accompanied by two arguments,
-# `treatment` - the exposure variable in the regression model
-# `outcome` - the dependent variable in the regression model
+# This script combines matching info and model info and estimates across all treatments and outcomes
 # # # # # # # # # # # # # # # # # # # # #
 
 # Preliminaries ----
 
-# import command-line arguments ----
+## import command-line arguments ----
 
 args <- commandArgs(trailingOnly=TRUE)
 
@@ -32,7 +26,7 @@ library('survival')
 library('gt')
 
 
-## Import custom user functi
+## Import custom user functions
 source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "survival.R"))
 
@@ -49,10 +43,10 @@ postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 
 events_lookup <- read_rds(here("lib", "design", "event-variables.rds"))
 
-recode_treatment <- c(
-  `BNT162b2` = "pfizer",
-  `mRNA-1273` = "moderna"
-)
+## create lookup for treatment / outcome combinations ----
+
+recode_treatment <- c(`BNT162b2` = "pfizer", `mRNA-1273` = "moderna")
+recode_outcome <- c(`Positive SARS-CoV-2 test` = "postest", `Covid-related hospitalisation` = "covidadmitted")
 
 recode_outcome <- set_names(events_lookup$event_descr, events_lookup$event)
 
@@ -60,7 +54,7 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
   model_metaparams <-
     expand_grid(
       treatment = factor(c("pfizer")),
-      outcome = factor(c("covidadmitted")),
+      outcome = factor(c("postest")),
     ) %>%
     mutate(
       treatment_descr = fct_recode(treatment,  !!!recode_treatment),
@@ -80,7 +74,47 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
 }
 
 
-## models ----
+
+# combine matching ----
+
+## match coverage ---
+
+matchcoverage <-
+  model_metaparams %>%
+  mutate(
+    coverage = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_matchcoverage.csv"))))
+  ) %>%
+  unnest(coverage)
+
+write_csv(matchcoverage, fs::path(output_dir, "matchcoverage.csv"))
+
+
+
+## match summary ---
+
+matchsummary <-
+  model_metaparams %>%
+  mutate(
+    summary = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_matchsummary.csv"))))
+  ) %>%
+  unnest(summary)
+
+write_csv(matchsummary, fs::path(output_dir, "matchsummary.csv"))
+
+
+matchsummary_treated <-
+  model_metaparams %>%
+  mutate(
+    summary = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_matchsummary_treated.csv"))))
+  ) %>%
+  unnest(summary)
+
+write_csv(matchsummary_treated, fs::path(output_dir, "matchsummary_treated.csv"))
+
+
+# combine models ----
+
+## effects ----
 
 model_effects <-
   model_metaparams %>%
@@ -104,7 +138,8 @@ model_effects <-
   )
 
 
-write_csv(model_effects, path = fs::path(output_dir, "report_effects.csv"))
+
+write_csv(model_effects, path = fs::path(output_dir, "effects.csv"))
 
 formatpercent100 <- function(x,accuracy){
   formatx <- scales::label_percent(accuracy)(x)
@@ -166,25 +201,25 @@ plot_effects <-
 plot_effects
 ## save plot
 
-ggsave(filename=fs::path(output_dir, "report_effectsplot.svg"), plot_effects, width=20, height=15, units="cm")
-ggsave(filename=fs::path(output_dir, "report_effectsplot.png"), plot_effects, width=20, height=15, units="cm")
-ggsave(filename=fs::path(output_dir, "report_effectsplot.pdf"), plot_effects, width=20, height=15, units="cm")
+ggsave(filename=fs::path(output_dir, "effectsplot.svg"), plot_effects, width=20, height=15, units="cm")
+ggsave(filename=fs::path(output_dir, "effectsplot.png"), plot_effects, width=20, height=15, units="cm")
+ggsave(filename=fs::path(output_dir, "effectsplot.pdf"), plot_effects, width=20, height=15, units="cm")
 
 
-## glance ----
+## diagnostics ----
 
 
-# glance <-
-#   model_metaparams %>%
-#   mutate(
-#     glance = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("model_glance.csv")))),
-#   ) %>%
-#   unnest(glance) %>%
-#   mutate(
-#     model_descr = fct_inorder(model_descr),
-#   )
-#
-# write_csv(glance, path = fs::path(output_dir, "report_glance.csv"))
+glance <-
+  model_metaparams %>%
+  mutate(
+    glance = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_glance.csv")))),
+  ) %>%
+  unnest(glance) %>%
+  mutate(
+    model_descr = fct_inorder(model_descr),
+  )
+
+write_csv(glance, path = fs::path(output_dir, "model_diagnostics.csv"))
 
 
 ## incidence rates ----
@@ -196,10 +231,12 @@ incidences <-
   ) %>%
   unnest(ir)
 
+write_csv(incidences, fs::path(output_dir, "ir.csv"))
+
 
 gt_incidences <-
   incidences %>%
-  select(-treatment, -outcome, -starts_with("n_"), -starts_with("yearsatrisk_"), -rrE) %>%
+  select(-treatment, -outcome, -starts_with("events_"), -starts_with("yearsatrisk_"), -rrE) %>%
   gt(
     groupname_col = c("treatment_descr", "outcome_descr"),
   ) %>%
@@ -207,13 +244,16 @@ gt_incidences <-
     outcome_descr = "Outcome",
     fup_period = "Time since recruitment",
 
+    n_0 = "Patients at risk",
+    n_1 = "Patients at risk",
+
     q_0 = "Events / person-years",
     q_1   = "Events / person-years",
 
     rate_0 = "Incidence",
     rate_1 = "Incidence",
-    rr = "Incidence rate ratio",
 
+    rr = "Incidence rate ratio",
     rrCI = "95% CI"
   ) %>%
   tab_spanner(
@@ -225,8 +265,13 @@ gt_incidences <-
     columns = ends_with("0")
   ) %>%
   fmt_number(
-    columns = starts_with(c("rate_", "rr")),
+    columns = c("rate_0", "rate_1", "rr"),
     decimals = 2
+  ) %>%
+  fmt_number(
+    columns = starts_with(c("n_")),
+    decimals = 0,
+    sep_mark = ","
   ) %>%
   fmt_missing(
     everything(),
@@ -241,5 +286,5 @@ gt_incidences <-
     columns = "fup_period"
   )
 
-gtsave(gt_incidences, fs::path(output_dir, "report_ir.html"))
+gtsave(gt_incidences, fs::path(output_dir, "ir.html"))
 

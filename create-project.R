@@ -74,10 +74,10 @@ action_model <- function(
       ),
       moderately_sensitive = lst(
         txt = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.txt"),
-        csv = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.csv"),
+        #csv = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.csv"),
         #svg = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.svg"),
-        png = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.png"),
-        pdf = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.pdf"),
+        #png = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.png"),
+        #pdf = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.pdf"),
       )
     ),
 
@@ -103,7 +103,10 @@ action_model <- function(
       name = glue("report_seqtrialcox_{treatment}_{outcome}"),
       run = glue("r:latest analysis/report_seqtrialcox.R"),
       arguments = c(treatment, outcome),
-      needs = list(glue("model_seqtrialcox_{treatment}_{outcome}")),
+      needs = list(
+        glue("model_seqtrialcox_{treatment}_{outcome}"),
+        glue("match_seqtrialcox_{treatment}_{outcome}")
+      ),
       moderately_sensitive = lst(
         csv = glue("output/models/seqtrialcox/{treatment}/{outcome}/report_*.csv"),
         svg = glue("output/models/seqtrialcox/{treatment}/{outcome}/report_*.svg"),
@@ -330,7 +333,7 @@ actions_list <- splice(
     needs = splice(
       as.list(
         glue_data(
-          .x=expand_grid(treatment=c("pfizer", "moderna"), outcome=c("postest", "covidadmitted")),
+          .x=expand_grid(treatment=c("pfizer", "moderna"), outcome=c("postest", "covidadmitted", "coviddeath")),
           "report_seqtrialcox_{treatment}_{outcome}"
         )
       )
@@ -344,7 +347,16 @@ actions_list <- splice(
     )
   ),
 
-  comment("# # # # # # # # # # # # # # # # # # #", "Reports", "# # # # # # # # # # # # # # # # # # #")
+  comment("# # # # # # # # # # # # # # # # # # #", "Manuscript", "# # # # # # # # # # # # # # # # # # #"),
+
+  action(
+    name = "manuscript_objects",
+    run = "r:latest analysis/manuscript_objects.R",
+    needs = list("data_selection", "combine_seqtrialcox"),
+    moderately_sensitive = lst(
+      csv = "output/manuscript-objects/*.csv",
+    )
+  )
 
 
 )

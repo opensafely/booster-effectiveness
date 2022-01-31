@@ -11,7 +11,7 @@
 
 # Preliminaries ----
 
-# import command-line arguments ----
+## import command-line arguments ----
 
 args <- commandArgs(trailingOnly=TRUE)
 
@@ -50,6 +50,192 @@ study_dates <-
   jsonlite::read_json(path=here("lib", "design", "study-dates.json")) %>%
   map(as.Date)
 
+
+# report matching info ----
+
+data_matched <- read_rds(fs::path(output_dir, "match_data_matched.rds")) %>%
+  mutate(
+    day1_date = study_dates$studystart_date
+  )
+
+## matching summary ----
+
+match_summary_trial <-
+  data_matched %>%
+  group_by(jcvi_group, trial_day, treated) %>%
+  summarise(
+    n=n(),
+    fup_sum = sum(tte_stop - tte_recruitment),
+    fup_years = sum(tte_stop - tte_recruitment)/365.25,
+    fup_mean = mean(tte_stop - tte_recruitment),
+    events = sum(tte_outcome <= tte_stop, na.rm=TRUE)
+  ) %>%
+  arrange(
+    jcvi_group, trial_day, treated
+  ) %>%
+  pivot_wider(
+    id_cols = c(jcvi_group, trial_day),
+    names_from = treated,
+    values_from = c(n, fup_sum, fup_years, fup_mean, events)
+  )
+
+write_csv(match_summary_trial, fs::path(output_dir, "report_matchsummary_trial.csv"))
+
+
+match_summary_treated <-
+  data_matched %>%
+  group_by(treated) %>%
+  summarise(
+    n=n(),
+    firstrecruitdate = min(tte_recruitment) + first(day1_date),
+    lastrecruitdate = max(tte_recruitment) + first(day1_date),
+    fup_sum = sum(tte_stop - tte_recruitment),
+    fup_years = sum(tte_stop - tte_recruitment)/365.25,
+    fup_mean = mean(tte_stop - tte_recruitment),
+    outcomes = sum(tte_outcome <= tte_stop, na.rm=TRUE),
+  )
+
+write_csv(match_summary_treated, fs::path(output_dir, "report_matchsummary_treated.csv"))
+
+match_summary <-
+  data_matched %>%
+  summarise(
+    n=n(),
+    firstrecruitdate = min(tte_recruitment) + first(day1_date),
+    lastrecruitdate = max(tte_recruitment) + first(day1_date),
+    fup_sum = sum(tte_stop - tte_recruitment),
+    fup_years = sum(tte_stop - tte_recruitment)/365.25,
+    fup_mean = mean(tte_stop - tte_recruitment),
+    outcomes = sum(tte_outcome <= tte_stop, na.rm=TRUE),
+  )
+
+write_csv(match_summary, fs::path(output_dir, "report_matchsummary.csv"))
+
+## matching coverage ----
+
+data_matchcoverage <- read_rds(fs::path(output_dir, "match_data_matchcoverage.rds"))
+write_csv(data_matchcoverage, fs::path(output_dir, "report_matchcoverage.csv"))
+
+xmin <- min(data_matchcoverage$vax3_date )
+xmax <- max(data_matchcoverage$vax3_date )+1
+
+plot_coverage_n <-
+  data_matchcoverage %>%
+  ggplot()+
+  geom_col(
+    aes(
+      x=vax3_date+0.5,
+      y=n,
+      group=matched,
+      fill=matched,
+      colour=NULL
+    ),
+    position=position_stack(),
+    alpha=0.8,
+    width=1
+  )+
+  #geom_rect(xmin=xmin, xmax= xmax+1, ymin=0, ymax=6, fill="grey", colour="transparent")+
+  facet_grid(rows = vars(jcvi_group), cols = vars(vax12_type))+
+  scale_x_date(
+    breaks = unique(lubridate::ceiling_date(data_matchcoverage$vax3_date, "1 month")),
+    limits = c(lubridate::floor_date((xmin), "1 month"), NA),
+    labels = scales::label_date("%d/%m"),
+    expand = expansion(add=1),
+  )+
+  scale_y_continuous(
+    labels = scales::label_number(accuracy = 1, big.mark=","),
+    expand = expansion(c(0, NA))
+  )+
+  scale_fill_brewer(type="qual", palette="Set2")+
+  scale_colour_brewer(type="qual", palette="Set2")+
+  labs(
+    x="Date",
+    y="Booster vaccines per day",
+    colour=NULL,
+    fill=NULL,
+    alpha=NULL
+  ) +
+  theme_minimal()+
+  theme(
+    axis.line.x.bottom = element_line(),
+    axis.text.x.top=element_text(hjust=0),
+    strip.text.y.right = element_text(angle = 0),
+    axis.ticks.x=element_line(),
+    legend.position = "bottom"
+  )+
+  NULL
+
+plot_coverage_n
+
+#ggsave(plot_coverage_n, filename="match_coverage_count.svg", path=output_dir)
+ggsave(plot_coverage_n, filename="report_matchcoverage_count.png", path=output_dir)
+ggsave(plot_coverage_n, filename="report_matchcoverage_count.pdf", path=output_dir)
+
+
+plot_coverage_cumuln <-
+  data_matchcoverage %>%
+  ggplot()+
+  geom_col(
+    aes(
+      x=vax3_date+0.5,
+      y=cumuln,
+      group=matched,
+      fill=matched,
+      colour=NULL
+    ),
+    position=position_stack(),
+    alpha=0.8,
+    width=1
+  )+
+  #geom_rect(xmin=xmin, xmax= xmax+1, ymin=0, ymax=6, fill="grey", colour="transparent")+
+  facet_grid(rows = vars(jcvi_group), cols = vars(vax12_type))+
+  scale_x_date(
+    breaks = unique(lubridate::ceiling_date(data_matchcoverage$vax3_date, "1 month")),
+    limits = c(lubridate::floor_date((xmin), "1 month"), NA),
+    labels = scales::label_date("%d/%m"),
+    expand = expansion(add=1),
+  )+
+  scale_y_continuous(
+    labels = scales::label_number(accuracy = 1, big.mark=","),
+    expand = expansion(c(0, NA))
+  )+
+  scale_fill_brewer(type="qual", palette="Set2")+
+  scale_colour_brewer(type="qual", palette="Set2")+
+  labs(
+    x="Date",
+    y="Booster vaccines per day",
+    colour=NULL,
+    fill=NULL,
+    alpha=NULL
+  ) +
+  theme_minimal()+
+  theme(
+    axis.line.x.bottom = element_line(),
+    axis.text.x.top=element_text(hjust=0),
+    strip.text.y.right = element_text(angle = 0),
+    axis.ticks.x=element_line(),
+    legend.position = "bottom"
+  )+
+  NULL
+
+plot_coverage_cumuln
+
+#ggsave(plot_coverage_cumuln, filename="match_coverage_stack.svg", path=output_dir)
+ggsave(plot_coverage_cumuln, filename="report_matchcoverage_stack.png", path=output_dir)
+ggsave(plot_coverage_cumuln, filename="report_matchcoverage_stack.pdf", path=output_dir)
+
+
+rm("data_matched")
+
+# report model info ----
+
+## report model diagnostics ----
+
+fs::file_copy(fs::path(output_dir, "model_glance.csv"), fs::path(output_dir, "report_glance.csv"), overwrite = TRUE)
+
+
+## report model effects ----
+
 postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 
 model_tidy <- read_csv(fs::path(output_dir, "model_tidy.csv"))
@@ -63,8 +249,6 @@ model_effects <- model_tidy %>%
     term_midpoint = (term_right+term_left)/2,
     model_descr = fct_inorder(model_descr)
   )
-
-
 write_csv(model_effects, path = fs::path(output_dir, "report_effects.csv"))
 
 plot_effects <-
@@ -111,12 +295,11 @@ ggsave(filename=fs::path(output_dir, "report_effectsplot.svg"), plot_effects, wi
 ggsave(filename=fs::path(output_dir, "report_effectsplot.png"), plot_effects, width=20, height=15, units="cm")
 
 
-
 ## incidence rates ----
 
-## Event incidence following recruitment
+data_seqtrialcox <- read_rds(fs::path(output_dir, "model_data_seqtrialcox.rds"))
 
-
+### Event incidence following recruitment
 
 rrCI_exact <- function(n, pt, ref_n, ref_pt, accuracy=0.001){
 
@@ -140,15 +323,21 @@ format_ratio = function(numer,denom, width=7){
   )
 }
 
+
+
+
+
+
 incidence_rate_redacted <- local({
 
   unredacted_treated <-
     data_seqtrialcox %>%
     group_by(treated, fup_period) %>%
     summarise(
+      n = n_distinct(patient_id),
       yearsatrisk = sum(tstop-tstart)/365.25,
-      n = sum(ind_outcome),
-      rate = n/yearsatrisk
+      events = sum(ind_outcome),
+      rate = events/yearsatrisk
     ) %>%
     ungroup()
 
@@ -157,9 +346,10 @@ incidence_rate_redacted <- local({
     data_seqtrialcox %>%
     group_by(treated) %>%
     summarise(
+      n = n_distinct(patient_id),
       yearsatrisk = sum(tstop-tstart)/365.25,
-      n = sum(ind_outcome),
-      rate = n/yearsatrisk
+      events = sum(ind_outcome),
+      rate = events/yearsatrisk
     ) %>%
     ungroup()
 
@@ -180,30 +370,33 @@ incidence_rate_redacted <- local({
     pivot_wider(
       id_cols =c(fup_period),
       names_from = treated,
-      values_from = c(yearsatrisk, n, rate),
+      values_from = c(n, yearsatrisk, events, rate),
       names_glue = "{.value}_{treated}"
     ) %>%
     mutate(
       rr = rate_1 / rate_0,
       rrE = scales::label_number(accuracy=0.01, trim=FALSE)(rr),
-      rrCI = rrCI_exact(n_1, yearsatrisk_1, n_0, yearsatrisk_0, 0.01),
+      rrCI = rrCI_exact(events_1, yearsatrisk_1, events_0, yearsatrisk_0, 0.01),
     )
 
   redacted <-
     unredacted_wide %>%
     mutate(
+      n_0 = redactor2(n_0, 5, n_0),
+      n_1 = redactor2(n_0, 5, n_1),
+
       rate_0 = redactor2(rate_0, 5, rate_0),
       rate_1 = redactor2(rate_1, 5, rate_1),
 
-      rr = redactor2(pmin(n_1, n_0), 5, rr),
-      rrE = redactor2(pmin(n_1, n_0), 5, rrE),
-      rrCI = redactor2(pmin(n_1, n_0), 5, rrCI),
+      rr = redactor2(pmin(events_1, events_0), 5, rr),
+      rrE = redactor2(pmin(events_1, events_0), 5, rrE),
+      rrCI = redactor2(pmin(events_1, events_0), 5, rrCI),
 
-      n_0 = redactor2(n_0, 5),
-      n_1 = redactor2(n_1, 5),
+      events_0 = redactor2(events_0, 5),
+      events_1 = redactor2(events_1, 5),
 
-      q_0 = format_ratio(n_0, yearsatrisk_0),
-      q_1 = format_ratio(n_1, yearsatrisk_1),
+      q_0 = format_ratio(events_0, yearsatrisk_0),
+      q_1 = format_ratio(events_1, yearsatrisk_1),
     )
 
   redacted

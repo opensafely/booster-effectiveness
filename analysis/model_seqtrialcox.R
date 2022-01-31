@@ -3,7 +3,6 @@
 # This script:
 # imports processed data
 # fits some Cox models with time-varying effects
-#
 # The script must be accompanied by one argument:
 # `outcome` - the dependent variable in the regression model
 
@@ -21,7 +20,7 @@ if(length(args)==0){
   # use for interactive testing
   removeobjects <- FALSE
   treatment <- "pfizer"
-  outcome <- "postest"
+  outcome <- "covidadmitted"
 } else {
   removeobjects <- TRUE
   treatment <- args[[1]]
@@ -35,7 +34,6 @@ library('tidyverse')
 library('here')
 library('glue')
 library('survival')
-library('gt')
 
 ## Import custom user functions from lib
 
@@ -247,7 +245,8 @@ data_timevarying <- local({
       id = patient_id,
       admittedplanned_status = tdc(tte, admittedplanned_status),
       options = list(tdcstart = 0L)
-    )
+    ) %>%
+    mutate(id=NULL) # remove id column if created by tmerge (depedning on version of survival package)
 
   data_timevarying
 })
@@ -264,6 +263,7 @@ data_seqtrialcox <- local({
       tstart = tte_recruitment,
       tstop = tte_stop
     ) %>%
+    mutate(id=NULL) %>% # remove id column if created by tmerge (depedning on version of survival package)
 
     # add time-varying info as at recruitment date (= tte_trial)
     left_join(
@@ -420,29 +420,30 @@ model_descr = c(
 
 ### event counts within each covariate level ----
 
-tbltab_treated <-
+
+tbltab0 <-
   data_seqtrialcox %>%
-  select(treated, all.vars(formula3_pw), matching_variables, -starts_with("treated_period"), fup_period) %>%
-  select(where(~(!is.double(.)))) %>%
-  select(-age, -vax2_week) %>%
+  select(ind_outcome, treated, fup_period, all_of(all.vars(formula3_pw)), all_of(matching_variables), -starts_with("treated_period")) %>%
+  select(-age, -vax2_week, -tstart, -tstop) %>%
   mutate(
     across(
-      where(is.integer),
+      where(is.numeric),
       ~as.character(.)
     ),
-  ) %>%
-  split(.[[1]]) %>%
-  map(~.[,-1] %>% select(everything())) %>%
+  )
+
+
+event_counts <-
+  tbltab0 %>%
+  split(.["ind_outcome"]) %>%
+  map(~select(., -ind_outcome)) %>%
   map(
     function(data){
       map(data, redacted_summary_cat, redaction_threshold=0) %>%
         bind_rows(.id="variable") %>%
         select(-redacted, -pct_nonmiss)
     }
-  )
-
-event_counts_treated <-
-  tbltab_treated %>%
+  ) %>%
   bind_rows(.id = "event") %>%
   pivot_wider(
     id_cols=c(variable, .level),
@@ -451,38 +452,27 @@ event_counts_treated <-
     values_from = c(n, pct)
   )
 
-write_csv(event_counts_treated, fs::path(output_dir, "model_preflight_treated.csv"))
+write_csv(event_counts, fs::path(output_dir, "model_preflight.csv"))
 
 ### event counts within each follow up period ----
 
-tbltab_period <-
-  data_seqtrialcox %>%
-  select(fup_period, treated, all.vars(formula3_pw), matching_variables, -starts_with("treated_period")) %>%
-  select(where(~(!is.double(.)))) %>%
-  select(-age, -vax2_week) %>%
-  mutate(
-    across(
-      where(is.integer),
-      ~as.character(.)
-    ),
-  ) %>%
-  split(.[[1]]) %>%
-  map(~.[,-1] %>% select(everything())) %>%
+event_counts_period <-
+  tbltab0 %>%
+  split(.[c("fup_period", "ind_outcome")], sep="..") %>%
+  map(~select(., -fup_period, -ind_outcome)) %>%
   map(
     function(data){
       map(data, redacted_summary_cat, redaction_threshold=0) %>%
         bind_rows(.id="variable") %>%
         select(-redacted, -pct_nonmiss)
     }
-  )
-
-event_counts_period <-
-  tbltab_period %>%
-  bind_rows(.id = "fup_period") %>%
+  ) %>%
+  bind_rows(.id = "period..outcome") %>%
+  separate(period..outcome, into = c("period", "event"), sep="\\.\\.") %>%
   pivot_wider(
     id_cols=c(variable, .level),
-    names_from = fup_period,
-    names_glue = "days {fup_period}_{.value}",
+    names_from = c("period", "event"),
+    names_glue = "days {period}.{event}_{.value}",
     values_from = c(n, pct)
   )
 
@@ -490,31 +480,21 @@ write_csv(event_counts_period, fs::path(output_dir, "model_preflight_period.csv"
 
 ### event counts within strata levels ----
 
-tbltab_strata <-
+event_counts_strata <-
   data_seqtrialcox %>%
   mutate(
     strata = strata(!!!syms(all.vars(formula_strata)[-1]))
   ) %>%
-  select(treated, strata, fup_period) %>%
-  select(where(~(!is.double(.)))) %>%
-  mutate(
-    across(
-      where(is.integer),
-      ~as.character(.)
-    ),
-  ) %>%
-  split(.[[1]]) %>%
-  map(~.[,-1] %>% select(everything())) %>%
+  select(ind_outcome, strata, fup_period) %>%
+  split(.["ind_outcome"]) %>%
+  map(~select(., -ind_outcome)) %>%
   map(
     function(data){
       map(data, redacted_summary_cat, redaction_threshold=0) %>%
         bind_rows(.id="variable") %>%
         select(-redacted, -pct_nonmiss)
     }
-  )
-
-event_counts_strata <-
-  tbltab_strata %>%
+  ) %>%
   bind_rows(.id = "event") %>%
   pivot_wider(
     id_cols=c(variable, .level),
