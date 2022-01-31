@@ -3,7 +3,6 @@
 # This script:
 # imports processed data
 # fits some Cox models with time-varying effects
-#
 # The script must be accompanied by one argument:
 # `outcome` - the dependent variable in the regression model
 
@@ -35,7 +34,6 @@ library('tidyverse')
 library('here')
 library('glue')
 library('survival')
-library('gt')
 
 ## Import custom user functions from lib
 
@@ -244,7 +242,7 @@ data_timevarying <- local({
       admittedplanned_status = tdc(tte, admittedplanned_status),
       options = list(tdcstart = 0L)
     ) %>%
-    select(-id)
+    mutate(id=NULL) # remove id column if created by tmerge (depedning on version of survival package)
 
   data_timevarying
 })
@@ -261,7 +259,7 @@ data_seqtrialcox <- local({
       tstart = tte_recruitment,
       tstop = tte_stop
     ) %>%
-    select(-id) %>%
+    mutate(id=NULL) %>% # remove id column if created by tmerge (depedning on version of survival package)
 
     # add time-varying info as at recruitment date (= tte_trial)
     left_join(

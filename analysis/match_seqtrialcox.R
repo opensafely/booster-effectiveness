@@ -427,6 +427,8 @@ data_matched <-
 
 write_rds(data_matched, here("output", "models", "seqtrialcox", treatment, outcome, "match_data_matched.rds"))
 
+
+
 # number of treated/controls per trial
 controls_per_trial <- table(data_matched$trial_day, data_matched$treated)
 logoutput_table(controls_per_trial)
@@ -438,27 +440,7 @@ max_trial_day <- max(data_matched$trial_day, na.rm=TRUE)
 logoutput("max trial day is ", max_trial_day)
 
 
-## report matching info ----
-
-match_fup <-
-  data_matched %>%
-  group_by(jcvi_group, trial_day, treated) %>%
-  summarise(
-    n=n(),
-    fup_sum = sum(tte_stop - tte_recruitment),
-    fup_mean = mean(tte_stop - tte_recruitment),
-    events = sum(tte_outcome <= tte_stop, na.rm=TRUE)
-  ) %>%
-  arrange(
-    jcvi_group, trial_day, treated
-  ) %>%
-  pivot_wider(
-    id_cols = c(jcvi_group, trial_day),
-    names_from = treated,
-    values_from = c(n, fup_sum, fup_mean, events)
-  )
-
-write_csv(match_fup, fs::path(output_dir, "match_trialsinfo.csv"))
+# matching coverage per trial / day of follow up
 
 data_matchcoverage <-
   data_matched %>%
@@ -499,110 +481,4 @@ data_matchcoverage <-
     matched = factor(matched, c("unmatched", "matched"))
   )
 
-xmin <- min(data_matchcoverage$vax3_date )
-xmax <- max(data_matchcoverage$vax3_date )+1
-
-plot_coverage_n <-
-  data_matchcoverage %>%
-  ggplot()+
-  geom_col(
-    aes(
-      x=vax3_date+0.5,
-      y=n,
-      group=matched,
-      fill=matched,
-      colour=NULL
-    ),
-    position=position_stack(),
-    alpha=0.8,
-    width=1
-  )+
-  #geom_rect(xmin=xmin, xmax= xmax+1, ymin=0, ymax=6, fill="grey", colour="transparent")+
-  facet_grid(rows = vars(jcvi_group), cols = vars(vax12_type))+
-  scale_x_date(
-    breaks = unique(lubridate::ceiling_date(data_matchcoverage$vax3_date, "1 month")),
-    limits = c(lubridate::floor_date((xmin), "1 month"), NA),
-    labels = scales::label_date("%d/%m"),
-    expand = expansion(add=1),
-  )+
-  scale_y_continuous(
-    labels = scales::label_number(accuracy = 1, big.mark=","),
-    expand = expansion(c(0, NA))
-  )+
-  scale_fill_brewer(type="qual", palette="Set2")+
-  scale_colour_brewer(type="qual", palette="Set2")+
-  labs(
-    x="Date",
-    y="Booster vaccines per day",
-    colour=NULL,
-    fill=NULL,
-    alpha=NULL
-  ) +
-  theme_minimal()+
-  theme(
-    axis.line.x.bottom = element_line(),
-    axis.text.x.top=element_text(hjust=0),
-    strip.text.y.right = element_text(angle = 0),
-    axis.ticks.x=element_line(),
-    legend.position = "bottom"
-  )+
-  NULL
-
-plot_coverage_n
-
-#ggsave(plot_coverage_n, filename="match_coverage_count.svg", path=output_dir)
-ggsave(plot_coverage_n, filename="match_coverage_count.png", path=output_dir)
-ggsave(plot_coverage_n, filename="match_coverage_count.pdf", path=output_dir)
-
-
-plot_coverage_cumuln <-
-  data_matchcoverage %>%
-  ggplot()+
-  geom_col(
-    aes(
-      x=vax3_date+0.5,
-      y=cumuln,
-      group=matched,
-      fill=matched,
-      colour=NULL
-    ),
-    position=position_stack(),
-    alpha=0.8,
-    width=1
-  )+
-  #geom_rect(xmin=xmin, xmax= xmax+1, ymin=0, ymax=6, fill="grey", colour="transparent")+
-  facet_grid(rows = vars(jcvi_group), cols = vars(vax12_type))+
-  scale_x_date(
-    breaks = unique(lubridate::ceiling_date(data_matchcoverage$vax3_date, "1 month")),
-    limits = c(lubridate::floor_date((xmin), "1 month"), NA),
-    labels = scales::label_date("%d/%m"),
-    expand = expansion(add=1),
-  )+
-  scale_y_continuous(
-    labels = scales::label_number(accuracy = 1, big.mark=","),
-    expand = expansion(c(0, NA))
-  )+
-  scale_fill_brewer(type="qual", palette="Set2")+
-  scale_colour_brewer(type="qual", palette="Set2")+
-  labs(
-    x="Date",
-    y="Booster vaccines per day",
-    colour=NULL,
-    fill=NULL,
-    alpha=NULL
-  ) +
-  theme_minimal()+
-  theme(
-    axis.line.x.bottom = element_line(),
-    axis.text.x.top=element_text(hjust=0),
-    strip.text.y.right = element_text(angle = 0),
-    axis.ticks.x=element_line(),
-    legend.position = "bottom"
-  )+
-  NULL
-
-plot_coverage_cumuln
-
-#ggsave(plot_coverage_cumuln, filename="match_coverage_stack.svg", path=output_dir)
-ggsave(plot_coverage_cumuln, filename="match_coverage_stack.png", path=output_dir)
-ggsave(plot_coverage_cumuln, filename="match_coverage_stack.pdf", path=output_dir)
+write_rds(data_matchcoverage, here("output", "models", "seqtrialcox", treatment, outcome, "match_data_matchcoverage.rds"))

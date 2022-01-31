@@ -103,7 +103,10 @@ action_model <- function(
       name = glue("report_seqtrialcox_{treatment}_{outcome}"),
       run = glue("r:latest analysis/report_seqtrialcox.R"),
       arguments = c(treatment, outcome),
-      needs = list(glue("model_seqtrialcox_{treatment}_{outcome}")),
+      needs = list(
+        glue("model_seqtrialcox_{treatment}_{outcome}"),
+        glue("match_seqtrialcox_{treatment}_{outcome}")
+      ),
       moderately_sensitive = lst(
         csv = glue("output/models/seqtrialcox/{treatment}/{outcome}/report_*.csv"),
         svg = glue("output/models/seqtrialcox/{treatment}/{outcome}/report_*.svg"),
