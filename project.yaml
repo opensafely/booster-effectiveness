@@ -113,9 +113,6 @@ actions:
         rds: output/models/seqtrialcox/pfizer/postest/match_*.rds
       moderately_sensitive:
         txt: output/models/seqtrialcox/pfizer/postest/match_*.txt
-        csv: output/models/seqtrialcox/pfizer/postest/match_*.csv
-        png: output/models/seqtrialcox/pfizer/postest/match_*.png
-        pdf: output/models/seqtrialcox/pfizer/postest/match_*.pdf
 
   model_seqtrialcox_pfizer_postest:
     run: r:latest analysis/model_seqtrialcox.R pfizer postest
@@ -150,9 +147,6 @@ actions:
         rds: output/models/seqtrialcox/moderna/postest/match_*.rds
       moderately_sensitive:
         txt: output/models/seqtrialcox/moderna/postest/match_*.txt
-        csv: output/models/seqtrialcox/moderna/postest/match_*.csv
-        png: output/models/seqtrialcox/moderna/postest/match_*.png
-        pdf: output/models/seqtrialcox/moderna/postest/match_*.pdf
 
   model_seqtrialcox_moderna_postest:
     run: r:latest analysis/model_seqtrialcox.R moderna postest
@@ -189,9 +183,6 @@ actions:
         rds: output/models/seqtrialcox/pfizer/covidemergency/match_*.rds
       moderately_sensitive:
         txt: output/models/seqtrialcox/pfizer/covidemergency/match_*.txt
-        csv: output/models/seqtrialcox/pfizer/covidemergency/match_*.csv
-        png: output/models/seqtrialcox/pfizer/covidemergency/match_*.png
-        pdf: output/models/seqtrialcox/pfizer/covidemergency/match_*.pdf
 
   model_seqtrialcox_pfizer_covidemergency:
     run: r:latest analysis/model_seqtrialcox.R pfizer covidemergency
@@ -226,9 +217,6 @@ actions:
         rds: output/models/seqtrialcox/moderna/covidemergency/match_*.rds
       moderately_sensitive:
         txt: output/models/seqtrialcox/moderna/covidemergency/match_*.txt
-        csv: output/models/seqtrialcox/moderna/covidemergency/match_*.csv
-        png: output/models/seqtrialcox/moderna/covidemergency/match_*.png
-        pdf: output/models/seqtrialcox/moderna/covidemergency/match_*.pdf
 
   model_seqtrialcox_moderna_covidemergency:
     run: r:latest analysis/model_seqtrialcox.R moderna covidemergency
@@ -265,9 +253,6 @@ actions:
         rds: output/models/seqtrialcox/pfizer/covidadmitted/match_*.rds
       moderately_sensitive:
         txt: output/models/seqtrialcox/pfizer/covidadmitted/match_*.txt
-        csv: output/models/seqtrialcox/pfizer/covidadmitted/match_*.csv
-        png: output/models/seqtrialcox/pfizer/covidadmitted/match_*.png
-        pdf: output/models/seqtrialcox/pfizer/covidadmitted/match_*.pdf
 
   model_seqtrialcox_pfizer_covidadmitted:
     run: r:latest analysis/model_seqtrialcox.R pfizer covidadmitted
@@ -302,9 +287,6 @@ actions:
         rds: output/models/seqtrialcox/moderna/covidadmitted/match_*.rds
       moderately_sensitive:
         txt: output/models/seqtrialcox/moderna/covidadmitted/match_*.txt
-        csv: output/models/seqtrialcox/moderna/covidadmitted/match_*.csv
-        png: output/models/seqtrialcox/moderna/covidadmitted/match_*.png
-        pdf: output/models/seqtrialcox/moderna/covidadmitted/match_*.pdf
 
   model_seqtrialcox_moderna_covidadmitted:
     run: r:latest analysis/model_seqtrialcox.R moderna covidadmitted
@@ -341,9 +323,6 @@ actions:
         rds: output/models/seqtrialcox/pfizer/covidcc/match_*.rds
       moderately_sensitive:
         txt: output/models/seqtrialcox/pfizer/covidcc/match_*.txt
-        csv: output/models/seqtrialcox/pfizer/covidcc/match_*.csv
-        png: output/models/seqtrialcox/pfizer/covidcc/match_*.png
-        pdf: output/models/seqtrialcox/pfizer/covidcc/match_*.pdf
 
   model_seqtrialcox_pfizer_covidcc:
     run: r:latest analysis/model_seqtrialcox.R pfizer covidcc
@@ -378,9 +357,6 @@ actions:
         rds: output/models/seqtrialcox/moderna/covidcc/match_*.rds
       moderately_sensitive:
         txt: output/models/seqtrialcox/moderna/covidcc/match_*.txt
-        csv: output/models/seqtrialcox/moderna/covidcc/match_*.csv
-        png: output/models/seqtrialcox/moderna/covidcc/match_*.png
-        pdf: output/models/seqtrialcox/moderna/covidcc/match_*.pdf
 
   model_seqtrialcox_moderna_covidcc:
     run: r:latest analysis/model_seqtrialcox.R moderna covidcc
@@ -417,9 +393,6 @@ actions:
         rds: output/models/seqtrialcox/pfizer/coviddeath/match_*.rds
       moderately_sensitive:
         txt: output/models/seqtrialcox/pfizer/coviddeath/match_*.txt
-        csv: output/models/seqtrialcox/pfizer/coviddeath/match_*.csv
-        png: output/models/seqtrialcox/pfizer/coviddeath/match_*.png
-        pdf: output/models/seqtrialcox/pfizer/coviddeath/match_*.pdf
 
   model_seqtrialcox_pfizer_coviddeath:
     run: r:latest analysis/model_seqtrialcox.R pfizer coviddeath
@@ -454,9 +427,6 @@ actions:
         rds: output/models/seqtrialcox/moderna/coviddeath/match_*.rds
       moderately_sensitive:
         txt: output/models/seqtrialcox/moderna/coviddeath/match_*.txt
-        csv: output/models/seqtrialcox/moderna/coviddeath/match_*.csv
-        png: output/models/seqtrialcox/moderna/coviddeath/match_*.png
-        pdf: output/models/seqtrialcox/moderna/coviddeath/match_*.pdf
 
   model_seqtrialcox_moderna_coviddeath:
     run: r:latest analysis/model_seqtrialcox.R moderna coviddeath

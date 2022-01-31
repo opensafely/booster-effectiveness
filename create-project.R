@@ -74,10 +74,10 @@ action_model <- function(
       ),
       moderately_sensitive = lst(
         txt = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.txt"),
-        csv = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.csv"),
+        #csv = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.csv"),
         #svg = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.svg"),
-        png = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.png"),
-        pdf = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.pdf"),
+        #png = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.png"),
+        #pdf = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.pdf"),
       )
     ),
 
