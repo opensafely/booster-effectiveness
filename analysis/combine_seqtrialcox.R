@@ -268,8 +268,9 @@ gt_incidences <-
     columns = c("rate_0", "rate_1", "rr"),
     decimals = 2
   ) %>%
-  fmt_integer(
+  fmt_number(
     columns = starts_with(c("n_")),
+    decimals = 0,
     sep_mark = ","
   ) %>%
   fmt_missing(

@@ -333,7 +333,7 @@ actions_list <- splice(
     needs = splice(
       as.list(
         glue_data(
-          .x=expand_grid(treatment=c("pfizer", "moderna"), outcome=c("postest", "covidadmitted")),
+          .x=expand_grid(treatment=c("pfizer", "moderna"), outcome=c("postest", "covidadmitted", "coviddeath")),
           "report_seqtrialcox_{treatment}_{outcome}"
         )
       )
@@ -347,7 +347,16 @@ actions_list <- splice(
     )
   ),
 
-  comment("# # # # # # # # # # # # # # # # # # #", "Reports", "# # # # # # # # # # # # # # # # # # #")
+  comment("# # # # # # # # # # # # # # # # # # #", "Manuscript", "# # # # # # # # # # # # # # # # # # #"),
+
+  action(
+    name = "manuscript_objects",
+    run = "r:latest analysis/manuscript_objects.R",
+    needs = list("data_selection", "combine_seqtrialcox"),
+    moderately_sensitive = lst(
+      csv = "output/manuscript-objects/*.csv",
+    )
+  )
 
 
 )

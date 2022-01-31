@@ -457,8 +457,10 @@ actions:
     needs:
     - report_seqtrialcox_pfizer_postest
     - report_seqtrialcox_pfizer_covidadmitted
+    - report_seqtrialcox_pfizer_coviddeath
     - report_seqtrialcox_moderna_postest
     - report_seqtrialcox_moderna_covidadmitted
+    - report_seqtrialcox_moderna_coviddeath
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/combined/*.csv
@@ -468,6 +470,15 @@ actions:
         html: output/models/seqtrialcox/combined/*.html
 
   ## # # # # # # # # # # # # # # # # # # # 
-  ## Reports 
+  ## Manuscript 
   ## # # # # # # # # # # # # # # # # # # # 
+
+  manuscript_objects:
+    run: r:latest analysis/manuscript_objects.R
+    needs:
+    - data_selection
+    - combine_seqtrialcox
+    outputs:
+      moderately_sensitive:
+        csv: output/manuscript-objects/*.csv
 
