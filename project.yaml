@@ -85,6 +85,8 @@ actions:
     needs:
     - data_selection
     outputs:
+      highly_sensitive:
+        rds: output/descriptive/tables/table1*.rds
       moderately_sensitive:
         html: output/descriptive/table1/*.html
         csv: output/descriptive/table1/*.csv
@@ -456,10 +458,10 @@ actions:
     run: r:latest analysis/combine_seqtrialcox.R
     needs:
     - report_seqtrialcox_pfizer_postest
-    - report_seqtrialcox_pfizer_covidadmitted
+    - report_seqtrialcox_pfizer_covidemergency
     - report_seqtrialcox_pfizer_coviddeath
     - report_seqtrialcox_moderna_postest
-    - report_seqtrialcox_moderna_covidadmitted
+    - report_seqtrialcox_moderna_covidemergency
     - report_seqtrialcox_moderna_coviddeath
     outputs:
       moderately_sensitive:
@@ -477,8 +479,11 @@ actions:
     run: r:latest analysis/manuscript_objects.R
     needs:
     - data_selection
+    - descriptive_table1
+    - descriptive_vaxdate
     - combine_seqtrialcox
     outputs:
       moderately_sensitive:
         csv: output/manuscript-objects/*.csv
+        png: output/manuscript-objects/*.png
 

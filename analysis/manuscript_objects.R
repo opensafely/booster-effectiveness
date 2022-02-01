@@ -96,11 +96,59 @@ cohort_summary <-
 
 write_csv(cohort_summary, here("output", "manuscript-objects", "cohortsummary.csv"))
 
-## matching ----
 
+## table 1 ----
+
+fs::file_copy(here("output", "descriptive", "table1", "table1.csv"), here("output", "manuscript-objects", "table1.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "descriptive", "table1", "table1_by.csv"), here("output", "manuscript-objects", "table1_by.csv"), overwrite = TRUE)
+
+
+## vax dates ----
+
+#
+# cumulvax_jcvi <- data_cohort %>%
+#   filter(!is.na(vax3_date), vax3_type %in% c("pfizer", "moderna")) %>%
+#   droplevels() %>%
+#   group_by(jcvi_group, vax3_type_descr, vax3_date) %>%
+#   summarise(
+#     n=n()
+#   ) %>%
+#   # make implicit counts explicit
+#   complete(
+#     vax3_date = full_seq(c(.$vax3_date), 1),
+#     fill = list(n=0)
+#   ) %>%
+#   group_by(jcvi_group, vax3_type_descr) %>%
+#   mutate(
+#     cumuln = cumsum(n),
+#     # calculate rolling weekly average, anchored at end of period
+#     rolling7n = stats::filter(n, filter = rep(1, 7), method="convolution", sides=1)/7
+#   ) %>%
+#   arrange(jcvi_group, vax3_type_descr, vax3_date)
+#
+#
+# cumulvax_jcvi_redacted <-
+#   cumulvax_jcvi %>%
+#   mutate(
+#     cumuln = redactor2(n, threshold=5, cumuln),
+#     n = redactor2(n, threshold=5),
+#   )
+# write_csv(cumulvax_jcvi_redacted, here("output", "descriptive", "vaxdate_jcvi_redacted.csv"))
+
+fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_count.png"), here("output", "manuscript-objects", "plot_vaxdate_count.png"), overwrite = TRUE)
+fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_step.png"), here("output", "manuscript-objects", "plot_vaxdate_step.png"), overwrite = TRUE)
+fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_stack.png"), here("output", "manuscript-objects", "plot_vaxdate_stack.png"), overwrite = TRUE)
+fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_count_jcvi.png"), here("output", "manuscript-objects", "plot_vaxdate_count_jcvi.png"), overwrite = TRUE)
+fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_step_jcvi.png"), here("output", "manuscript-objects", "plot_vaxdate_step_jcvi.png"), overwrite = TRUE)
+fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_stack_jcvi.png"), here("output", "manuscript-objects", "plot_vaxdate_stack_jcvi.png"), overwrite = TRUE)
+
+
+## matching ----
 
 fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchcoverage.csv"), here("output", "manuscript-objects", "matchcoverage.csv"), overwrite = TRUE)
 fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchsummary.csv"), here("output", "manuscript-objects", "matchsummary.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchsummary_treated.csv"), here("output", "manuscript-objects", "matchsummary_treated.csv"), overwrite = TRUE)
+
 
 ## models ----
 fs::file_copy(here("output", "models", "seqtrialcox", "combined", "ir.csv"), here("output", "manuscript-objects", "ir.csv"), overwrite = TRUE)

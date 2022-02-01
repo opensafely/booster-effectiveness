@@ -241,9 +241,9 @@ actions_list <- splice(
     name = "descriptive_table1",
     run = "r:latest analysis/table1.R",
     needs = list("data_selection"),
-    # highly_sensitive = lst(
-    #   rds = "output/descriptive/tables/table1*.rds"
-    # ),
+    highly_sensitive = lst(
+      rds = "output/descriptive/tables/table1*.rds"
+    ),
     moderately_sensitive = lst(
       html = "output/descriptive/table1/*.html",
       csv = "output/descriptive/table1/*.csv"
@@ -333,7 +333,7 @@ actions_list <- splice(
     needs = splice(
       as.list(
         glue_data(
-          .x=expand_grid(treatment=c("pfizer", "moderna"), outcome=c("postest", "covidadmitted", "coviddeath")),
+          .x=expand_grid(treatment=c("pfizer", "moderna"), outcome=c("postest", "covidemergency", "coviddeath")),
           "report_seqtrialcox_{treatment}_{outcome}"
         )
       )
@@ -352,9 +352,15 @@ actions_list <- splice(
   action(
     name = "manuscript_objects",
     run = "r:latest analysis/manuscript_objects.R",
-    needs = list("data_selection", "combine_seqtrialcox"),
+    needs = list(
+      "data_selection",
+      "descriptive_table1",
+      "descriptive_vaxdate",
+      "combine_seqtrialcox"
+    ),
     moderately_sensitive = lst(
       csv = "output/manuscript-objects/*.csv",
+      png = "output/manuscript-objects/*.png",
     )
   )
 
