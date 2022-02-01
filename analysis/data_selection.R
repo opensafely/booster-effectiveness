@@ -80,6 +80,7 @@ data_cohort <- data_criteria %>%
   select(patient_id) %>%
   left_join(data_processed, by="patient_id") %>%
   droplevels()
+
 write_rds(data_cohort, here("output", "data", "data_cohort.rds"), compress="gz")
 arrow::write_feather(data_cohort, here("output", "data", "data_cohort.feather"))
 

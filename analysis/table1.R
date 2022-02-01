@@ -64,7 +64,7 @@ raw_stats <- tab_summary_baseline_redacted$meta_data %>%
   unnest(df_stats)
 
 write_csv(tab_summary_baseline_redacted$table_body, here("output", "descriptive", "table1", "table1.csv"))
-#write_csv(tab_summary_baseline_redacted$df_by, here("output", "descriptive", "tables", "table1_by.csv"))
+write_csv(tab_summary_baseline_redacted$df_by, here("output", "descriptive", "table1", "table1_by.csv"))
 gtsave(as_gt(tab_summary_baseline_redacted), here("output", "descriptive", "table1", "table1.html"))
 
 
