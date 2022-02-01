@@ -85,8 +85,6 @@ actions:
     needs:
     - data_selection
     outputs:
-      highly_sensitive:
-        rds: output/descriptive/tables/table1*.rds
       moderately_sensitive:
         html: output/descriptive/table1/*.html
         csv: output/descriptive/table1/*.csv
@@ -132,8 +130,9 @@ actions:
   report_seqtrialcox_pfizer_postest:
     run: r:latest analysis/report_seqtrialcox.R pfizer postest
     needs:
-    - model_seqtrialcox_pfizer_postest
+    - data_selection
     - match_seqtrialcox_pfizer_postest
+    - model_seqtrialcox_pfizer_postest
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/postest/report_*.csv
@@ -166,8 +165,9 @@ actions:
   report_seqtrialcox_moderna_postest:
     run: r:latest analysis/report_seqtrialcox.R moderna postest
     needs:
-    - model_seqtrialcox_moderna_postest
+    - data_selection
     - match_seqtrialcox_moderna_postest
+    - model_seqtrialcox_moderna_postest
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/postest/report_*.csv
@@ -202,8 +202,9 @@ actions:
   report_seqtrialcox_pfizer_covidemergency:
     run: r:latest analysis/report_seqtrialcox.R pfizer covidemergency
     needs:
-    - model_seqtrialcox_pfizer_covidemergency
+    - data_selection
     - match_seqtrialcox_pfizer_covidemergency
+    - model_seqtrialcox_pfizer_covidemergency
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/covidemergency/report_*.csv
@@ -236,8 +237,9 @@ actions:
   report_seqtrialcox_moderna_covidemergency:
     run: r:latest analysis/report_seqtrialcox.R moderna covidemergency
     needs:
-    - model_seqtrialcox_moderna_covidemergency
+    - data_selection
     - match_seqtrialcox_moderna_covidemergency
+    - model_seqtrialcox_moderna_covidemergency
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/covidemergency/report_*.csv
@@ -272,8 +274,9 @@ actions:
   report_seqtrialcox_pfizer_covidadmitted:
     run: r:latest analysis/report_seqtrialcox.R pfizer covidadmitted
     needs:
-    - model_seqtrialcox_pfizer_covidadmitted
+    - data_selection
     - match_seqtrialcox_pfizer_covidadmitted
+    - model_seqtrialcox_pfizer_covidadmitted
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/covidadmitted/report_*.csv
@@ -306,8 +309,9 @@ actions:
   report_seqtrialcox_moderna_covidadmitted:
     run: r:latest analysis/report_seqtrialcox.R moderna covidadmitted
     needs:
-    - model_seqtrialcox_moderna_covidadmitted
+    - data_selection
     - match_seqtrialcox_moderna_covidadmitted
+    - model_seqtrialcox_moderna_covidadmitted
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/covidadmitted/report_*.csv
@@ -342,8 +346,9 @@ actions:
   report_seqtrialcox_pfizer_covidcc:
     run: r:latest analysis/report_seqtrialcox.R pfizer covidcc
     needs:
-    - model_seqtrialcox_pfizer_covidcc
+    - data_selection
     - match_seqtrialcox_pfizer_covidcc
+    - model_seqtrialcox_pfizer_covidcc
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/covidcc/report_*.csv
@@ -376,8 +381,9 @@ actions:
   report_seqtrialcox_moderna_covidcc:
     run: r:latest analysis/report_seqtrialcox.R moderna covidcc
     needs:
-    - model_seqtrialcox_moderna_covidcc
+    - data_selection
     - match_seqtrialcox_moderna_covidcc
+    - model_seqtrialcox_moderna_covidcc
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/covidcc/report_*.csv
@@ -412,8 +418,9 @@ actions:
   report_seqtrialcox_pfizer_coviddeath:
     run: r:latest analysis/report_seqtrialcox.R pfizer coviddeath
     needs:
-    - model_seqtrialcox_pfizer_coviddeath
+    - data_selection
     - match_seqtrialcox_pfizer_coviddeath
+    - model_seqtrialcox_pfizer_coviddeath
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/coviddeath/report_*.csv
@@ -446,8 +453,9 @@ actions:
   report_seqtrialcox_moderna_coviddeath:
     run: r:latest analysis/report_seqtrialcox.R moderna coviddeath
     needs:
-    - model_seqtrialcox_moderna_coviddeath
+    - data_selection
     - match_seqtrialcox_moderna_coviddeath
+    - model_seqtrialcox_moderna_coviddeath
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/coviddeath/report_*.csv

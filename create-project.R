@@ -104,8 +104,9 @@ action_model <- function(
       run = glue("r:latest analysis/report_seqtrialcox.R"),
       arguments = c(treatment, outcome),
       needs = list(
-        glue("model_seqtrialcox_{treatment}_{outcome}"),
-        glue("match_seqtrialcox_{treatment}_{outcome}")
+        "data_selection",
+        glue("match_seqtrialcox_{treatment}_{outcome}"),
+        glue("model_seqtrialcox_{treatment}_{outcome}")
       ),
       moderately_sensitive = lst(
         csv = glue("output/models/seqtrialcox/{treatment}/{outcome}/report_*.csv"),
@@ -241,9 +242,9 @@ actions_list <- splice(
     name = "descriptive_table1",
     run = "r:latest analysis/table1.R",
     needs = list("data_selection"),
-    highly_sensitive = lst(
-      rds = "output/descriptive/tables/table1*.rds"
-    ),
+    # highly_sensitive = lst(
+    #   rds = "output/descriptive/tables/table1*.rds"
+    # ),
     moderately_sensitive = lst(
       html = "output/descriptive/table1/*.html",
       csv = "output/descriptive/table1/*.csv"

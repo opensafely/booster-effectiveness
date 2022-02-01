@@ -33,7 +33,8 @@ library('tidyverse')
 library('here')
 library('glue')
 library('survival')
-
+library('gt')
+library('gtsummary')
 
 ## Import custom user functions
 source(here("lib", "functions", "utility.R"))
@@ -58,11 +59,28 @@ data_matched <- read_rds(fs::path(output_dir, "match_data_matched.rds")) %>%
     day1_date = study_dates$studystart_date
   )
 
+
+## candidate matching summary ----
+
+data_tte <- read_rds(fs::path(output_dir, "match_data_tte.rds"))
+
+
+
 ## matching summary ----
+
+candidate_summary_trial <-
+  data_tte %>%
+  filter(tte_treatment <= tte_stop) %>%
+  mutate(trial_day=tte_treatment+1) %>%
+  group_by(trial_day) %>%
+  summarise(
+    total_treated=n()
+  ) %>%
+  ungroup()
 
 match_summary_trial <-
   data_matched %>%
-  group_by(jcvi_group, trial_day, treated) %>%
+  group_by(trial_day, treated) %>%
   summarise(
     n=n(),
     fup_sum = sum(tte_stop - tte_recruitment),
@@ -71,12 +89,16 @@ match_summary_trial <-
     events = sum(tte_outcome <= tte_stop, na.rm=TRUE)
   ) %>%
   arrange(
-    jcvi_group, trial_day, treated
+    trial_day, treated
   ) %>%
   pivot_wider(
-    id_cols = c(jcvi_group, trial_day),
+    id_cols = c(trial_day),
     names_from = treated,
     values_from = c(n, fup_sum, fup_years, fup_mean, events)
+  ) %>%
+  left_join(candidate_summary_trial, by="trial_day") %>%
+  mutate(
+    prop_recruited = n_1/total_treated
   )
 
 write_csv(match_summary_trial, fs::path(output_dir, "report_matchsummary_trial.csv"))
@@ -97,6 +119,16 @@ match_summary_treated <-
 
 write_csv(match_summary_treated, fs::path(output_dir, "report_matchsummary_treated.csv"))
 
+
+
+candidate_summary <-
+  data_tte %>%
+  filter(tte_treatment <= tte_stop) %>%
+  summarise(
+    total_treated=n()
+  ) %>%
+  ungroup()
+
 match_summary <-
   data_matched %>%
   summarise(
@@ -107,6 +139,10 @@ match_summary <-
     fup_years = sum(tte_stop - tte_recruitment)/365.25,
     fup_mean = mean(tte_stop - tte_recruitment),
     outcomes = sum(tte_outcome <= tte_stop, na.rm=TRUE),
+  ) %>%
+  bind_cols(candidate_summary) %>%
+  mutate(
+    prop_recruited = (n/2)/total_treated
   )
 
 write_csv(match_summary, fs::path(output_dir, "report_matchsummary.csv"))
@@ -227,6 +263,98 @@ ggsave(plot_coverage_cumuln, filename="report_matchcoverage_stack.pdf", path=out
 
 rm("data_matched")
 
+
+# table 1 style baseline characteristics ----
+
+data_seqtrialcox <- read_rds(fs::path(output_dir, "model_data_seqtrialcox.rds"))
+
+var_labels <- list(
+  vax12_type ~ "Primary vaccination course (doses 1 and 2)",
+  age ~ "Age",
+  ageband ~ "Age",
+  sex ~ "Sex",
+  ethnicity_combined ~ "Ethnicity",
+  imd_Q5 ~ "IMD",
+  region ~ "Region",
+  rural_urban_group ~ "Rural/urban category",
+  stp ~ "STP",
+  jcvi_group ~ "JCVI group",
+  cev ~ "Clinically extremely vulnerable",
+
+  sev_obesity ~ "Body Mass Index > 40 kg/m^2",
+
+  chronic_heart_disease ~ "Chronic heart disease",
+  chronic_kidney_disease ~ "Chronic kidney disease",
+  diabetes ~ "Diabetes",
+  chronic_liver_disease ~ "Chronic liver disease",
+  chronic_resp_disease ~ "Chronic respiratory disease",
+  chronic_neuro_disease ~ "Chronic neurological disease",
+  immunosuppressed ~ "Immunosuppressed",
+  asplenia ~ "Asplenia or poor spleen function",
+
+  learndis ~ "Learning disabilities",
+  sev_mental ~ "Serious mental illness",
+
+  multimorb ~ "Morbidity count",
+
+  prior_tests_cat ~ "Number of SARS-CoV-2 tests prior to start date",
+
+  postest_status ~ "Positive test status",
+  admittedunplanned_status ~ "In hospital (unplanned admission)",
+  admittedplanned_status ~ "In hospital (planned admission)"
+) %>%
+  set_names(., map_chr(., all.vars))
+
+data_cohort <- read_rds(here("output", "data", "data_cohort.rds")) %>%
+  select(
+    patient_id,
+    any_of(names(var_labels)),
+    -any_of(names(select(data_seqtrialcox, -patient_id)))
+  )
+
+var_labels <- splice(N = N  ~ "Total N", treated_descr = treated_descr ~ "Trial arm", var_labels)
+## baseline variables
+tab_summary_baseline <-
+  data_seqtrialcox %>%
+  left_join(data_cohort, by="patient_id") %>%
+  mutate(
+    treated_descr = if_else(treated==1L, "Boosted", "Unboosted"),
+    N=1,
+    vax12_type = fct_case_when(
+      vax12_type == "pfizer-pfizer" ~ "BNT162b2",
+      vax12_type == "az-az" ~ "ChAdOx1-S",
+      vax12_type == "moderna-moderna" ~ "mRNA-1273",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  select(
+    treated_descr,
+    all_of(names(var_labels)),
+    -age, -stp,
+  ) %>%
+  #{unname(var_labels[names(.)])}
+  tbl_summary(
+    by = treated_descr,
+    label = unname(var_labels[names(.)]),
+    statistic = list(N = "{N}")
+  )  %>%
+  modify_footnote(starts_with("stat_") ~ NA) %>%
+  modify_header(stat_by = "**{level}**") %>%
+  bold_labels()
+
+tab_summary_baseline_redacted <- redact_tblsummary(tab_summary_baseline, 5, "[REDACTED]")
+
+raw_stats <- tab_summary_baseline_redacted$meta_data %>%
+  select(var_label, df_stats) %>%
+  unnest(df_stats)
+
+write_csv(tab_summary_baseline_redacted$table_body, fs::path(output_dir, "table1.csv"))
+write_csv(tab_summary_baseline_redacted$df_by, fs::path(output_dir, "table1by.csv"))
+gtsave(as_gt(tab_summary_baseline_redacted), fs::path(output_dir, "table1.html"))
+
+
+
+
 # report model info ----
 
 ## report model diagnostics ----
@@ -296,8 +424,6 @@ ggsave(filename=fs::path(output_dir, "report_effectsplot.png"), plot_effects, wi
 
 
 ## incidence rates ----
-
-data_seqtrialcox <- read_rds(fs::path(output_dir, "model_data_seqtrialcox.rds"))
 
 ### Event incidence following recruitment
 
@@ -385,8 +511,8 @@ incidence_rate_redacted <- local({
       n_0 = redactor2(n_0, 5, n_0),
       n_1 = redactor2(n_0, 5, n_1),
 
-      rate_0 = redactor2(rate_0, 5, rate_0),
-      rate_1 = redactor2(rate_1, 5, rate_1),
+      rate_0 = redactor2(events_1, 5, rate_0),
+      rate_1 = redactor2(events_1, 5, rate_1),
 
       rr = redactor2(pmin(events_1, events_0), 5, rr),
       rrE = redactor2(pmin(events_1, events_0), 5, rrE),
