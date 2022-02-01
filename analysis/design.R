@@ -26,9 +26,9 @@ fs::dir_create(here("lib", "design"))
 
 study_dates <- lst(
   studystart_date = "2021-09-16", #start of follow-up thursday 16 sepetember first booster jabs administered in england
-  studyend_date = "2021-12-08", # end of follow-up 12 weeks after start
+  studyend_date = "2021-11-17", # end of follow-up (no hosp dates after this)
   lastvax2_date = "2021-08-01", # don't recruit anyone with second vaccination after this date
-  lastvax3_date = "2021-11-24", # end of recruitment -- 9 weeks after start
+  lastvax3_date = "2021-11-03", # end of recruitment
   firstpfizer_date = "2020-12-08", # first pfizer vaccination in national roll-out
   firstaz_date = "2021-01-04", # first az vaccination in national roll-out
   firstmoderna_date = "2021-04-13", # first moderna vaccination in national roll-out
@@ -65,7 +65,7 @@ write_rds(events_lookup, here("lib", "design", "event-variables.rds"))
 
 ## variable labels
 variable_labels <- list(
-  vax12_type ~ "Vaccine type (doses 1 and 2)",
+  vax12_type ~ "Primary vaccination course (doses 1 and 2)",
   age ~ "Age",
   ageband ~ "Age",
   sex ~ "Sex",

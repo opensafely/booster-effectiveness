@@ -58,6 +58,7 @@ cohort_summary <-
     censor_date = pmin(
       dereg_date,
       vax4_date-1, # -1 because we assume vax occurs at the start of the day
+      if_else(!(vax3_type %in% c("pfizer", "moderna")), vax3_date-1, as.Date(NA)), # censor if third dose is not pfizer or moderna
       death_date,
       study_dates$studyend_date,
       na.rm=TRUE
@@ -70,7 +71,7 @@ cohort_summary <-
   ) %>%
   summarise(
     n = n(),
-    n_boosted = sum(between(vax3_date, study_dates$studystart_date, study_dates$lastvax3_date), na.rm=TRUE),
+    n_boosted = sum(between(vax3_date, study_dates$studystart_date, study_dates$lastvax3_date) & vax3_type %in% c("pfizer", "moderna"), na.rm=TRUE),
 
     n_12pfizer = sum(vax12_type=="pfizer-pfizer"),
     prop_12pfizer = n_12pfizer/n,
@@ -145,6 +146,8 @@ fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_stack_jcvi.
 
 ## matching ----
 
+fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchtable1.csv"), here("output", "manuscript-objects", "matchtable1.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchtable1by.csv"), here("output", "manuscript-objects", "matchtable1by.csv"), overwrite = TRUE)
 fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchcoverage.csv"), here("output", "manuscript-objects", "matchcoverage.csv"), overwrite = TRUE)
 fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchsummary.csv"), here("output", "manuscript-objects", "matchsummary.csv"), overwrite = TRUE)
 fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchsummary_treated.csv"), here("output", "manuscript-objects", "matchsummary_treated.csv"), overwrite = TRUE)

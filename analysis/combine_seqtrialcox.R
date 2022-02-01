@@ -48,7 +48,7 @@ events_lookup <- read_rds(here("lib", "design", "event-variables.rds"))
 recode_treatment <- c(`BNT162b2` = "pfizer", `mRNA-1273` = "moderna")
 recode_outcome <- c(`Positive SARS-CoV-2 test` = "postest", `Covid-related hospitalisation` = "covidadmitted")
 
-recode_outcome <- set_names(events_lookup$event_descr, events_lookup$event)
+recode_outcome <- set_names(events_lookup$event, events_lookup$event_descr)
 
 if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
   model_metaparams <-
@@ -111,6 +111,27 @@ matchsummary_treated <-
 
 write_csv(matchsummary_treated, fs::path(output_dir, "matchsummary_treated.csv"))
 
+
+## table 1 ----
+
+
+table1 <-
+  model_metaparams %>%
+  mutate(
+    table1 = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("table1.csv"))))
+  ) %>%
+  unnest(table1)
+
+write_csv(table1, fs::path(output_dir, "matchtable1.csv"))
+
+table1by <-
+  model_metaparams %>%
+  mutate(
+    table1by = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("table1by.csv"))))
+  ) %>%
+  unnest(table1by)
+
+write_csv(table1by, fs::path(output_dir, "matchtable1by.csv"))
 
 # combine models ----
 

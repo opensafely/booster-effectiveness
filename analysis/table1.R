@@ -32,8 +32,8 @@ data_cohort <- read_rds(here("output", "data", "data_cohort.rds")) %>%
     N=1,
     allpop="All",
     vax12_type = fct_case_when(
-      vax12_type == "az-az" ~ "ChAdOx1-S",
       vax12_type == "pfizer-pfizer" ~ "BNT162b2",
+      vax12_type == "az-az" ~ "ChAdOx1-S",
       vax12_type == "moderna-moderna" ~ "mRNA-1273",
       TRUE ~ NA_character_
     )
