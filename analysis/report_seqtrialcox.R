@@ -348,9 +348,9 @@ raw_stats <- tab_summary_baseline_redacted$meta_data %>%
   select(var_label, df_stats) %>%
   unnest(df_stats)
 
-write_csv(tab_summary_baseline_redacted$table_body, fs::path(output_dir, "table1.csv"))
-write_csv(tab_summary_baseline_redacted$df_by, fs::path(output_dir, "table1by.csv"))
-gtsave(as_gt(tab_summary_baseline_redacted), fs::path(output_dir, "table1.html"))
+write_csv(tab_summary_baseline_redacted$table_body, fs::path(output_dir, "report_table1.csv"))
+write_csv(tab_summary_baseline_redacted$df_by, fs::path(output_dir, "report_table1by.csv"))
+gtsave(as_gt(tab_summary_baseline_redacted), fs::path(output_dir, "report_table1.html"))
 
 
 
