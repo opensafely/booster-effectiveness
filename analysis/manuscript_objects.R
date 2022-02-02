@@ -100,8 +100,8 @@ write_csv(cohort_summary, here("output", "manuscript-objects", "cohortsummary.cs
 
 ## table 1 ----
 
-fs::file_copy(here("output", "descriptive", "table1", "table1.csv"), here("output", "manuscript-objects", "table1.csv"), overwrite = TRUE)
-fs::file_copy(here("output", "descriptive", "table1", "table1_by.csv"), here("output", "manuscript-objects", "table1_by.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "descriptive", "table1", "table1.csv"), here("output", "manuscript-objects", "cohorttable1.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "descriptive", "table1", "table1by.csv"), here("output", "manuscript-objects", "cohorttable1by.csv"), overwrite = TRUE)
 
 
 ## vax dates ----
@@ -154,7 +154,7 @@ fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchsummary_
 
 
 ## models ----
-fs::file_copy(here("output", "models", "seqtrialcox", "combined", "ir.csv"), here("output", "manuscript-objects", "ir.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "models", "seqtrialcox", "combined", "incidence.csv"), here("output", "manuscript-objects", "incidence.csv"), overwrite = TRUE)
 
 fs::file_copy(here("output", "models", "seqtrialcox", "combined", "effects.csv"), here("output", "manuscript-objects", "effects.csv"), overwrite = TRUE)
 
