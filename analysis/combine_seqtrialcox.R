@@ -118,7 +118,7 @@ write_csv(matchsummary_treated, fs::path(output_dir, "matchsummary_treated.csv")
 table1 <-
   model_metaparams %>%
   mutate(
-    table1 = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("table1.csv"))))
+    table1 = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_table1.csv"))))
   ) %>%
   unnest(table1)
 
@@ -127,7 +127,7 @@ write_csv(table1, fs::path(output_dir, "matchtable1.csv"))
 table1by <-
   model_metaparams %>%
   mutate(
-    table1by = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("table1by.csv"))))
+    table1by = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_table1by.csv"))))
   ) %>%
   unnest(table1by)
 
