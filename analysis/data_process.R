@@ -194,25 +194,51 @@ data_processed <- data_extract %>%
 
     prior_covid_infection = !is.na(positive_test_0_date) | !is.na(covidadmitted_0_date) | !is.na(primary_care_covid_case_0_date),
 
+
+    #covidemergency_1_date = pmin(covidemergency_1_date, covidadmitted_1_date, na.rm=TRUE),
+
+    covidcc_1_date = case_when(
+      covidadmitted_ccdays_1 > 0 ~ covidadmitted_1_date,
+      covidadmitted_ccdays_2 > 0 ~ covidadmitted_2_date,
+      covidadmitted_ccdays_3 > 0 ~ covidadmitted_3_date,
+      covidadmitted_ccdays_4 > 0 ~ covidadmitted_4_date,
+      TRUE ~ as.Date(NA_character_)
+    ),
+
+    covidcc_2_date = case_when(
+      (covidadmitted_ccdays_2 > 0) & (covidadmitted_2_date > covidcc_1_date) ~ covidadmitted_2_date,
+      (covidadmitted_ccdays_3 > 0) & (covidadmitted_3_date > covidcc_1_date) ~ covidadmitted_3_date,
+      (covidadmitted_ccdays_4 > 0) & (covidadmitted_4_date > covidcc_1_date) ~ covidadmitted_4_date,
+      TRUE ~ as.Date(NA_character_)
+    ),
+
+    covidcc_3_date = case_when(
+      (covidadmitted_ccdays_3 > 0) & (covidadmitted_3_date > covidcc_2_date) ~ covidadmitted_3_date,
+      (covidadmitted_ccdays_4 > 0) & (covidadmitted_4_date > covidcc_2_date) ~ covidadmitted_4_date,
+      TRUE ~ as.Date(NA_character_)
+    ),
+
+    covidcc_4_date = case_when(
+      (covidadmitted_ccdays_4 > 0) & (covidadmitted_4_date > covidcc_3_date) ~ covidadmitted_4_date,
+      TRUE ~ as.Date(NA_character_)
+    ),
+
+    # latest covid event before study start
+    anycovid_0_date = pmax(positive_test_0_date, covidemergency_0_date, covidadmitted_0_date, na.rm=TRUE),
+
+    # earliest covid event after study start
+    anycovid_1_date = pmin(positive_test_1_date, covidemergency_1_date, covidadmitted_1_date, covidcc_1_date, coviddeath_date, na.rm=TRUE),
+
+
+    noncoviddeath_date = if_else(!is.na(death_date) & is.na(coviddeath_date), death_date, as.Date(NA_character_)),
+
+
     cause_of_death = fct_case_when(
       !is.na(coviddeath_date) ~ "covid-related",
       !is.na(death_date) ~ "not covid-related",
       TRUE ~ NA_character_
     ),
 
-    covidemergency_date = pmin(covidemergency_date, covidadmitted_1_date, na.rm=TRUE),
-
-    covidcc_date = case_when(
-      covidadmitted_ccdays_1 > 0 ~ covidadmitted_1_date,
-      covidadmitted_ccdays_2 > 0 ~ covidadmitted_2_date,
-      covidadmitted_ccdays_3 > 0 ~ covidadmitted_3_date,
-      covidadmitted_ccdays_4 > 0 ~ covidadmitted_4_date,
-      covidadmitted_ccdays_5 > 0 ~ covidadmitted_5_date,
-      covidadmitted_ccdays_6 > 0 ~ covidadmitted_6_date,
-      TRUE ~ as.Date(NA_character_)
-    ),
-
-    noncoviddeath_date = if_else(!is.na(death_date) & is.na(coviddeath_date), death_date, as.Date(NA_character_)),
 
   )
 

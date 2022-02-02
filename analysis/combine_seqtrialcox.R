@@ -30,7 +30,6 @@ library('gt')
 source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "survival.R"))
 
-
 output_dir <- here("output", "models", "seqtrialcox", "combined")
 fs::dir_create(output_dir)
 
@@ -46,8 +45,6 @@ events_lookup <- read_rds(here("lib", "design", "event-variables.rds"))
 ## create lookup for treatment / outcome combinations ----
 
 recode_treatment <- c(`BNT162b2` = "pfizer", `mRNA-1273` = "moderna")
-recode_outcome <- c(`Positive SARS-CoV-2 test` = "postest", `Covid-related hospitalisation` = "covidadmitted")
-
 recode_outcome <- set_names(events_lookup$event, events_lookup$event_descr)
 
 if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
@@ -73,16 +70,19 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
 
 }
 
-
+match_metaparams <-
+  model_metaparams %>%
+  select(treatment, treatment_descr) %>%
+  unique()
 
 # combine matching ----
 
 ## match coverage ---
 
 matchcoverage <-
-  model_metaparams %>%
+  match_metaparams %>%
   mutate(
-    coverage = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_matchcoverage.csv"))))
+    coverage = map(treatment,  ~read_csv(here("output", "models", "seqtrialcox", .x, glue("match_data_coverage.csv"))))
   ) %>%
   unnest(coverage)
 
@@ -93,9 +93,9 @@ write_csv(matchcoverage, fs::path(output_dir, "matchcoverage.csv"))
 ## match summary ---
 
 matchsummary <-
-  model_metaparams %>%
+  match_metaparams %>%
   mutate(
-    summary = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_matchsummary.csv"))))
+    summary = map(treatment, ~read_csv(here("output", "models", "seqtrialcox", .x, glue("match_summary.csv"))))
   ) %>%
   unnest(summary)
 
@@ -103,9 +103,9 @@ write_csv(matchsummary, fs::path(output_dir, "matchsummary.csv"))
 
 
 matchsummary_treated <-
-  model_metaparams %>%
+  match_metaparams %>%
   mutate(
-    summary = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_matchsummary_treated.csv"))))
+    summary = map(treatment, ~read_csv(here("output", "models", "seqtrialcox", .x, glue("match_summary_treated.csv"))))
   ) %>%
   unnest(summary)
 
@@ -116,18 +116,18 @@ write_csv(matchsummary_treated, fs::path(output_dir, "matchsummary_treated.csv")
 
 
 table1 <-
-  model_metaparams %>%
+  match_metaparams %>%
   mutate(
-    table1 = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_table1.csv"))))
+    table1 = map(treatment, ~read_csv(here("output", "models", "seqtrialcox", .x, glue("merge_table1.csv"))))
   ) %>%
   unnest(table1)
 
 write_csv(table1, fs::path(output_dir, "matchtable1.csv"))
 
 table1by <-
-  model_metaparams %>%
+  match_metaparams %>%
   mutate(
-    table1by = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_table1by.csv"))))
+    table1by = map(treatment, ~read_csv(here("output", "models", "seqtrialcox", .x, glue("merge_table1by.csv"))))
   ) %>%
   unnest(table1by)
 
@@ -245,18 +245,18 @@ write_csv(glance, path = fs::path(output_dir, "model_diagnostics.csv"))
 
 ## incidence rates ----
 
-incidences <-
+incidence <-
   model_metaparams %>%
   mutate(
-    ir = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_ir.csv"))))
+    incidence = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_incidence.csv"))))
   ) %>%
-  unnest(ir)
+  unnest(incidence)
 
-write_csv(incidences, fs::path(output_dir, "ir.csv"))
+write_csv(incidence, fs::path(output_dir, "incidence.csv"))
 
 
-gt_incidences <-
-  incidences %>%
+gt_incidence <-
+  incidence %>%
   select(-treatment, -outcome, -starts_with("events_"), -starts_with("yearsatrisk_"), -rrE) %>%
   gt(
     groupname_col = c("treatment_descr", "outcome_descr"),
@@ -307,5 +307,5 @@ gt_incidences <-
     columns = "fup_period"
   )
 
-gtsave(gt_incidences, fs::path(output_dir, "ir.html"))
+gtsave(gt_incidence, fs::path(output_dir, "incidence.html"))
 

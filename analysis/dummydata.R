@@ -210,31 +210,22 @@ sim_list = lst(
     ~as.integer(runif(n=1, index_day-100, index_day-1)),
     missing_rate = ~0.7
   ),
+  covid_test_1_day = bn_node(
+    ~as.integer(runif(n=1, index_day, index_day+300)),
+    missing_rate = ~0.6
+  ),
 
   primary_care_covid_case_0_day = bn_node(
     ~as.integer(runif(n=1, index_day-100, index_day-1)),
     missing_rate = ~0.99
   ),
 
-  covidadmitted_0_day = bn_node(
-    ~as.integer(runif(n=1, index_day-100, index_day-1)),
-    missing_rate = ~0.995
-  ),
 
   prior_covid_test_frequency = bn_node(
     ~as.integer(rpois(n=1, lambda=3)),
     missing_rate = ~0
   ),
 
-  covid_test_day = bn_node(
-    ~as.integer(runif(n=1, index_day, index_day+300)),
-    missing_rate = ~0.6
-  ),
-
-  covidemergency_day = bn_node(
-    ~as.integer(runif(n=1, index_day, index_day+300)),
-    missing_rate = ~0.95
-  ),
 
   coviddeath_day = bn_node(
     ~death_day,
@@ -464,7 +455,35 @@ sim_list = lst(
     needs="admitted_planned_6_day"
   ),
 
+  covidemergency_0_day = bn_node(
+    ~as.integer(runif(n=1, index_day-100, index_day-1)),
+    missing_rate = ~0.99
+  ),
+  covidemergency_1_day = bn_node(
+    ~as.integer(runif(n=1, index_day, index_day+300)),
+    missing_rate = ~0.95
+  ),
+  covidemergency_2_day = bn_node(
+    ~as.integer(runif(n=1, covidemergency_1_day+1, covidemergency_1_day+30)),
+    missing_rate = ~0.9,
+    needs = "covidemergency_1_day"
+  ),
+  covidemergency_3_day = bn_node(
+    ~as.integer(runif(n=1, covidemergency_2_day+1, covidemergency_2_day+30)),
+    missing_rate = ~0.9,
+    needs = "covidemergency_2_day"
+  ),
+  covidemergency_4_day = bn_node(
+    ~as.integer(runif(n=1, covidemergency_3_day+1, covidemergency_3_day+30)),
+    missing_rate = ~0.9,
+    needs = "covidemergency_3_day"
+  ),
 
+
+  covidadmitted_0_day = bn_node(
+    ~as.integer(runif(n=1, index_day-100, index_day-1)),
+    missing_rate = ~0.99
+  ),
   covidadmitted_1_day = bn_node(
     ~as.integer(runif(n=1, index_day, index_day+100)),
     missing_rate = ~0.7
@@ -484,17 +503,6 @@ sim_list = lst(
     missing_rate = ~0.9,
     needs = "covidadmitted_3_day"
   ),
-  covidadmitted_5_day = bn_node(
-    ~as.integer(runif(n=1, covidadmitted_4_day+1, covidadmitted_4_day+30)),
-    missing_rate = ~0.9,
-    needs = "covidadmitted_4_day"
-  ),
-  covidadmitted_6_day = bn_node(
-    ~as.integer(runif(n=1, covidadmitted_5_day+1, covidadmitted_5_day+30)),
-    missing_rate = ~0.9,
-    needs = "covidadmitted_5_day"
-  ),
-
 
 
   covidadmitted_ccdays_1 = bn_node(
@@ -512,14 +520,6 @@ sim_list = lst(
   covidadmitted_ccdays_4 = bn_node(
     ~rfactor(n=1, levels = 0:3, p = c(0.7, 0.1, 0.1, 0.1)),
     needs = "covidadmitted_4_day"
-  ),
-  covidadmitted_ccdays_5 = bn_node(
-    ~rfactor(n=1, levels = 0:3, p = c(0.7, 0.1, 0.1, 0.1)),
-    needs = "covidadmitted_5_day"
-  ),
-  covidadmitted_ccdays_6 = bn_node(
-    ~rfactor(n=1, levels = 0:3, p = c(0.7, 0.1, 0.1, 0.1)),
-    needs = "covidadmitted_6_day"
   ),
 
 )

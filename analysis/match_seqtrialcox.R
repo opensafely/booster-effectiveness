@@ -3,10 +3,10 @@
 # This script:
 # imports processed data
 # chooses matching sets for each sequential trial
+# reports on matching quality
 #
-# The script must be accompanied by two arguments:
+# The script must be accompanied by one arguments:
 # `treatment` - the exposure in the regression model, pfizer or moderna
-# `outcome` - the dependent variable in the regression model
 
 # # # # # # # # # # # # # # # # # # # # #
 
@@ -22,11 +22,9 @@ if(length(args)==0){
   # use for interactive testing
   removeobjects <- FALSE
   treatment <- "pfizer"
-  outcome <- "postest"
 } else {
   removeobjects <- TRUE
   treatment <- args[[1]]
-  outcome <- args[[2]]
 }
 
 
@@ -41,6 +39,7 @@ library('survival')
 
 source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "survival.R"))
+source(here("lib", "functions", "redaction.R"))
 
 postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 matching_variables <- read_rds(here("lib", "design", "matching_variables.rds"))
@@ -54,11 +53,11 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
 
 # create output directories ----
 
-output_dir <- here("output", "models", "seqtrialcox", treatment, outcome)
+output_dir <- here("output", "models", "seqtrialcox", treatment)
 fs::dir_create(output_dir)
 
 ## create special log file ----
-cat(glue("## script info for {outcome} ##"), "  \n", file = fs::path(output_dir, glue("match_log.txt")), append = FALSE)
+cat(glue("## script info for {treatment} ##"), "  \n", file = fs::path(output_dir, glue("match_log.txt")), append = FALSE)
 
 ## functions to pass additional log info to seperate file
 logoutput <- function(...){
@@ -92,7 +91,6 @@ study_dates <-
 
 ## import metadata ----
 events <- read_rds(here("lib", "design", "event-variables.rds"))
-outcome_var <- events$event_var[events$event==outcome]
 
 var_labels <- read_rds(here("lib", "design", "variable-labels.rds"))
 
@@ -115,7 +113,7 @@ select_recruitment_period <- function(index, x, min_x){
   end <- match(TRUE, x[seq(start+1, max_index)]<min_x)+start-1 # recruitment end = first time after start that x is less than min_x
   if (is.na(end)) end <- max_index
 
-  between(index, start, end)
+  between(seq_along(index), start, end)
 }
 
 
@@ -127,8 +125,8 @@ rolling_window <- 7
 # daily vaccination counts within "rolling" strata
 data_rollingstrata_vaxcount <-
   data_cohort %>%
-  filter(!is.na(vax3_date), vax3_type %in% c("pfizer", "az", "moderna")) %>%
-  group_by(across(all_of(rolling_variables)), vax3_type, vax3_date) %>%
+  filter(!is.na(vax3_date), vax3_type %in% treatment) %>%
+  group_by(across(all_of(rolling_variables)), vax3_date) %>%
   summarise(
     n=n()
   ) %>%
@@ -137,16 +135,16 @@ data_rollingstrata_vaxcount <-
     vax3_date = full_seq(c(.$vax3_date - rolling_window+1), 1), # go X days before to
     fill = list(n=0)
   ) %>%
-  arrange(across(all_of(rolling_variables)), vax3_type, vax3_date) %>%
+  arrange(across(all_of(rolling_variables)), vax3_date) %>%
   ungroup() %>%
-  group_by(across(all_of(rolling_variables)), vax3_type) %>%
+  group_by(across(all_of(rolling_variables))) %>%
   mutate(
     vax3_time = as.numeric(vax3_date - study_dates$studystart_date),
     cumuln = cumsum(n),
     # calculate rolling weekly average, anchored at end of period
     weight = lag(pmin(rolling_window, row_number()),rolling_window-1),
     rolling_avg = stats::filter(n, filter = rep(1, rolling_window), method="convolution", sides=1)/weight,
-    recruit = select_recruitment_period(vax3_time+1, rolling_avg, recruitment_period_cutoff)
+    recruit = select_recruitment_period(vax3_time, rolling_avg, recruitment_period_cutoff)
   ) %>%
   filter(vax3_time>=0)
 
@@ -154,11 +152,11 @@ data_matching_variables <-
   data_cohort %>%
   select(
     patient_id,
-    all_of(c(rolling_variables, matching_variables, "vax3_type", "vax3_date"))
+    all_of(c(rolling_variables, matching_variables, "vax3_date"))
   ) %>%
   left_join(
-    data_rollingstrata_vaxcount %>% select(all_of(c(rolling_variables, "vax3_date", "vax3_type", "recruit"))),
-    by=c(rolling_variables, "vax3_type", "vax3_date")
+    data_rollingstrata_vaxcount %>% select(all_of(c(rolling_variables, "vax3_date", "recruit"))),
+    by=c(rolling_variables, "vax3_date")
   ) %>%
   mutate(
     treated_within_recruitment_period = replace_na(recruit, FALSE),
@@ -177,8 +175,6 @@ data_tte <-
     treatment_date = if_else(vax3_type==treatment, vax3_date, as.Date(NA)),
     competingtreatment_date = if_else(vax3_type!=treatment, vax3_date, as.Date(NA)),
 
-    outcome_date = .[[glue("{outcome_var}")]],
-
     # person-time is up to and including censor date
     censor_date = pmin(
       dereg_date,
@@ -192,23 +188,20 @@ data_tte <-
     # assume vaccination occurs at the start of the day, and all other events occur at the end of the day.
 
     tte_censor = tte(day1_date-1, censor_date, censor_date, na.censor=TRUE),
-    #ind_censor = censor_indicator(censor_date, censor_date),
 
     tte_treatment = tte(day1_date, treatment_date, censor_date, na.censor=TRUE),
-    #ind_treatment = censor_indicator(treatment_date, censor_date),
 
-    tte_outcome = tte(day1_date-1, outcome_date, censor_date, na.censor=TRUE),
-    #ind_outcome = censor_indicator(outcome_date, censor_date),
 
-    tte_stop = pmin(tte_censor, tte_outcome, na.rm=TRUE),
+    tte_anycovid0 = tte(day1_date-1, anycovid_0_date, censor_date, na.censor=TRUE),
+
+    tte_anycovid1 = tte(day1_date-1, anycovid_1_date, censor_date, na.censor=TRUE),
+
+    tte_stop = pmin(tte_censor, na.rm=TRUE),
 
   ) %>%
   filter(
     # remove anyone with competing vaccine on first trial day
     (competingtreatment_date>day1_date) | is.na(competingtreatment_date),
-    #tte_censor>0,
-    #tte_treatment>=0 | is.na(tte_treatment),
-    #tte_outcome>0 | is.na(tte_outcome)
   ) %>%
   mutate(
     # convert tte variables (days since day0), to integer to save space
@@ -217,11 +210,11 @@ data_tte <-
     across(where(is.logical), ~.x*1L)
   ) %>%
   left_join(
-    data_matching_variables %>% select(-vax3_date, -vax3_type),
+    data_matching_variables %>% select(-vax3_date),
     by="patient_id"
   )
 
-write_rds(data_tte, here("output", "models", "seqtrialcox", treatment, outcome, "match_data_tte.rds"))
+write_rds(data_tte, fs::path(output_dir, "match_data_tte.rds"))
 
 logoutput_datasize(data_tte)
 
@@ -234,7 +227,8 @@ data_matched <- local({
   # each daily trial includes all n people who were vaccinated on that day (treated=1) and
   # a random sample of n controls (treated=0) who:
   # - had not been vaccinated on or before that day (still at risk of treatment);
-  # - had not experienced the outcome (still at risk of outcome);
+  # - had not experienced covid recently (within X TODO days);
+  # - still at risk of an outcome (not deregistered or dead);
   # - had not already been selected as a control in a previous trial
   # for each trial, all covariates, including time-dependent covariates, are chosen as at the recruitment date and do not subsequently vary through follow-up
   # within the construct of the model, there are no time-dependent variables, only time-dependent treatment effects (modelled as piecewise constant hazards)
@@ -264,13 +258,18 @@ data_matched <- local({
       arrange(patient_id) %>%
       filter(
         # remove anyone already censored or experienced outcome
-        tte_stop>trial_time
+        tte_stop > trial_time,
+        # remove anyone who has experienced covid within the last 90 days
+        !between(tte_anycovid0, trial_time-90, trial_time) | is.na(tte_anycovid0),
+        !between(tte_anycovid1, trial_time-90, trial_time) | is.na(tte_anycovid1),
       ) %>%
       mutate(
+        # everyone treated on trial day and eligible
         treated = ((tte_treatment %in% trial_time) & treated_within_recruitment_period)*1,
-        control_candidate = ((tte_censor > trial_time) & ((tte_treatment > trial_time) | is.na(tte_treatment)) & (patient_id %in% candidate_ids0))*1
+        # everyone not yet treated by trial day, not yet censored, and not already selected as a control
+        control_candidate = (((tte_treatment > trial_time) | is.na(tte_treatment)) & (patient_id %in% candidate_ids0))*1
       ) %>%
-      filter((treated==1L) | control_candidate)
+      filter((treated==1L) | (control_candidate==1L))
 
     if(sum(matching_candidates_i$treated)<1) {
       message("Skipping trial ", trial, " - No treated people eligible for inclusion.")
@@ -360,8 +359,9 @@ data_matched <- local({
 
 })
 
+data_matched <- mutate(data_matched,  day1_date = study_dates$studystart_date)
 
-write_rds(data_matched, here("output", "models", "seqtrialcox", treatment, outcome, "match_data_matched.rds"))
+write_rds(data_matched, fs::path(output_dir, "match_data_matched.rds"))
 
 
 
@@ -378,17 +378,16 @@ logoutput("max trial day is ", max_trial_day)
 
 # matching coverage per trial / day of follow up
 
-data_matchcoverage <-
+data_coverage <-
   data_matched %>%
   filter(treated==1L) %>%
-  left_join(data_cohort %>% select(patient_id, vax3_type, vax3_date), by="patient_id") %>%
-  group_by(across(all_of(rolling_variables)), vax3_type, vax3_date) %>%
+  left_join(data_cohort %>% select(patient_id, vax3_date), by="patient_id") %>%
+  group_by(across(all_of(rolling_variables)), vax3_date) %>%
   summarise(
     n_matched=n(),
   ) %>%
   left_join(
-    data_rollingstrata_vaxcount %>%
-      filter(vax3_type==treatment),
+    data_rollingstrata_vaxcount,
     .
   ) %>%
   mutate(
@@ -402,12 +401,12 @@ data_matchcoverage <-
     names_prefix = "n_",
     values_to = "n"
   ) %>%
-  arrange(jcvi_group, vax12_type, vax3_type, vax3_date, matched) %>%
-  group_by(jcvi_group, vax12_type, vax3_type, vax3_date, matched) %>%
+  arrange(jcvi_group, vax12_type, vax3_date, matched) %>%
+  group_by(jcvi_group, vax12_type, vax3_date, matched) %>%
   summarise(
     n = sum(n),
   ) %>%
-  group_by(jcvi_group, vax12_type, vax3_type, matched) %>%
+  group_by(jcvi_group, vax12_type, matched) %>%
   complete(
     vax3_date = full_seq(.$vax3_date, 1), # go X days before to
     fill = list(n=0)
@@ -417,4 +416,200 @@ data_matchcoverage <-
     matched = factor(matched, c("unmatched", "matched"))
   )
 
-write_rds(data_matchcoverage, here("output", "models", "seqtrialcox", treatment, outcome, "match_data_matchcoverage.rds"))
+write_csv(data_coverage, fs::path(output_dir, "match_data_coverage.csv"))
+
+# report matching info ----
+
+
+
+## candidate matching summary ----
+
+## matching summary ----
+
+candidate_summary_trial <-
+  data_tte %>%
+  filter(tte_treatment <= tte_stop) %>%
+  mutate(trial_day=tte_treatment+1) %>%
+  group_by(trial_day) %>%
+  summarise(
+    total_treated=n()
+  ) %>%
+  ungroup()
+
+match_summary_trial <-
+  data_matched %>%
+  group_by(trial_day, treated) %>%
+  summarise(
+    n=n(),
+    fup_sum = sum(tte_stop - tte_recruitment),
+    fup_years = sum(tte_stop - tte_recruitment)/365.25,
+    fup_mean = mean(tte_stop - tte_recruitment)
+  ) %>%
+  arrange(
+    trial_day, treated
+  ) %>%
+  pivot_wider(
+    id_cols = c(trial_day),
+    names_from = treated,
+    values_from = c(n, fup_sum, fup_years, fup_mean)
+  ) %>%
+  left_join(candidate_summary_trial, by="trial_day") %>%
+  mutate(
+    prop_recruited = n_1/total_treated
+  )
+
+write_csv(match_summary_trial, fs::path(output_dir, "match_summary_trial.csv"))
+
+
+match_summary_treated <-
+  data_matched %>%
+  group_by(treated) %>%
+  summarise(
+    n=n(),
+    firstrecruitdate = min(tte_recruitment) + first(day1_date),
+    lastrecruitdate = max(tte_recruitment) + first(day1_date),
+    fup_sum = sum(tte_stop - tte_recruitment),
+    fup_years = sum(tte_stop - tte_recruitment)/365.25,
+    fup_mean = mean(tte_stop - tte_recruitment)
+  )
+
+write_csv(match_summary_treated, fs::path(output_dir, "match_summary_treated.csv"))
+
+
+
+candidate_summary <-
+  data_tte %>%
+  filter(tte_treatment <= tte_stop) %>%
+  summarise(
+    total_treated=n()
+  ) %>%
+  ungroup()
+
+match_summary <-
+  data_matched %>%
+  summarise(
+    n=n(),
+    firstrecruitdate = min(tte_recruitment) + first(day1_date),
+    lastrecruitdate = max(tte_recruitment) + first(day1_date),
+    fup_sum = sum(tte_stop - tte_recruitment),
+    fup_years = sum(tte_stop - tte_recruitment)/365.25,
+    fup_mean = mean(tte_stop - tte_recruitment)
+  ) %>%
+  bind_cols(candidate_summary) %>%
+  mutate(
+    prop_recruited = (n/2)/total_treated
+  )
+
+write_csv(match_summary, fs::path(output_dir, "match_summary.csv"))
+
+## matching coverage ----
+
+xmin <- min(data_coverage$vax3_date )
+xmax <- max(data_coverage$vax3_date )+1
+
+plot_coverage_n <-
+  data_coverage %>%
+  ggplot()+
+  geom_col(
+    aes(
+      x=vax3_date+0.5,
+      y=n,
+      group=matched,
+      fill=matched,
+      colour=NULL
+    ),
+    position=position_stack(),
+    alpha=0.8,
+    width=1
+  )+
+  #geom_rect(xmin=xmin, xmax= xmax+1, ymin=0, ymax=6, fill="grey", colour="transparent")+
+  facet_grid(rows = vars(jcvi_group), cols = vars(vax12_type))+
+  scale_x_date(
+    breaks = unique(lubridate::ceiling_date(data_coverage$vax3_date, "1 month")),
+    limits = c(lubridate::floor_date((xmin), "1 month"), NA),
+    labels = scales::label_date("%d/%m"),
+    expand = expansion(add=1),
+  )+
+  scale_y_continuous(
+    labels = scales::label_number(accuracy = 1, big.mark=","),
+    expand = expansion(c(0, NA))
+  )+
+  scale_fill_brewer(type="qual", palette="Set2")+
+  scale_colour_brewer(type="qual", palette="Set2")+
+  labs(
+    x="Date",
+    y="Booster vaccines per day",
+    colour=NULL,
+    fill=NULL,
+    alpha=NULL
+  ) +
+  theme_minimal()+
+  theme(
+    axis.line.x.bottom = element_line(),
+    axis.text.x.top=element_text(hjust=0),
+    strip.text.y.right = element_text(angle = 0),
+    axis.ticks.x=element_line(),
+    legend.position = "bottom"
+  )+
+  NULL
+
+plot_coverage_n
+
+#ggsave(plot_coverage_n, filename="match_coverage_count.svg", path=output_dir)
+ggsave(plot_coverage_n, filename="match_coverage_count.png", path=output_dir)
+ggsave(plot_coverage_n, filename="match_coverage_count.pdf", path=output_dir)
+
+
+plot_coverage_cumuln <-
+  data_coverage %>%
+  ggplot()+
+  geom_col(
+    aes(
+      x=vax3_date+0.5,
+      y=cumuln,
+      group=matched,
+      fill=matched,
+      colour=NULL
+    ),
+    position=position_stack(),
+    alpha=0.8,
+    width=1
+  )+
+  #geom_rect(xmin=xmin, xmax= xmax+1, ymin=0, ymax=6, fill="grey", colour="transparent")+
+  facet_grid(rows = vars(jcvi_group), cols = vars(vax12_type))+
+  scale_x_date(
+    breaks = unique(lubridate::ceiling_date(data_coverage$vax3_date, "1 month")),
+    limits = c(lubridate::floor_date((xmin), "1 month"), NA),
+    labels = scales::label_date("%d/%m"),
+    expand = expansion(add=1),
+  )+
+  scale_y_continuous(
+    labels = scales::label_number(accuracy = 1, big.mark=","),
+    expand = expansion(c(0, NA))
+  )+
+  scale_fill_brewer(type="qual", palette="Set2")+
+  scale_colour_brewer(type="qual", palette="Set2")+
+  labs(
+    x="Date",
+    y="Cumulative booster vaccines",
+    colour=NULL,
+    fill=NULL,
+    alpha=NULL
+  ) +
+  theme_minimal()+
+  theme(
+    axis.line.x.bottom = element_line(),
+    axis.text.x.top=element_text(hjust=0),
+    strip.text.y.right = element_text(angle = 0),
+    axis.ticks.x=element_line(),
+    legend.position = "bottom"
+  )+
+  NULL
+
+plot_coverage_cumuln
+
+#ggsave(plot_coverage_cumuln, filename="match_coverage_stack.svg", path=output_dir)
+ggsave(plot_coverage_cumuln, filename="match_coverage_stack.png", path=output_dir)
+ggsave(plot_coverage_cumuln, filename="match_coverage_stack.pdf", path=output_dir)
+
+

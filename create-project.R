@@ -21,8 +21,6 @@ convert_comment_actions <-function(yaml.txt){
     str_replace_all("([^\\'])\\\n(\\s*)\\#\\#", "\\1\n\n\\2\\#\\#") %>%
     str_replace_all("\\#\\#\\'\\\n", "\n")
 }
-as.yaml(splice(a="c", b="'c'", comment("fff")))
-convert_comment_actions(as.yaml(splice(a="c", b="'c'", comment("fff"))))
 
 
 ## generic action function ----
@@ -57,36 +55,68 @@ action <- function(
 }
 
 
-## model action function ----
-action_model <- function(
-  treatment, outcome
-){
+
+## match action function ----
+
+action_match <- function(treatment){
 
   splice(
 
     action(
-      name = glue("match_seqtrialcox_{treatment}_{outcome}"),
+      name = glue("match_seqtrialcox_{treatment}"),
       run = glue("r:latest analysis/match_seqtrialcox.R"),
-      arguments = c(treatment, outcome),
+      arguments = c(treatment),
       needs = list("data_selection"),
       highly_sensitive = lst(
-        rds = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.rds")
+        rds = glue("output/models/seqtrialcox/{treatment}/match_*.rds")
       ),
       moderately_sensitive = lst(
-        txt = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.txt"),
-        #csv = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.csv"),
-        #svg = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.svg"),
-        #png = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.png"),
-        #pdf = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.pdf"),
+        txt = glue("output/models/seqtrialcox/{treatment}/match_*.txt"),
+        #csv = glue("output/models/seqtrialcox/{treatment}/match_*.csv"),
+        #svg = glue("output/models/seqtrialcox/{treatment}/match_*.svg"),
+        #png = glue("output/models/seqtrialcox/{treatment}/match_*.png"),
+        #pdf = glue("output/models/seqtrialcox/{treatment}/match_*.pdf"),
       )
     ),
+
+    action(
+      name = glue("merge_seqtrialcox_{treatment}"),
+      run = glue("r:latest analysis/merge_seqtrialcox.R"),
+      arguments = c(treatment),
+      needs = list(
+        glue("match_seqtrialcox_{treatment}"),
+        "data_selection",
+        "data_process_long"
+      ),
+      highly_sensitive = lst(
+        rds = glue("output/models/seqtrialcox/{treatment}/merge_*.rds")
+      ),
+      moderately_sensitive = lst(
+        txt = glue("output/models/seqtrialcox/{treatment}/merge_*.txt"),
+        csv = glue("output/models/seqtrialcox/{treatment}/merge_*.csv"),
+        html = glue("output/models/seqtrialcox/{treatment}/merge_*.html")
+        #svg = glue("output/models/seqtrialcox/{treatment}/merge_*.svg"),
+        #png = glue("output/models/seqtrialcox/{treatment}/merge_*.png"),
+        #pdf = glue("output/models/seqtrialcox/{treatment}/merge_*.pdf"),
+      )
+    )
+  )
+
+
+}
+
+## model action function ----
+action_model <- function(treatment, outcome){
+
+  splice(
 
     action(
       name = glue("model_seqtrialcox_{treatment}_{outcome}"),
       run = glue("r:latest analysis/model_seqtrialcox.R"),
       arguments = c(treatment, outcome),
       needs = list(
-        glue("match_seqtrialcox_{treatment}_{outcome}"),
+        glue("match_seqtrialcox_{treatment}"),
+        glue("merge_seqtrialcox_{treatment}"),
         "data_selection",
         "data_process_long"
       ),
@@ -105,7 +135,6 @@ action_model <- function(
       arguments = c(treatment, outcome),
       needs = list(
         "data_selection",
-        glue("match_seqtrialcox_{treatment}_{outcome}"),
         glue("model_seqtrialcox_{treatment}_{outcome}")
       ),
       moderately_sensitive = lst(
@@ -305,7 +334,15 @@ actions_list <- splice(
   # ),
 
 
+
+
+  comment("# # # # # # # # # # # # # # # # # # #", "Matching", "# # # # # # # # # # # # # # # # # # #"),
+
+  action_match("pfizer"),
+  action_match("moderna"),
+
   comment("# # # # # # # # # # # # # # # # # # #", "Models", "# # # # # # # # # # # # # # # # # # #"),
+
 
   comment("###  Positive SARS-CoV-2 Test"),
   action_model("pfizer", "postest"),
@@ -334,9 +371,15 @@ actions_list <- splice(
     needs = splice(
       as.list(
         glue_data(
-          .x=expand_grid(treatment=c("pfizer", "moderna"), outcome=c("postest", "covidemergency", "coviddeath")),
-          "report_seqtrialcox_{treatment}_{outcome}"
+          .x=expand_grid(treatment=c("pfizer", "moderna"), script=c("match", "merge")),
+          "{script}_seqtrialcox_{treatment}"
         )
+      ),
+      as.list(
+        glue_data(
+          .x=expand_grid(treatment=c("pfizer", "moderna"), outcome=c("postest", "covidemergency")),
+          "report_seqtrialcox_{treatment}_{outcome}"
+        ),
       )
     ),
     moderately_sensitive = lst(
