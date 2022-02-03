@@ -179,17 +179,17 @@ plot_effects <-
   geom_point(aes(y=hr, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
   geom_linerange(aes(ymin=hr.ll, ymax=hr.ul, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
   geom_hline(aes(yintercept=1), colour='grey')+
-  facet_grid(rows=vars(outcome), cols=vars(treatment_descr), switch="y")+
+  facet_grid(rows=vars(outcome_descr), cols=vars(treatment_descr), switch="y")+
   scale_y_log10(
     breaks=y_breaks,
-    limits = c(0.05, max(c(1, model_effects$hr.ul))),
+    limits = c(0.01, 2),
     oob = scales::oob_keep,
-    # sec.axis = sec_axis(
-    #   ~(1-.),
-    #   name="Effectiveness",
-    #   breaks = 1-(y_breaks),
-    #   labels = function(x){formatpercent100(x, 1)}
-    # )
+    sec.axis = sec_axis(
+      ~(1-.),
+      name="Effectiveness",
+      breaks = 1-(y_breaks),
+      labels = function(x){formatpercent100(x, 1)}
+     )
   )+
   scale_x_continuous(breaks=postbaselinecuts, limits=c(min(postbaselinecuts), max(postbaselinecuts)+1), expand = c(0, 0))+
   scale_colour_brewer(type="qual", palette="Set2", guide=guide_legend(ncol=1))+
@@ -202,6 +202,7 @@ plot_effects <-
   theme(
     panel.border = element_blank(),
     axis.line.y = element_line(colour = "black"),
+    axis.line.y.right = element_blank(),
 
     panel.grid.minor.x = element_blank(),
     panel.grid.minor.y = element_blank(),
