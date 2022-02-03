@@ -377,8 +377,8 @@ actions_list <- splice(
       ),
       as.list(
         glue_data(
-          .x=expand_grid(treatment=c("pfizer", "moderna"), outcome=c("postest", "covidemergency")),
-          "report_seqtrialcox_{treatment}_{outcome}"
+          .x=expand_grid(script=c("model", "report"), treatment=c("pfizer", "moderna"), outcome=c("postest", "covidemergency", "coviddeath")),
+          "{script}_seqtrialcox_{treatment}_{outcome}"
         ),
       )
     ),
