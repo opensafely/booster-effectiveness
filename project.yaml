@@ -423,10 +423,18 @@ actions:
     - merge_seqtrialcox_pfizer
     - match_seqtrialcox_moderna
     - merge_seqtrialcox_moderna
+    - model_seqtrialcox_pfizer_postest
+    - model_seqtrialcox_pfizer_covidemergency
+    - model_seqtrialcox_pfizer_coviddeath
+    - model_seqtrialcox_moderna_postest
+    - model_seqtrialcox_moderna_covidemergency
+    - model_seqtrialcox_moderna_coviddeath
     - report_seqtrialcox_pfizer_postest
     - report_seqtrialcox_pfizer_covidemergency
+    - report_seqtrialcox_pfizer_coviddeath
     - report_seqtrialcox_moderna_postest
     - report_seqtrialcox_moderna_covidemergency
+    - report_seqtrialcox_moderna_coviddeath
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/combined/*.csv
