@@ -113,6 +113,8 @@ actions:
       moderately_sensitive:
         txt: output/models/seqtrialcox/pfizer/match_*.txt
         csv: output/models/seqtrialcox/pfizer/match_*.csv
+        png: output/models/seqtrialcox/pfizer/match_*.png
+        pdf: output/models/seqtrialcox/pfizer/match_*.pdf
 
   merge_seqtrialcox_pfizer:
     run: r:latest analysis/merge_seqtrialcox.R pfizer
@@ -138,6 +140,8 @@ actions:
       moderately_sensitive:
         txt: output/models/seqtrialcox/moderna/match_*.txt
         csv: output/models/seqtrialcox/moderna/match_*.csv
+        png: output/models/seqtrialcox/moderna/match_*.png
+        pdf: output/models/seqtrialcox/moderna/match_*.pdf
 
   merge_seqtrialcox_moderna:
     run: r:latest analysis/merge_seqtrialcox.R moderna

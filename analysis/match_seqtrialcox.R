@@ -522,7 +522,7 @@ plot_coverage_n <-
     alpha=0.8,
     width=1
   )+
-  #geom_rect(xmin=xmin, xmax= xmax+1, ymin=0, ymax=6, fill="grey", colour="transparent")+
+  geom_rect(xmin=xmin, xmax= xmax+1, ymin=0, ymax=6, fill="grey", colour="transparent")+
   facet_grid(rows = vars(jcvi_group), cols = vars(vax12_type))+
   scale_x_date(
     breaks = unique(lubridate::ceiling_date(data_coverage$vax3_date, "1 month")),
@@ -575,7 +575,7 @@ plot_coverage_cumuln <-
     alpha=0.8,
     width=1
   )+
-  #geom_rect(xmin=xmin, xmax= xmax+1, ymin=0, ymax=6, fill="grey", colour="transparent")+
+  geom_rect(xmin=xmin, xmax= xmax+1, ymin=0, ymax=6, fill="grey", colour="transparent")+
   facet_grid(rows = vars(jcvi_group), cols = vars(vax12_type))+
   scale_x_date(
     breaks = unique(lubridate::ceiling_date(data_coverage$vax3_date, "1 month")),

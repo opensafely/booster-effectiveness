@@ -74,8 +74,8 @@ action_match <- function(treatment){
         txt = glue("output/models/seqtrialcox/{treatment}/match_*.txt"),
         csv = glue("output/models/seqtrialcox/{treatment}/match_*.csv"),
         #svg = glue("output/models/seqtrialcox/{treatment}/match_*.svg"),
-        #png = glue("output/models/seqtrialcox/{treatment}/match_*.png"),
-        #pdf = glue("output/models/seqtrialcox/{treatment}/match_*.pdf"),
+        png = glue("output/models/seqtrialcox/{treatment}/match_*.png"),
+        pdf = glue("output/models/seqtrialcox/{treatment}/match_*.pdf"),
       )
     ),
 

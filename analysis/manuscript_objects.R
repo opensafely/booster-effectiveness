@@ -146,6 +146,9 @@ fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_stack_jcvi.
 
 ## matching ----
 
+fs::file_copy(here("output", "models", "seqtrialcox", "pfizer", "match_coverage_stack.png"), here("output", "manuscript-objects", "match_coverage_pfizer_stack.png"), overwrite = TRUE)
+fs::file_copy(here("output", "models", "seqtrialcox", "moderna", "match_coverage_stack.png"), here("output", "manuscript-objects", "match_coverage_moderna_stack.png"), overwrite = TRUE)
+
 fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchtable1.csv"), here("output", "manuscript-objects", "matchtable1.csv"), overwrite = TRUE)
 fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchtable1by.csv"), here("output", "manuscript-objects", "matchtable1by.csv"), overwrite = TRUE)
 fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchcoverage.csv"), here("output", "manuscript-objects", "matchcoverage.csv"), overwrite = TRUE)
