@@ -457,6 +457,8 @@ actions:
     - data_selection
     - descriptive_table1
     - descriptive_vaxdate
+    - match_seqtrialcox_pfizer
+    - match_seqtrialcox_moderna
     - combine_seqtrialcox
     outputs:
       moderately_sensitive:
