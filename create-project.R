@@ -400,6 +400,8 @@ actions_list <- splice(
       "data_selection",
       "descriptive_table1",
       "descriptive_vaxdate",
+      "match_seqtrialcox_pfizer",
+      "match_seqtrialcox_moderna",
       "combine_seqtrialcox"
     ),
     moderately_sensitive = lst(
