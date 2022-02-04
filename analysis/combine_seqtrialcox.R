@@ -172,10 +172,25 @@ formatpercent100 <- function(x,accuracy){
   )
 }
 
+model_descr = c(
+  "Matched" = "0",
+  "region- and trial-stratified" = "1",
+  "Demographic adjustment" = "2",
+  "Matched and fully Adjusted" = "3"
+)
+
+
 y_breaks <- c(0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2)
 
 plot_effects <-
-  ggplot(data = model_effects) +
+  model_effects %>%
+  filter(
+    model %in% c(0,3)
+  ) %>%
+  mutate(
+    model_descr = fct_recode(as.character(model), !!!model_descr)
+  ) %>%
+  ggplot(data = ) +
   geom_point(aes(y=hr, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
   geom_linerange(aes(ymin=hr.ll, ymax=hr.ul, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
   geom_hline(aes(yintercept=1), colour='grey')+
