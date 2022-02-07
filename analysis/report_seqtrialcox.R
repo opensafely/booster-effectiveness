@@ -229,11 +229,6 @@ write_csv(incidence_rate_redacted, fs::path(output_dir, "report_incidence.csv"))
 
 ## kaplan meier cumulative risk differences ----
 
-ceiling_any <- function(x, to=1){
-  # round to nearest 100 millionth to avoid floating point errors
-  ceiling(plyr::round_any(x/to, 1/100000000))*to
-}
-
 
 unique_times <- unique(c(data_seqtrialcox$tte_outcome))
 threshold <- 5
