@@ -105,13 +105,6 @@ var_labels <- read_rds(here("lib", "design", "variable-labels.rds"))
 ## one pow per patient ----
 data_cohort <- read_rds(here("output", "data", "data_cohort.rds"))
 
-## apply subgrouping if applicable
-if (subgroup!="none") {
-  data_cohort <- dplyr::filter_at(data_cohort,
-                                  stringr::str_split_fixed(subgroup,"-",2)[,1],
-                                  all_vars(.==stringr::str_split_fixed(subgroup,"-",2)[,2]))
-}
-
 logoutput_datasize(data_cohort)
 
 ## baseline variables ----
@@ -358,6 +351,14 @@ data_seqtrialcox <- local({
   data_st
 
 })
+
+## apply subgrouping if applicable
+if (subgroup!="none") {
+  data_seqtrialcox <- dplyr::filter_at(data_seqtrialcox,
+                                  stringr::str_split_fixed(subgroup,"-",2)[,1],
+                                  all_vars(.==stringr::str_split_fixed(subgroup,"-",2)[,2]))
+}
+
 logoutput_datasize(data_seqtrialcox)
 
 write_rds(data_seqtrialcox, fs::path(output_dir, "model_data_seqtrialcox.rds"))

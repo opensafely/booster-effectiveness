@@ -56,10 +56,9 @@ action <- function(
   action_list
 }
 
-
-## model action function ----
-action_model <- function(
-  treatment, outcome, subgroup
+## match action function ----
+action_match <- function(
+  treatment, outcome
 ){
 
   splice(
@@ -79,14 +78,26 @@ action_model <- function(
         #png = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.png"),
         #pdf = glue("output/models/seqtrialcox/{treatment}/{outcome}/match_*.pdf"),
       )
-    ),
+    )
+
+  )
+}
+
+
+
+## model action function ----
+action_model <- function(
+  treatment, outcome, subgroup
+){
+
+  splice(
 
     action(
       name = glue("model_seqtrialcox_{treatment}_{outcome}_{subgroup}"),
       run = glue("r:latest analysis/model_seqtrialcox.R"),
       arguments = c(treatment, outcome, subgroup),
       needs = list(
-        glue("match_seqtrialcox_{treatment}_{outcome}_{subgroup}"),
+        glue("match_seqtrialcox_{treatment}_{outcome}"),
         "data_selection",
         "data_process_long"
       ),
@@ -102,10 +113,10 @@ action_model <- function(
     action(
       name = glue("report_seqtrialcox_{treatment}_{outcome}_{subgroup}"),
       run = glue("r:latest analysis/report_seqtrialcox.R"),
-      arguments = c(treatment, outcome),
+      arguments = c(treatment, outcome, subgroup),
       needs = list(
         glue("model_seqtrialcox_{treatment}_{outcome}_{subgroup}"),
-        glue("match_seqtrialcox_{treatment}_{outcome}_{subgroup}")
+        glue("match_seqtrialcox_{treatment}_{outcome}")
       ),
       moderately_sensitive = lst(
         csv = glue("output/models/seqtrialcox/{treatment}/{outcome}/{subgroup}/report_*.csv"),
@@ -303,17 +314,38 @@ actions_list <- splice(
   #   )
   # ),
 
+  comment("# # # # # # # # # # # # # # # # # # #", "Matching", "# # # # # # # # # # # # # # # # # # #"),
+
+  comment("###  Positive SARS-CoV-2 Test"),
+  action_match("pfizer", "postest"),
+  action_match("moderna", "postest"),
+
+  comment("###  COVID-19 emergency attendance"),
+  action_match("pfizer", "covidemergency"),
+  action_match("moderna", "covidemergency"),
+
+  comment("###  COVID-19 unplanned admission"),
+  action_match("pfizer", "covidadmitted"),
+  action_match("moderna", "covidadmitted"),
+
+  comment("###  COVID-19 ICU/Critical care admission"),
+  action_match("pfizer", "covidcc"),
+  action_match("moderna", "covidcc"),
+
+  comment("###  COVID-19 death"),
+  action_match("pfizer", "coviddeath"),
+  action_match("moderna", "coviddeath"),
 
   comment("# # # # # # # # # # # # # # # # # # #", "Models", "# # # # # # # # # # # # # # # # # # #"),
 
   comment("###  Positive SARS-CoV-2 Test"),
   action_model("pfizer", "postest", "none"),
   action_model("pfizer", "postest", "vax12_type-az-az"),
-  action_model("pfizer", "postest", "vax12_moderna-moderna"),
+  action_model("pfizer", "postest", "vax12_type-moderna-moderna"),
   action_model("pfizer", "postest", "vax12_type-pfizer-pfizer"),
   action_model("moderna", "postest", "none"),
   action_model("moderna", "postest", "vax12_type-az-az"),
-  action_model("moderna", "postest", "vax12_moderna-moderna"),
+  action_model("moderna", "postest", "vax12_type-moderna-moderna"),
   action_model("moderna", "postest", "vax12_type-pfizer-pfizer"),
 
   comment("###  COVID-19 emergency attendance"),
@@ -363,7 +395,7 @@ actions_list <- splice(
     needs = splice(
       as.list(
         glue_data(
-          .x=expand_grid(treatment=c("pfizer", "moderna"), outcome=c("postest", "covidemergency", "coviddeath"), subgroup = c("vax12_type-az-az","vax12_type-moderna-moderna","vax12_type-pfizer-pfizer")),
+          .x=expand_grid(treatment=c("pfizer", "moderna"), outcome=c("postest", "covidemergency", "coviddeath"), subgroup = c("none","vax12_type-az-az","vax12_type-moderna-moderna","vax12_type-pfizer-pfizer")),
           "report_seqtrialcox_{treatment}_{outcome}_{subgroup}"
         )
       )
