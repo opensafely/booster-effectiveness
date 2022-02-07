@@ -190,7 +190,7 @@ plot_effects <-
   mutate(
     model_descr = fct_recode(as.character(model), !!!model_descr)
   ) %>%
-  ggplot(data = ) +
+  ggplot() +
   geom_point(aes(y=hr, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
   geom_linerange(aes(ymin=hr.ll, ymax=hr.ul, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
   geom_hline(aes(yintercept=1), colour='grey')+
@@ -259,6 +259,8 @@ glance <-
 write_csv(glance, path = fs::path(output_dir, "model_diagnostics.csv"))
 
 
+
+
 ## incidence rates ----
 
 incidence <-
@@ -324,4 +326,50 @@ gt_incidence <-
   )
 
 gtsave(gt_incidence, fs::path(output_dir, "incidence.html"))
+
+
+## km rates ----
+
+km <- model_metaparams %>%
+  mutate(
+    km = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_km.csv"))))
+  ) %>%
+  unnest(km)
+
+write_csv(km, fs::path(output_dir, "km.csv"))
+
+
+
+plot_km <-
+  km %>%
+  ggplot(aes(group=treated_descr, colour=treated_descr, fill=treated_descr)) +
+  geom_step(aes(x=time, y=1-surv))+
+  geom_rect(aes(xmin=time, xmax=leadtime, ymin=1-surv.ll, ymax=1-surv.ul), alpha=0.1, colour="transparent")+
+  facet_grid(rows=vars(outcome_descr), cols=vars(treatment_descr), switch="y")+
+  scale_color_brewer(type="qual", palette="Set1", na.value="grey") +
+  scale_fill_brewer(type="qual", palette="Set1", guide="none", na.value="grey") +
+  scale_x_continuous(breaks = seq(0,600,14), limits=c(min(postbaselinecuts), max(postbaselinecuts)+1), expand = c(0, 0))+
+  scale_y_continuous(expand = expansion(mult=c(0,0.01)))+
+  coord_cartesian(xlim=c(0, NA))+
+  labs(
+    x="Days",
+    y="Cumulative incidence",
+    colour=NULL,
+    title=NULL
+  )+
+  theme_minimal()+
+  theme(
+    axis.line.x = element_line(colour = "black"),
+    panel.grid.minor.x = element_blank(),
+    legend.position=c(.05,.95),
+    legend.justification = c(0,1),
+  )+
+  NULL
+plot_km
+## save plot
+
+ggsave(filename=fs::path(output_dir, "kmplot.svg"), plot_km, width=20, height=15, units="cm")
+ggsave(filename=fs::path(output_dir, "kmplot.png"), plot_km, width=20, height=15, units="cm")
+ggsave(filename=fs::path(output_dir, "kmplot.pdf"), plot_km, width=20, height=15, units="cm")
+
 
