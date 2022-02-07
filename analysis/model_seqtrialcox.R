@@ -179,7 +179,7 @@ data_seqtrialcox <- local({
       data2 = data_st0,
       id = treated_patient_id,
       tstart = tte_recruitment,
-      tstop = pmin(tte_stop, tte_outcome, last(postbaselinecuts), na.rm=TRUE),
+      tstop = pmin(tte_stop, tte_outcome, tte_recruitment+last(postbaselinecuts), na.rm=TRUE),
       ind_outcome = event(tte_outcome)
     ) %>%
     # add post-recruitment periods
