@@ -123,6 +123,7 @@ data_baseline <-
     chronic_neuro_disease,
     immunosuppressed,
     asplenia,
+    immuno,
 
     vax12_type,
     vax2_to_startdate =  study_dates$studystart_date - vax2_date,
