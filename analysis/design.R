@@ -49,7 +49,7 @@ events_lookup <- tribble(
   # effectiveness
   "postest", "positive_test_1_date", "Positive SARS-CoV-2 test",
   "covidemergency", "covidemergency_1_date", "COVID-19 A&E attendance",
-  "covidadmitted", "covidadmitted_1_date", "COVID-19 hospitalisation",
+  "covidadmitted", "admitted_covid_1_date", "COVID-19 hospitalisation",
   "covidcc", "covidcc_1_date", "COVID-19 critical care",
   "coviddeath", "coviddeath_date", "COVID-19 death",
   "noncoviddeath", "noncoviddeath_date", "Non-COVID-19 death",

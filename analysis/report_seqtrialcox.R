@@ -227,7 +227,60 @@ incidence_rate_redacted <- local({
 write_csv(incidence_rate_redacted, fs::path(output_dir, "report_incidence.csv"))
 
 
-## cumulative risk differences ----
+## kaplan meier cumulative risk differences ----
+
+
+survobj <- function(.data, time, indicator, group_vars, threshold){
+
+  dat_filtered <- .data %>%
+    mutate(
+      .time = .data[[time]],
+      .indicator = .data[[indicator]]
+    ) %>%
+    filter(
+      !is.na(.time),
+      .time>0
+    )
+
+  unique_times <- unique(c(dat_filtered[[time]]))
+
+  dat_surv <- dat_filtered %>%
+    group_by(across(all_of(group_vars))) %>%
+    transmute(
+      .time = .data[[time]],
+      .indicator = .data[[indicator]]
+    )
+
+  dat_surv1 <- dat_surv %>%
+    nest() %>%
+    mutate(
+      n_events = map_int(data, ~sum(.x$.indicator, na.rm=TRUE)),
+      surv_obj = map(data, ~{
+        survfit(Surv(.time, .indicator) ~ 1, data = .x, conf.type="log-log")
+      }),
+      surv_obj_tidy = map(surv_obj, ~tidy_surv(.x, addtimezero = TRUE)),
+    ) %>%
+    select(group_vars, n_events, surv_obj_tidy) %>%
+    unnest(surv_obj_tidy)
+
+  dat_surv_rounded <- dat_surv1 %>%
+    mutate(
+      # Use ceiling not round. This is slightly biased upwards,
+      # but means there's no disclosure risk at the boundaries (0 and 1) where masking would otherwise be threshold/2
+      surv = ceiling_any(surv, 1/floor(max(n.risk, na.rm=TRUE)/(threshold+1))),
+      surv.ll = ceiling_any(surv.ll, 1/floor(max(n.risk, na.rm=TRUE)/(threshold+1))),
+      surv.ul = ceiling_any(surv.ul, 1/floor(max(n.risk, na.rm=TRUE)/(threshold+1))),
+    )
+  dat_surv_rounded
+  #dat_surv1
+}
+
+
+
+
+
+
+## marginal cumulative risk differences ----
 
 model3 <- read_rds(fs::path(output_dir, "model_obj3.rds"))
 
