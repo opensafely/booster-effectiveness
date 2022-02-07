@@ -21,10 +21,12 @@ if(length(args)==0){
   removeobs <- FALSE
   treatment <- "pfizer"
   outcome <- "postest"
+  subgroup <- "vax12_type-pfizer-pfizer"
 } else {
   removeobs <- TRUE
   treatment <- args[[1]]
   outcome <- args[[2]]
+  subgroup <- args[[3]]
 }
 
 
@@ -40,7 +42,8 @@ source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "survival.R"))
 source(here("lib", "functions", "redaction.R"))
 
-output_dir <- here("output", "models", "seqtrialcox", treatment, outcome)
+output_dir_matched <- here("output", "models", "seqtrialcox", treatment, outcome)
+output_dir <- here("output", "models", "seqtrialcox", treatment, outcome, subgroup)
 
 data_seqtrialcox <- read_rds(fs::path(output_dir, "model_data_seqtrialcox.rds"))
 
@@ -53,7 +56,7 @@ study_dates <-
 
 # report matching info ----
 
-data_matched <- read_rds(fs::path(output_dir, "match_data_matched.rds")) %>%
+data_matched <- read_rds(fs::path(output_dir_matched, "match_data_matched.rds")) %>%
   mutate(
     day1_date = study_dates$studystart_date
   )
@@ -113,7 +116,7 @@ write_csv(match_summary, fs::path(output_dir, "report_matchsummary.csv"))
 
 ## matching coverage ----
 
-data_matchcoverage <- read_rds(fs::path(output_dir, "match_data_matchcoverage.rds"))
+data_matchcoverage <- read_rds(fs::path(output_dir_matched, "match_data_matchcoverage.rds"))
 write_csv(data_matchcoverage, fs::path(output_dir, "report_matchcoverage.csv"))
 
 xmin <- min(data_matchcoverage$vax3_date )

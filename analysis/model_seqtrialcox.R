@@ -20,11 +20,13 @@ if(length(args)==0){
   # use for interactive testing
   removeobjects <- FALSE
   treatment <- "pfizer"
-  outcome <- "covidadmitted"
+  outcome <- "postest"
+  subgroup <- "vax12_type-pfizer-pfizer"
 } else {
   removeobjects <- TRUE
   treatment <- args[[1]]
   outcome <- args[[2]]
+  subgroup <- args[[3]]
 }
 
 
@@ -53,7 +55,7 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
 
 # create output directories ----
 
-output_dir <- here("output", "models", "seqtrialcox", treatment, outcome)
+output_dir <- here("output", "models", "seqtrialcox", treatment, outcome, subgroup)
 fs::dir_create(output_dir)
 
 ## create special log file ----
@@ -100,6 +102,13 @@ var_labels <- read_rds(here("lib", "design", "variable-labels.rds"))
 
 ## one pow per patient ----
 data_cohort <- read_rds(here("output", "data", "data_cohort.rds"))
+
+## apply subgrouping if applicable
+if (subgroup!="none") {
+  data_cohort <- dplyr::filter_at(data_cohort,
+                                  stringr::str_split_fixed(subgroup,"-",2)[,1],
+                                  all_vars(.==stringr::str_split_fixed(subgroup,"-",2)[,2]))
+}
 
 logoutput_datasize(data_cohort)
 
@@ -263,7 +272,7 @@ data_seqtrialcox <- local({
       tstart = tte_recruitment,
       tstop = tte_stop
     ) %>%
-    mutate(id=NULL) %>% # remove id column if created by tmerge (depedning on version of survival package)
+    mutate(id=NULL) %>% # remove id column if created by tmerge (depending on version of survival package)
 
     # add time-varying info as at recruitment date (= tte_trial)
     left_join(

@@ -50,25 +50,34 @@ recode_outcome <- c(`Positive SARS-CoV-2 test` = "postest", `Covid-related hospi
 
 recode_outcome <- set_names(events_lookup$event_descr, events_lookup$event)
 
+recode_subgroup <- c(`Main analysis` = "none",
+                     `Dose 1 = ChAdOx1; Dose 2 = ChAdOx1` = "vax12_type-az-az",
+                     `Dose 1 = mRNA-1273; Dose 2 = mRNA-1273` = "vax12_type-moderna-moderna",
+                     `Dose 1 = BNT162b2; Dose 2 = BNT162b2` = "vax12_type-pfizer-pfizer")
+
 if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
   model_metaparams <-
     expand_grid(
       treatment = factor(c("pfizer")),
       outcome = factor(c("postest")),
+      subgroup = factor(c("vax12_type-pfizer-pfizer"))
     ) %>%
     mutate(
       treatment_descr = fct_recode(treatment,  !!!recode_treatment),
-      outcome_descr = fct_recode(outcome,  !!!recode_outcome)
+      outcome_descr = fct_recode(outcome,  !!!recode_outcome),
+      subgroup_descr = fct_recode(subgroup,  !!!recode_subgroup)
     )
 } else {
   model_metaparams <-
     expand_grid(
       treatment = factor(c("pfizer", "moderna")),
       outcome = factor(c("postest", "covidemergency", "coviddeath")),
+      subgroup = factor(c("vax12_type-az-az", "vax12_type-moderna-moderna", "vax12_type-pfizer-pfizer"))
     ) %>%
     mutate(
       treatment_descr = fct_recode(treatment,  !!!recode_treatment),
-      outcome_descr = fct_recode(outcome,  !!!recode_outcome)
+      outcome_descr = fct_recode(outcome,  !!!recode_outcome),
+      subgroup_descr = fct_recode(subgroup,  !!!recode_subgroup)
     )
 
 }
@@ -82,7 +91,7 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
 matchcoverage <-
   model_metaparams %>%
   mutate(
-    coverage = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_matchcoverage.csv"))))
+    coverage = pmap(list(treatment, outcome, subgroup), function(x, y, z) read_csv(here("output", "models", "seqtrialcox", x, y, z, glue("report_matchcoverage.csv"))))
   ) %>%
   unnest(coverage)
 
@@ -95,7 +104,7 @@ write_csv(matchcoverage, fs::path(output_dir, "matchcoverage.csv"))
 matchsummary <-
   model_metaparams %>%
   mutate(
-    summary = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_matchsummary.csv"))))
+    summary = pmap(list(treatment, outcome, subgroup), function(x, y, z) read_csv(here("output", "models", "seqtrialcox", x, y, z, glue("report_matchsummary.csv"))))
   ) %>%
   unnest(summary)
 
@@ -105,7 +114,7 @@ write_csv(matchsummary, fs::path(output_dir, "matchsummary.csv"))
 matchsummary_treated <-
   model_metaparams %>%
   mutate(
-    summary = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_matchsummary_treated.csv"))))
+    summary = pmap(list(treatment, outcome, subgroup), function(x, y, z) read_csv(here("output", "models", "seqtrialcox", x, y, z, glue("report_matchsummary_treated.csv"))))
   ) %>%
   unnest(summary)
 
@@ -119,7 +128,7 @@ write_csv(matchsummary_treated, fs::path(output_dir, "matchsummary_treated.csv")
 model_effects <-
   model_metaparams %>%
   mutate(
-    effects = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_effects.csv"))))
+    effects = pmap(list(treatment, outcome, subgroup), function(x, y, z) read_csv(here("output", "models", "seqtrialcox", x, y, z, glue("report_effects.csv"))))
   ) %>%
   unnest(effects) %>%
   mutate(
@@ -212,7 +221,7 @@ ggsave(filename=fs::path(output_dir, "effectsplot.pdf"), plot_effects, width=20,
 glance <-
   model_metaparams %>%
   mutate(
-    glance = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_glance.csv")))),
+    glance = pmap(list(treatment, outcome, subgroup), function(x, y, z) read_csv(here("output", "models", "seqtrialcox", x, y, z, glue("report_glance.csv")))),
   ) %>%
   unnest(glance) %>%
   mutate(
@@ -227,7 +236,7 @@ write_csv(glance, path = fs::path(output_dir, "model_diagnostics.csv"))
 incidences <-
   model_metaparams %>%
   mutate(
-    ir = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_ir.csv"))))
+    ir = pmap(list(treatment, outcome, subgroup), function(x, y, z) read_csv(here("output", "models", "seqtrialcox", x, y, z, glue("report_ir.csv"))))
   ) %>%
   unnest(ir)
 
