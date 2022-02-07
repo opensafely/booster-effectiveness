@@ -84,10 +84,21 @@ matchcoverage <-
   mutate(
     coverage = map(treatment,  ~read_csv(here("output", "models", "seqtrialcox", .x, glue("match_data_coverage.csv"))))
   ) %>%
-  unnest(coverage)
+  unnest(coverage) %>%
+  arrange(treatment, vax12_type, matched, vax3_date) %>%
+  group_by(treatment, treatment_descr, vax12_type, matched, vax3_date) %>%
+  summarise(
+    n=sum(n),
+  ) %>%
+  group_by(treatment, treatment_descr, vax12_type, matched) %>%
+  mutate(
+    cumuln = cumsum(n),
+    #round to nearest 6
+    cumuln = ceiling_any(cumuln, 6),
+    n = cumuln - lag(cumuln, 1, 0)
+  )
 
 write_csv(matchcoverage, fs::path(output_dir, "matchcoverage.csv"))
-
 
 
 ## match summary ---
