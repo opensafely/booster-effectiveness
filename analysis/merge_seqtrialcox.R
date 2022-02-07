@@ -332,13 +332,14 @@ var_labels <- list(
   chronic_liver_disease ~ "Chronic liver disease",
   chronic_resp_disease ~ "Chronic respiratory disease",
   chronic_neuro_disease ~ "Chronic neurological disease",
+
+  multimorb ~ "Morbidity count",
   immunosuppressed ~ "Immunosuppressed",
   asplenia ~ "Asplenia or poor spleen function",
-
   learndis ~ "Learning disabilities",
   sev_mental ~ "Serious mental illness",
 
-  multimorb ~ "Morbidity count",
+
 
   prior_tests_cat ~ "Number of SARS-CoV-2 tests prior to start date",
 

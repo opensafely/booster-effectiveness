@@ -180,7 +180,7 @@ model_descr = c(
 )
 
 
-y_breaks <- c(0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2)
+y_breaks <- c(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2)
 
 plot_effects <-
   model_effects %>%
@@ -197,7 +197,7 @@ plot_effects <-
   facet_grid(rows=vars(outcome_descr), cols=vars(treatment_descr), switch="y")+
   scale_y_log10(
     breaks=y_breaks,
-    limits = c(0.01, 2),
+    limits = c(0.005, 2),
     oob = scales::oob_keep,
     sec.axis = sec_axis(
       ~(1-.),

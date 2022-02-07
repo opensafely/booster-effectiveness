@@ -234,7 +234,7 @@ formula_vaxonly <- as.formula(
 formula_strata <- . ~ . +
   strata(trial_day) +
   strata(region) +
-  strata(jcvi_group) +
+  #strata(jcvi_group) +
   strata(vax12_type)
 
 formula_demog <- . ~ . +
@@ -248,7 +248,9 @@ formula_clinical <- . ~ . +
   prior_tests_cat +
   multimorb +
   learndis +
-  sev_mental
+  sev_mental +
+  immunosuppressed +
+  asplenia
 
 formula_timedependent <- . ~ . +
   postest_status +

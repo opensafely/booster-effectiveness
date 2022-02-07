@@ -182,14 +182,14 @@ data_processed <- data_extract %>%
       (diabetes) +
       (chronic_liver_disease)+
       (chronic_resp_disease | asthma)+
-      (immunosuppressed | asplenia)+
       (chronic_neuro_disease)#+
       #(learndis)+
       #(sev_mental),
     ,
     multimorb = cut(multimorb, breaks = c(0, 1, 2, Inf), labels=c("0", "1", "2+"), right=FALSE),
-
-    # https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1007737/Greenbook_chapter_14a_30July2021.pdf#page=12
+    immuno = immunosuppressed | asplenia,
+    # original priority groups https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1007737/Greenbook_chapter_14a_30July2021.pdf#page=15
+    # new priority groups https://www.england.nhs.uk/coronavirus/wp-content/uploads/sites/52/2021/07/C1327-covid-19-vaccination-autumn-winter-phase-3-planning.pdf
     jcvi_group = fct_case_when(
       care_home_combined | hscworker  ~ "1",
       age_august2021>=80 ~ "2",
@@ -203,9 +203,10 @@ data_processed <- data_extract %>%
       TRUE ~ "10"
     ),
 
+
     prior_tests_cat = cut(prior_covid_test_frequency, breaks=c(0, 1, 2, 3, Inf), labels=c("0", "1", "2", "3+"), right=FALSE),
 
-    prior_covid_infection = !is.na(positive_test_0_date) | !is.na(covidadmitted_0_date) | !is.na(primary_care_covid_case_0_date),
+    prior_covid_infection = !is.na(positive_test_0_date) | !is.na(admitted_covid_0_date) | !is.na(primary_care_covid_case_0_date),
 
 
     #covidemergency_1_date = pmin(covidemergency_1_date, covidadmitted_1_date, na.rm=TRUE),

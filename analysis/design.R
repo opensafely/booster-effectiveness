@@ -63,6 +63,21 @@ events_lookup <- tribble(
 write_rds(events_lookup, here("lib", "design", "event-variables.rds"))
 
 
+
+treatement_lookup <-
+  tribble(
+    ~treatment, ~treatment_descr,
+    "pfizer", "BNT162b2",
+    "az", "ChAdOx1-S",
+    "moderna", "mRNA-1273",
+    "pfizer-pfizer", "BNT162b2",
+    "az-az", "ChAdOx1-S",
+    "moderna-moderna", "mRNA-1273"
+  )
+
+write_rds(treatment_lookup, here("lib", "design", "treatment-lookup.rds"))
+
+
 ## variable labels
 variable_labels <- list(
   vax12_type ~ "Primary vaccination course (doses 1 and 2)",
@@ -106,7 +121,7 @@ postbaselinecuts <- c(0,7,seq(14,7*12, 14))
 write_rds(postbaselinecuts, here("lib", "design", "postbaselinecuts.rds"))
 
 # what matching variables
-matching_variables <- c("jcvi_group", "vax12_type", "region", "vax2_week")
+matching_variables <- c("jcvi_group", "vax12_type", "region", "vax2_week", "prior_covid_infection", "immuno")
 write_rds(matching_variables, here("lib", "design", "matching_variables.rds"))
 
 # cut-off for rolling 7 day average, that determines recruitment period
