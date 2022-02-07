@@ -3,8 +3,10 @@
 # This script:
 # imports processed data
 # fits some Cox models with time-varying effects
-# The script must be accompanied by one argument:
+# The script must be accompanied by three arguments:
+# `treatment` - the exposure in the regression model, pfizer or moderna
 # `outcome` - the dependent variable in the regression model
+# `subgroup` - the subgroup variable for the regression model followed by a hyphen and the level of the subgroup
 
 # # # # # # # # # # # # # # # # # # # # #
 

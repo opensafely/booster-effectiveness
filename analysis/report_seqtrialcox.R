@@ -4,9 +4,10 @@
 # imports fitted cox models
 # outputs time-dependent effect estimates for booster
 #
-# The script must be accompanied by two arguments,
+# The script must be accompanied by three arguments:
 # `treatment` - the exposure variable in the regression model
 # `outcome` - the dependent variable in the regression model
+# `subgroup` - the subgroup variable for the regression model followed by a hyphen and the level of the subgroup
 # # # # # # # # # # # # # # # # # # # # #
 
 # Preliminaries ----
