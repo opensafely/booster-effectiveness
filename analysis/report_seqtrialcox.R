@@ -227,11 +227,78 @@ incidence_rate_redacted <- local({
 write_csv(incidence_rate_redacted, fs::path(output_dir, "report_incidence.csv"))
 
 
-## cumulative risk differences ----
+## kaplan meier cumulative risk differences ----
+
+ceiling_any <- function(x, to=1){
+  # round to nearest 100 millionth to avoid floating point errors
+  ceiling(plyr::round_any(x/to, 1/100000000))*to
+}
+
+
+unique_times <- unique(c(data_seqtrialcox$tte_outcome))
+threshold <- 5
+dat_surv <- data_seqtrialcox %>%
+  mutate(
+    treated_descr = if_else(treated==1L, "Boosted", "Unboosted"),
+  ) %>%
+  group_by(treated_descr) %>%
+  nest() %>%
+  mutate(
+    n_events = map_int(data, ~as.integer(sum(.x$ind_outcome, na.rm=TRUE))),
+    surv_obj = map(data, ~{
+      survfit(Surv(tte_outcome, ind_outcome) ~ 1, data = .x, conf.type="log-log")
+    }),
+    surv_obj_tidy = map(surv_obj, ~tidy_surv(.x, addtimezero = TRUE)),
+  ) %>%
+  select(treated_descr, n_events, surv_obj_tidy) %>%
+  unnest(surv_obj_tidy)
+
+data_surv_rounded <- dat_surv %>%
+  mutate(
+    # Use ceiling not round. This is slightly biased upwards,
+    # but means there's no disclosure risk at the boundaries (0 and 1) where masking would otherwise be threshold/2
+    surv = ceiling_any(surv, 1/floor(max(n.risk, na.rm=TRUE)/(threshold+1))),
+    surv.ll = ceiling_any(surv.ll, 1/floor(max(n.risk, na.rm=TRUE)/(threshold+1))),
+    surv.ul = ceiling_any(surv.ul, 1/floor(max(n.risk, na.rm=TRUE)/(threshold+1))),
+  )
+
+
+write_csv(data_surv_rounded, fs::path(output_dir, "report_km.csv"))
+
+plot_km <- data_surv_rounded %>%
+  ggplot(aes(group=treated_descr, colour=treated_descr, fill=treated_descr)) +
+  geom_step(aes(x=time, y=1-surv))+
+  geom_rect(aes(xmin=time, xmax=leadtime, ymin=1-surv.ll, ymax=1-surv.ul), alpha=0.1, colour="transparent")+
+  scale_color_brewer(type="qual", palette="Set1", na.value="grey") +
+  scale_fill_brewer(type="qual", palette="Set1", guide="none", na.value="grey") +
+  scale_x_continuous(breaks = seq(0,600,14))+
+  scale_y_continuous(expand = expansion(mult=c(0,0.01)))+
+  coord_cartesian(xlim=c(0, NA))+
+  labs(
+    x="Days",
+    y="Cumulative incidence",
+    colour=NULL,
+    title=NULL
+  )+
+  theme_minimal()+
+  theme(
+    axis.line.x = element_line(colour = "black"),
+    panel.grid.minor.x = element_blank(),
+    legend.position=c(.05,.95),
+    legend.justification = c(0,1),
+  )
+
+plot_km
+
+ggsave(filename=fs::path(output_dir, "report_kmplot.svg"), plot_km, width=20, height=15, units="cm")
+ggsave(filename=fs::path(output_dir, "report_kmplot.png"), plot_km, width=20, height=15, units="cm")
+
+
+## marginal cumulative risk differences ----
 
 model3 <- read_rds(fs::path(output_dir, "model_obj3.rds"))
 
-tidy_surv <- broom::tidy(survfit(model3)) %>%
+data_tidy_surv <- broom::tidy(survfit(model3)) %>%
   group_by(strata) %>%
   summarise(
     n.event=sum(n.event),
@@ -239,7 +306,7 @@ tidy_surv <- broom::tidy(survfit(model3)) %>%
     n.censor = sum(n.censor),
   )
 
-if(any(tidy_surv$n.event==0)){
+if(any(data_tidy_surv$n.event==0)){
   message("some strata have zero events -- cannot calculate marginalised risk.", "\n")
 } else {
 

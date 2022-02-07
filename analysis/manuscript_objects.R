@@ -157,8 +157,8 @@ fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchsummary_
 
 
 ## models ----
+fs::file_copy(here("output", "models", "seqtrialcox", "combined", "km.csv"), here("output", "manuscript-objects", "km.csv"), overwrite = TRUE)
 fs::file_copy(here("output", "models", "seqtrialcox", "combined", "incidence.csv"), here("output", "manuscript-objects", "incidence.csv"), overwrite = TRUE)
-
 fs::file_copy(here("output", "models", "seqtrialcox", "combined", "effects.csv"), here("output", "manuscript-objects", "effects.csv"), overwrite = TRUE)
 
 

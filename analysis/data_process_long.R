@@ -96,7 +96,7 @@ data_covidemergency <- data_processed %>%
   arrange(patient_id, date)
 
 data_covidadmitted <- data_processed %>%
-  select(patient_id, matches("^covidadmitted\\_\\d+\\_date")) %>%
+  select(patient_id, matches("^admitted\\_covid\\_\\d+\\_date")) %>%
   pivot_longer(
     cols = -patient_id,
     names_to = c(NA, "covidadmitted_index"),

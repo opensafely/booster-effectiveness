@@ -42,9 +42,22 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
     # because date types are not returned consistently by cohort extractor
     mutate(across(ends_with("_date"), ~ as.Date(.))) %>%
     # because of a bug in cohort extractor -- remove once pulled new version
-    mutate(patient_id = as.integer(patient_id))
+    mutate(patient_id = as.integer(patient_id)) %>%
+    mutate(
+      admitted_covid_ccdays_1 = as.numeric(as.character(admitted_covid_ccdays_1)),
+      admitted_covid_ccdays_2 = as.numeric(as.character(admitted_covid_ccdays_2)),
+      admitted_covid_ccdays_3 = as.numeric(as.character(admitted_covid_ccdays_3)),
+      admitted_covid_ccdays_4 = as.numeric(as.character(admitted_covid_ccdays_4)),
+    )
 
-  data_custom_dummy <- read_feather(here("lib", "dummydata", "dummyinput.feather"))
+  data_custom_dummy <- read_feather(here("lib", "dummydata", "dummyinput.feather")) %>%
+    mutate(
+      admitted_covid_ccdays_1 = as.numeric(as.character(admitted_covid_ccdays_1)),
+      admitted_covid_ccdays_2 = as.numeric(as.character(admitted_covid_ccdays_2)),
+      admitted_covid_ccdays_3 = as.numeric(as.character(admitted_covid_ccdays_3)),
+      admitted_covid_ccdays_4 = as.numeric(as.character(admitted_covid_ccdays_4)),
+    )
+
 
   not_in_studydef <- names(data_custom_dummy)[!( names(data_custom_dummy) %in% names(data_studydef_dummy) )]
   not_in_custom  <- names(data_studydef_dummy)[!( names(data_studydef_dummy) %in% names(data_custom_dummy) )]
@@ -169,14 +182,14 @@ data_processed <- data_extract %>%
       (diabetes) +
       (chronic_liver_disease)+
       (chronic_resp_disease | asthma)+
-      (immunosuppressed | asplenia)+
       (chronic_neuro_disease)#+
       #(learndis)+
       #(sev_mental),
     ,
     multimorb = cut(multimorb, breaks = c(0, 1, 2, Inf), labels=c("0", "1", "2+"), right=FALSE),
-
-    # https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1007737/Greenbook_chapter_14a_30July2021.pdf#page=12
+    immuno = immunosuppressed | asplenia,
+    # original priority groups https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1007737/Greenbook_chapter_14a_30July2021.pdf#page=15
+    # new priority groups https://www.england.nhs.uk/coronavirus/wp-content/uploads/sites/52/2021/07/C1327-covid-19-vaccination-autumn-winter-phase-3-planning.pdf
     jcvi_group = fct_case_when(
       care_home_combined | hscworker  ~ "1",
       age_august2021>=80 ~ "2",
@@ -190,44 +203,47 @@ data_processed <- data_extract %>%
       TRUE ~ "10"
     ),
 
+
     prior_tests_cat = cut(prior_covid_test_frequency, breaks=c(0, 1, 2, 3, Inf), labels=c("0", "1", "2", "3+"), right=FALSE),
 
-    prior_covid_infection = !is.na(positive_test_0_date) | !is.na(covidadmitted_0_date) | !is.na(primary_care_covid_case_0_date),
+    prior_covid_infection = !is.na(positive_test_0_date) | !is.na(admitted_covid_0_date) | !is.na(primary_care_covid_case_0_date),
 
 
     #covidemergency_1_date = pmin(covidemergency_1_date, covidadmitted_1_date, na.rm=TRUE),
 
+
+
     covidcc_1_date = case_when(
-      covidadmitted_ccdays_1 > 0 ~ covidadmitted_1_date,
-      covidadmitted_ccdays_2 > 0 ~ covidadmitted_2_date,
-      covidadmitted_ccdays_3 > 0 ~ covidadmitted_3_date,
-      covidadmitted_ccdays_4 > 0 ~ covidadmitted_4_date,
+      admitted_covid_ccdays_1 > 0 ~ admitted_covid_1_date,
+      admitted_covid_ccdays_2 > 0 ~ admitted_covid_2_date,
+      admitted_covid_ccdays_3 > 0 ~ admitted_covid_3_date,
+      admitted_covid_ccdays_4 > 0 ~ admitted_covid_4_date,
       TRUE ~ as.Date(NA_character_)
     ),
 
     covidcc_2_date = case_when(
-      (covidadmitted_ccdays_2 > 0) & (covidadmitted_2_date > covidcc_1_date) ~ covidadmitted_2_date,
-      (covidadmitted_ccdays_3 > 0) & (covidadmitted_3_date > covidcc_1_date) ~ covidadmitted_3_date,
-      (covidadmitted_ccdays_4 > 0) & (covidadmitted_4_date > covidcc_1_date) ~ covidadmitted_4_date,
+      (admitted_covid_ccdays_2 > 0) & (admitted_covid_2_date > covidcc_1_date) ~ admitted_covid_2_date,
+      (admitted_covid_ccdays_3 > 0) & (admitted_covid_3_date > covidcc_1_date) ~ admitted_covid_3_date,
+      (admitted_covid_ccdays_4 > 0) & (admitted_covid_4_date > covidcc_1_date) ~ admitted_covid_4_date,
       TRUE ~ as.Date(NA_character_)
     ),
 
     covidcc_3_date = case_when(
-      (covidadmitted_ccdays_3 > 0) & (covidadmitted_3_date > covidcc_2_date) ~ covidadmitted_3_date,
-      (covidadmitted_ccdays_4 > 0) & (covidadmitted_4_date > covidcc_2_date) ~ covidadmitted_4_date,
+      (admitted_covid_ccdays_3 > 0) & (admitted_covid_3_date > covidcc_2_date) ~ admitted_covid_3_date,
+      (admitted_covid_ccdays_4 > 0) & (admitted_covid_4_date > covidcc_2_date) ~ admitted_covid_4_date,
       TRUE ~ as.Date(NA_character_)
     ),
 
     covidcc_4_date = case_when(
-      (covidadmitted_ccdays_4 > 0) & (covidadmitted_4_date > covidcc_3_date) ~ covidadmitted_4_date,
+      (admitted_covid_ccdays_4 > 0) & (admitted_covid_4_date > covidcc_3_date) ~ admitted_covid_4_date,
       TRUE ~ as.Date(NA_character_)
     ),
 
     # latest covid event before study start
-    anycovid_0_date = pmax(positive_test_0_date, covidemergency_0_date, covidadmitted_0_date, na.rm=TRUE),
+    anycovid_0_date = pmax(positive_test_0_date, covidemergency_0_date, admitted_covid_0_date, na.rm=TRUE),
 
     # earliest covid event after study start
-    anycovid_1_date = pmin(positive_test_1_date, covidemergency_1_date, covidadmitted_1_date, covidcc_1_date, coviddeath_date, na.rm=TRUE),
+    anycovid_1_date = pmin(positive_test_1_date, covidemergency_1_date, admitted_covid_1_date, covidcc_1_date, coviddeath_date, na.rm=TRUE),
 
 
     noncoviddeath_date = if_else(!is.na(death_date) & is.na(coviddeath_date), death_date, as.Date(NA_character_)),

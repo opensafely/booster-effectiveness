@@ -377,7 +377,12 @@ actions_list <- splice(
       ),
       as.list(
         glue_data(
-          .x=expand_grid(script=c("model", "report"), treatment=c("pfizer", "moderna"), outcome=c("postest", "covidemergency", "coviddeath")),
+          .x=expand_grid(
+            script=c("model", "report"),
+            treatment=c("pfizer", "moderna"),
+            outcome=c("postest", "covidemergency", "covidadmitted", "covidcc", "coviddeath")
+            #outcome=c("postest", "covidemergency")
+          ),
           "{script}_seqtrialcox_{treatment}_{outcome}"
         ),
       )
