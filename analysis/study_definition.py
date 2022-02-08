@@ -618,7 +618,7 @@ study = StudyDefinition(
     with_admission_method=["11", "12", "13", "81"],
     with_patient_classification = ["1", "2"], # ordinary and day-case admissions only
     date_format="YYYY-MM-DD",
-    find_first_match_in_period=True
+    find_last_match_in_period=True
   ), 
   
   **admitted_date_X(
