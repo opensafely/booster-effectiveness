@@ -125,10 +125,12 @@ data_coviddeath <- data_processed %>%
 
 data_noncoviddeath <- data_processed %>%
   select(patient_id, date=noncoviddeath_date) %>%
+  filter(!is.na(date)) %>%
   arrange(patient_id, date)
 
 data_death <- data_processed %>%
   select(patient_id, date=death_date) %>%
+  filter(!is.na(date)) %>%
   arrange(patient_id, date)
 
 # write_rds(data_pr_probable_covid, here("output", cohort, "data", "data_long_pr_probable_covid_dates.rds"), compress="gz")

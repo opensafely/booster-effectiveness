@@ -200,7 +200,7 @@ data_timevarying <- local({
     ) %>%
     inner_join(data_join, ., by =c("patient_id")) %>%
     mutate(
-      tte = tte(day1_date-1, date, censor_date, na.censor=TRUE) %>% as.integer(),
+      tte = tte(day1_date-1, date, as.Date(Inf), na.censor=TRUE) %>% as.integer(),
       admittedunplanned_status = if_else(status=="admitted_date", 1L, 0L)
     )
 
@@ -214,7 +214,7 @@ data_timevarying <- local({
     ) %>%
     inner_join(data_join, ., by =c("patient_id")) %>%
     mutate(
-      tte = tte(day1_date-1, date, censor_date, na.censor=TRUE) %>% as.integer(),
+      tte = tte(day1_date-1, date, as.Date(Inf), na.censor=TRUE) %>% as.integer(),
       admittedplanned_status = if_else(status=="admitted_date", 1L, 0L)
     )
 
