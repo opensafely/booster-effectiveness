@@ -401,7 +401,7 @@ actions_list <- splice(
           .x=expand_grid(
             script=c("model", "report"),
             treatment=c("pfizer", "moderna"),
-            outcome=c("postest", "covidemergency", "covidadmitted", "covidcc", "coviddeath")
+            outcome=c("postest", "covidemergency", "covidadmitted", "coviddeath")
             #outcome=c("postest", "covidemergency")
           ),
           "{script}_seqtrialcox_{treatment}_{outcome}"
