@@ -211,6 +211,7 @@ actions_list <- splice(
     )
   ),
 
+
   action(
     name = "data_process",
     run = "r:latest analysis/data_process.R",
@@ -218,6 +219,16 @@ actions_list <- splice(
     highly_sensitive = lst(
       rds = "output/data/data_processed.rds",
       vaxlong = "output/data/data_vaxlong.rds"
+    )
+  ),
+
+  action(
+    name = "skim_process",
+    run = "r:latest analysis/data_skim.R",
+    arguments = c("output/data/data_processed.rds", "output/data_properties"),
+    needs = list("data_process"),
+    moderately_sensitive = lst(
+      cohort = "output/data_properties/data_processed*.txt"
     )
   ),
 
@@ -250,6 +261,16 @@ actions_list <- splice(
     ),
     moderately_sensitive = lst(
       flow = "output/data/flowchart.csv"
+    )
+  ),
+
+  action(
+    name = "skim_selection",
+    run = "r:latest analysis/data_skim.R",
+    arguments = c("output/data/data_cohort.rds", "output/data_properties"),
+    needs = list("data_selection"),
+    moderately_sensitive = lst(
+      cohort = "output/data_properties/data_cohort*.txt"
     )
   ),
 
