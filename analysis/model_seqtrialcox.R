@@ -22,14 +22,19 @@ if(length(args)==0){
   # use for interactive testing
   removeobjects <- FALSE
   treatment <- "pfizer"
-  outcome <- "postest"
-  subgroup <- "vax12_type-pfizer-pfizer"
+  outcome <- "covidemergency"
+  subgroup <- "none"
+  #subgroup <- "none"
 } else {
   removeobjects <- TRUE
   treatment <- args[[1]]
   outcome <- args[[2]]
   subgroup <- args[[3]]
 }
+
+subgroup_variable <-  stringr::str_split_fixed(subgroup,"-",2)[,1]
+subgroup_level <- stringr::str_split_fixed(subgroup,"-",2)[,2]
+subgroup_dummy <- paste0(subgroup_variable,"_",subgroup_level)
 
 
 
@@ -100,8 +105,16 @@ outcome_var <- events$event_var[events$event==outcome]
 var_labels <- read_rds(here("lib", "design", "variable-labels.rds"))
 
 
-data_merged <- read_rds(here("output", "models", "seqtrialcox", treatment, "merge_data_merged.rds"))
-data_tte <- read_rds(here("output", "models", "seqtrialcox", treatment, "match_data_tte.rds"))
+
+data_merged <-
+  read_rds(here("output", "models", "seqtrialcox", treatment, "merge_data_merged.rds")) %>%
+  mutate(none="") %>%
+  fastDummies::dummy_cols(select_columns = subgroup_variable, remove_selected_columns = FALSE) %>%
+  filter(.[[subgroup_dummy]]==1L)
+
+data_tte <-
+  read_rds(here("output", "models", "seqtrialcox", treatment, "match_data_tte.rds")) %>%
+  filter(patient_id %in% data_merged$patient_id)
 
 ## create outcome variables ----
 
@@ -212,13 +225,6 @@ data_seqtrialcox <- local({
   data_st
 })
 
-## apply subgrouping if applicable
-if (subgroup!="none") {
-  data_seqtrialcox <- dplyr::filter_at(data_seqtrialcox,
-                                  stringr::str_split_fixed(subgroup,"-",2)[,1],
-                                  all_vars(.==stringr::str_split_fixed(subgroup,"-",2)[,2]))
-}
-
 logoutput_datasize(data_seqtrialcox)
 
 
@@ -287,8 +293,6 @@ model_descr = c(
   "Demographic adjustment" = "2",
   "Full adjustment" = "3"
 )
-
-
 
 
 ## pre-flight checks ----

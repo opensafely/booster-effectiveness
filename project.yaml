@@ -197,7 +197,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_postest_none
-    - match_seqtrialcox_pfizer_postest
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/postest/none/report_*.csv
@@ -223,7 +223,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_postest_vax12_type-az-az
-    - match_seqtrialcox_pfizer_postest
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/postest/vax12_type-az-az/report_*.csv
@@ -249,7 +249,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_postest_vax12_type-moderna-moderna
-    - match_seqtrialcox_pfizer_postest
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/postest/vax12_type-moderna-moderna/report_*.csv
@@ -275,7 +275,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_postest_vax12_type-pfizer-pfizer
-    - match_seqtrialcox_pfizer_postest
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/postest/vax12_type-pfizer-pfizer/report_*.csv
@@ -301,7 +301,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_postest_none
-    - match_seqtrialcox_moderna_postest
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/postest/none/report_*.csv
@@ -327,7 +327,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_postest_vax12_type-az-az
-    - match_seqtrialcox_moderna_postest
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/postest/vax12_type-az-az/report_*.csv
@@ -353,7 +353,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_postest_vax12_type-moderna-moderna
-    - match_seqtrialcox_moderna_postest
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/postest/vax12_type-moderna-moderna/report_*.csv
@@ -379,7 +379,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_postest_vax12_type-pfizer-pfizer
-    - match_seqtrialcox_moderna_postest
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/postest/vax12_type-pfizer-pfizer/report_*.csv
@@ -407,7 +407,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_covidemergency_none
-    - match_seqtrialcox_pfizer_covidemergency
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/covidemergency/none/report_*.csv
@@ -433,7 +433,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_covidemergency_vax12_type-az-az
-    - match_seqtrialcox_pfizer_covidemergency
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/covidemergency/vax12_type-az-az/report_*.csv
@@ -459,7 +459,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_covidemergency_vax12_type-moderna-moderna
-    - match_seqtrialcox_pfizer_covidemergency
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/covidemergency/vax12_type-moderna-moderna/report_*.csv
@@ -485,7 +485,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_covidemergency_vax12_type-pfizer-pfizer
-    - match_seqtrialcox_pfizer_covidemergency
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/covidemergency/vax12_type-pfizer-pfizer/report_*.csv
@@ -511,7 +511,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_covidemergency_none
-    - match_seqtrialcox_moderna_covidemergency
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/covidemergency/none/report_*.csv
@@ -537,7 +537,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_covidemergency_vax12_type-az-az
-    - match_seqtrialcox_moderna_covidemergency
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/covidemergency/vax12_type-az-az/report_*.csv
@@ -563,7 +563,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_covidemergency_vax12_type-moderna-moderna
-    - match_seqtrialcox_moderna_covidemergency
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/covidemergency/vax12_type-moderna-moderna/report_*.csv
@@ -589,7 +589,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_covidemergency_vax12_type-pfizer-pfizer
-    - match_seqtrialcox_moderna_covidemergency
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/covidemergency/vax12_type-pfizer-pfizer/report_*.csv
@@ -617,7 +617,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_covidadmitted_none
-    - match_seqtrialcox_pfizer_covidadmitted
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/covidadmitted/none/report_*.csv
@@ -643,7 +643,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_covidadmitted_vax12_type-az-az
-    - match_seqtrialcox_pfizer_covidadmitted
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/covidadmitted/vax12_type-az-az/report_*.csv
@@ -669,7 +669,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_covidadmitted_vax12_type-moderna-moderna
-    - match_seqtrialcox_pfizer_covidadmitted
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/covidadmitted/vax12_type-moderna-moderna/report_*.csv
@@ -695,7 +695,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_covidadmitted_vax12_type-pfizer-pfizer
-    - match_seqtrialcox_pfizer_covidadmitted
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/covidadmitted/vax12_type-pfizer-pfizer/report_*.csv
@@ -721,7 +721,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_covidadmitted_none
-    - match_seqtrialcox_moderna_covidadmitted
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/covidadmitted/none/report_*.csv
@@ -747,7 +747,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_covidadmitted_vax12_type-az-az
-    - match_seqtrialcox_moderna_covidadmitted
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/covidadmitted/vax12_type-az-az/report_*.csv
@@ -773,7 +773,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_covidadmitted_vax12_type-moderna-moderna
-    - match_seqtrialcox_moderna_covidadmitted
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/covidadmitted/vax12_type-moderna-moderna/report_*.csv
@@ -799,7 +799,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_covidadmitted_vax12_type-pfizer-pfizer
-    - match_seqtrialcox_moderna_covidadmitted
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/covidadmitted/vax12_type-pfizer-pfizer/report_*.csv
@@ -827,7 +827,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_covidcc_none
-    - match_seqtrialcox_pfizer_covidcc
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/covidcc/none/report_*.csv
@@ -853,7 +853,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_covidcc_vax12_type-az-az
-    - match_seqtrialcox_pfizer_covidcc
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/covidcc/vax12_type-az-az/report_*.csv
@@ -879,7 +879,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_covidcc_vax12_type-moderna-moderna
-    - match_seqtrialcox_pfizer_covidcc
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/covidcc/vax12_type-moderna-moderna/report_*.csv
@@ -905,7 +905,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_covidcc_vax12_type-pfizer-pfizer
-    - match_seqtrialcox_pfizer_covidcc
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/covidcc/vax12_type-pfizer-pfizer/report_*.csv
@@ -931,7 +931,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_covidcc_none
-    - match_seqtrialcox_moderna_covidcc
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/covidcc/none/report_*.csv
@@ -957,7 +957,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_covidcc_vax12_type-az-az
-    - match_seqtrialcox_moderna_covidcc
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/covidcc/vax12_type-az-az/report_*.csv
@@ -983,7 +983,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_covidcc_vax12_type-moderna-moderna
-    - match_seqtrialcox_moderna_covidcc
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/covidcc/vax12_type-moderna-moderna/report_*.csv
@@ -1009,7 +1009,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_covidcc_vax12_type-pfizer-pfizer
-    - match_seqtrialcox_moderna_covidcc
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/covidcc/vax12_type-pfizer-pfizer/report_*.csv
@@ -1037,7 +1037,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_coviddeath_none
-    - match_seqtrialcox_pfizer_coviddeath
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/coviddeath/none/report_*.csv
@@ -1063,7 +1063,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_coviddeath_vax12_type-az-az
-    - match_seqtrialcox_pfizer_coviddeath
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/coviddeath/vax12_type-az-az/report_*.csv
@@ -1089,7 +1089,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_coviddeath_vax12_type-moderna-moderna
-    - match_seqtrialcox_pfizer_coviddeath
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/coviddeath/vax12_type-moderna-moderna/report_*.csv
@@ -1115,7 +1115,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_pfizer_coviddeath_vax12_type-pfizer-pfizer
-    - match_seqtrialcox_pfizer_coviddeath
+    - match_seqtrialcox_pfizer
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/pfizer/coviddeath/vax12_type-pfizer-pfizer/report_*.csv
@@ -1141,7 +1141,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_coviddeath_none
-    - match_seqtrialcox_moderna_coviddeath
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/coviddeath/none/report_*.csv
@@ -1167,7 +1167,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_coviddeath_vax12_type-az-az
-    - match_seqtrialcox_moderna_coviddeath
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/coviddeath/vax12_type-az-az/report_*.csv
@@ -1193,7 +1193,7 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_coviddeath_vax12_type-moderna-moderna
-    - match_seqtrialcox_moderna_coviddeath
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/coviddeath/vax12_type-moderna-moderna/report_*.csv
@@ -1219,91 +1219,77 @@ actions:
     needs:
     - data_selection
     - model_seqtrialcox_moderna_coviddeath_vax12_type-pfizer-pfizer
-    - match_seqtrialcox_moderna_coviddeath
+    - match_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/moderna/coviddeath/vax12_type-pfizer-pfizer/report_*.csv
         svg: output/models/seqtrialcox/moderna/coviddeath/vax12_type-pfizer-pfizer/report_*.svg
         png: output/models/seqtrialcox/moderna/coviddeath/vax12_type-pfizer-pfizer/report_*.png
 
-  combine_seqtrialcox:
-    run: r:latest analysis/combine_seqtrialcox.R
+  combine_match:
+    run: r:latest analysis/combine_match.R
     needs:
-    - match_seqtrialcox_pfizer_postest_none
-    - match_seqtrialcox_pfizer_postest_vax12_type-az-az
-    - match_seqtrialcox_pfizer_postest_vax12_type-moderna-moderna
-    - match_seqtrialcox_pfizer_postest_vax12_type-pfizer-pfizer
-    - match_seqtrialcox_pfizer_covidemergency_none
-    - match_seqtrialcox_pfizer_covidemergency_vax12_type-az-az
-    - match_seqtrialcox_pfizer_covidemergency_vax12_type-moderna-moderna
-    - match_seqtrialcox_pfizer_covidemergency_vax12_type-pfizer-pfizer
-    - match_seqtrialcox_pfizer_coviddeath_none
-    - match_seqtrialcox_pfizer_coviddeath_vax12_type-az-az
-    - match_seqtrialcox_pfizer_coviddeath_vax12_type-moderna-moderna
-    - match_seqtrialcox_pfizer_coviddeath_vax12_type-pfizer-pfizer
-    - match_seqtrialcox_moderna_postest_none
-    - match_seqtrialcox_moderna_postest_vax12_type-az-az
-    - match_seqtrialcox_moderna_postest_vax12_type-moderna-moderna
-    - match_seqtrialcox_moderna_postest_vax12_type-pfizer-pfizer
-    - match_seqtrialcox_moderna_covidemergency_none
-    - match_seqtrialcox_moderna_covidemergency_vax12_type-az-az
-    - match_seqtrialcox_moderna_covidemergency_vax12_type-moderna-moderna
-    - match_seqtrialcox_moderna_covidemergency_vax12_type-pfizer-pfizer
-    - match_seqtrialcox_moderna_coviddeath_none
-    - match_seqtrialcox_moderna_coviddeath_vax12_type-az-az
-    - match_seqtrialcox_moderna_coviddeath_vax12_type-moderna-moderna
-    - match_seqtrialcox_moderna_coviddeath_vax12_type-pfizer-pfizer
-    - merge_seqtrialcox_pfizer_postest_none
-    - merge_seqtrialcox_pfizer_postest_vax12_type-az-az
-    - merge_seqtrialcox_pfizer_postest_vax12_type-moderna-moderna
-    - merge_seqtrialcox_pfizer_postest_vax12_type-pfizer-pfizer
-    - merge_seqtrialcox_pfizer_covidemergency_none
-    - merge_seqtrialcox_pfizer_covidemergency_vax12_type-az-az
-    - merge_seqtrialcox_pfizer_covidemergency_vax12_type-moderna-moderna
-    - merge_seqtrialcox_pfizer_covidemergency_vax12_type-pfizer-pfizer
-    - merge_seqtrialcox_pfizer_coviddeath_none
-    - merge_seqtrialcox_pfizer_coviddeath_vax12_type-az-az
-    - merge_seqtrialcox_pfizer_coviddeath_vax12_type-moderna-moderna
-    - merge_seqtrialcox_pfizer_coviddeath_vax12_type-pfizer-pfizer
-    - merge_seqtrialcox_moderna_postest_none
-    - merge_seqtrialcox_moderna_postest_vax12_type-az-az
-    - merge_seqtrialcox_moderna_postest_vax12_type-moderna-moderna
-    - merge_seqtrialcox_moderna_postest_vax12_type-pfizer-pfizer
-    - merge_seqtrialcox_moderna_covidemergency_none
-    - merge_seqtrialcox_moderna_covidemergency_vax12_type-az-az
-    - merge_seqtrialcox_moderna_covidemergency_vax12_type-moderna-moderna
-    - merge_seqtrialcox_moderna_covidemergency_vax12_type-pfizer-pfizer
-    - merge_seqtrialcox_moderna_coviddeath_none
-    - merge_seqtrialcox_moderna_coviddeath_vax12_type-az-az
-    - merge_seqtrialcox_moderna_coviddeath_vax12_type-moderna-moderna
-    - merge_seqtrialcox_moderna_coviddeath_vax12_type-pfizer-pfizer
-    - model_seqtrialcox_pfizer_postest
-    - model_seqtrialcox_pfizer_covidemergency
-    - model_seqtrialcox_pfizer_covidadmitted
-    - model_seqtrialcox_pfizer_covidcc
-    - model_seqtrialcox_pfizer_coviddeath
-    - model_seqtrialcox_moderna_postest
-    - model_seqtrialcox_moderna_covidemergency
-    - model_seqtrialcox_moderna_covidadmitted
-    - model_seqtrialcox_moderna_covidcc
-    - model_seqtrialcox_moderna_coviddeath
-    - report_seqtrialcox_pfizer_postest
-    - report_seqtrialcox_pfizer_covidemergency
-    - report_seqtrialcox_pfizer_covidadmitted
-    - report_seqtrialcox_pfizer_covidcc
-    - report_seqtrialcox_pfizer_coviddeath
-    - report_seqtrialcox_moderna_postest
-    - report_seqtrialcox_moderna_covidemergency
-    - report_seqtrialcox_moderna_covidadmitted
-    - report_seqtrialcox_moderna_covidcc
-    - report_seqtrialcox_moderna_coviddeath
+    - match_seqtrialcox_pfizer
+    - match_seqtrialcox_moderna
+    - merge_seqtrialcox_pfizer
+    - merge_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
-        csv: output/models/seqtrialcox/combined/*.csv
-        png: output/models/seqtrialcox/combined/*.png
-        pdf: output/models/seqtrialcox/combined/*.pdf
-        svg: output/models/seqtrialcox/combined/*.svg
-        html: output/models/seqtrialcox/combined/*.html
+        csv: output/models/seqtrialcox/combined/match/*.csv
+
+  combine_model:
+    run: r:latest analysis/combine_model.R none
+    needs:
+    - match_seqtrialcox_pfizer
+    - match_seqtrialcox_moderna
+    - merge_seqtrialcox_pfizer
+    - merge_seqtrialcox_moderna
+    - model_seqtrialcox_pfizer_postest_none
+    - model_seqtrialcox_pfizer_covidadmitted_none
+    - model_seqtrialcox_moderna_postest_none
+    - model_seqtrialcox_moderna_covidadmitted_none
+    - report_seqtrialcox_pfizer_postest_none
+    - report_seqtrialcox_pfizer_covidadmitted_none
+    - report_seqtrialcox_moderna_postest_none
+    - report_seqtrialcox_moderna_covidadmitted_none
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/combined/model/none/*.csv
+        png: output/models/seqtrialcox/combined/model/none/*.png
+        pdf: output/models/seqtrialcox/combined/model/none/*.pdf
+        svg: output/models/seqtrialcox/combined/model/none/*.svg
+        html: output/models/seqtrialcox/combined/model/none/*.html
+
+  combine_model_vax12_type:
+    run: r:latest analysis/combine_model.R vax12_type
+    needs:
+    - match_seqtrialcox_pfizer
+    - match_seqtrialcox_moderna
+    - merge_seqtrialcox_pfizer
+    - merge_seqtrialcox_moderna
+    - model_seqtrialcox_pfizer_postest_vax12_type-pfizer-pfizer
+    - model_seqtrialcox_pfizer_postest_vax12_type-az-az
+    - model_seqtrialcox_pfizer_covidadmitted_vax12_type-pfizer-pfizer
+    - model_seqtrialcox_pfizer_covidadmitted_vax12_type-az-az
+    - model_seqtrialcox_moderna_postest_vax12_type-pfizer-pfizer
+    - model_seqtrialcox_moderna_postest_vax12_type-az-az
+    - model_seqtrialcox_moderna_covidadmitted_vax12_type-pfizer-pfizer
+    - model_seqtrialcox_moderna_covidadmitted_vax12_type-az-az
+    - report_seqtrialcox_pfizer_postest_vax12_type-pfizer-pfizer
+    - report_seqtrialcox_pfizer_postest_vax12_type-az-az
+    - report_seqtrialcox_pfizer_covidadmitted_vax12_type-pfizer-pfizer
+    - report_seqtrialcox_pfizer_covidadmitted_vax12_type-az-az
+    - report_seqtrialcox_moderna_postest_vax12_type-pfizer-pfizer
+    - report_seqtrialcox_moderna_postest_vax12_type-az-az
+    - report_seqtrialcox_moderna_covidadmitted_vax12_type-pfizer-pfizer
+    - report_seqtrialcox_moderna_covidadmitted_vax12_type-az-az
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/combined/model/vax12_type/*.csv
+        png: output/models/seqtrialcox/combined/model/vax12_type/*.png
+        pdf: output/models/seqtrialcox/combined/model/vax12_type/*.pdf
+        svg: output/models/seqtrialcox/combined/model/vax12_type/*.svg
+        html: output/models/seqtrialcox/combined/model/vax12_type/*.html
 
   ## # # # # # # # # # # # # # # # # # # # 
   ## Manuscript 
@@ -1317,7 +1303,8 @@ actions:
     - descriptive_vaxdate
     - match_seqtrialcox_pfizer
     - match_seqtrialcox_moderna
-    - combine_seqtrialcox
+    - combine_model
+    - combine_model_vax12_type
     outputs:
       moderately_sensitive:
         csv: output/manuscript-objects/*.csv
