@@ -230,16 +230,22 @@ write_csv(incidence_rate_redacted, fs::path(output_dir, "report_incidence.csv"))
 ## kaplan meier cumulative risk differences ----
 
 
-unique_times <- unique(c(data_seqtrialcox$tte_outcome))
 threshold <- 5
-dat_surv <- data_seqtrialcox %>%
+
+dat_surv <-
+  data_seqtrialcox %>%
+  group_by(patient_id, treated) %>%
+  summarise(
+    tte_outcome = max(tstop) - min(tstart),
+    ind_outcome = as.integer(last(ind_outcome))
+  ) %>%
   mutate(
     treated_descr = if_else(treated==1L, "Boosted", "Unboosted"),
   ) %>%
   group_by(treated_descr) %>%
   nest() %>%
   mutate(
-    n_events = map_int(data, ~as.integer(sum(.x$ind_outcome, na.rm=TRUE))),
+    n_events = map_int(data, ~sum(.x$ind_outcome, na.rm=TRUE)),
     surv_obj = map(data, ~{
       survfit(Surv(tte_outcome, ind_outcome) ~ 1, data = .x, conf.type="log-log")
     }),
