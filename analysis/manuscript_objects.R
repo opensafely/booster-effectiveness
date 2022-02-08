@@ -58,6 +58,7 @@ cohort_summary <-
     censor_date = pmin(
       dereg_date,
       vax4_date-1, # -1 because we assume vax occurs at the start of the day
+      if_else(!(vax3_type %in% c("pfizer", "moderna")), vax3_date-1, as.Date(NA)), # censor if third dose is not pfizer or moderna
       death_date,
       study_dates$studyend_date,
       na.rm=TRUE
@@ -70,7 +71,7 @@ cohort_summary <-
   ) %>%
   summarise(
     n = n(),
-    n_boosted = sum(between(vax3_date, study_dates$studystart_date, study_dates$lastvax3_date), na.rm=TRUE),
+    n_boosted = sum(between(vax3_date, study_dates$studystart_date, study_dates$lastvax3_date) & vax3_type %in% c("pfizer", "moderna"), na.rm=TRUE),
 
     n_12pfizer = sum(vax12_type=="pfizer-pfizer"),
     prop_12pfizer = n_12pfizer/n,
@@ -99,8 +100,8 @@ write_csv(cohort_summary, here("output", "manuscript-objects", "cohortsummary.cs
 
 ## table 1 ----
 
-fs::file_copy(here("output", "descriptive", "table1", "table1.csv"), here("output", "manuscript-objects", "table1.csv"), overwrite = TRUE)
-fs::file_copy(here("output", "descriptive", "table1", "table1_by.csv"), here("output", "manuscript-objects", "table1_by.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "descriptive", "table1", "table1.csv"), here("output", "manuscript-objects", "cohorttable1.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "descriptive", "table1", "table1by.csv"), here("output", "manuscript-objects", "cohorttable1by.csv"), overwrite = TRUE)
 
 
 ## vax dates ----
@@ -145,14 +146,19 @@ fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_stack_jcvi.
 
 ## matching ----
 
+fs::file_copy(here("output", "models", "seqtrialcox", "pfizer", "match_coverage_stack.png"), here("output", "manuscript-objects", "match_coverage_pfizer_stack.png"), overwrite = TRUE)
+fs::file_copy(here("output", "models", "seqtrialcox", "moderna", "match_coverage_stack.png"), here("output", "manuscript-objects", "match_coverage_moderna_stack.png"), overwrite = TRUE)
+
+fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchtable1.csv"), here("output", "manuscript-objects", "matchtable1.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchtable1by.csv"), here("output", "manuscript-objects", "matchtable1by.csv"), overwrite = TRUE)
 fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchcoverage.csv"), here("output", "manuscript-objects", "matchcoverage.csv"), overwrite = TRUE)
 fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchsummary.csv"), here("output", "manuscript-objects", "matchsummary.csv"), overwrite = TRUE)
 fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchsummary_treated.csv"), here("output", "manuscript-objects", "matchsummary_treated.csv"), overwrite = TRUE)
 
 
 ## models ----
-fs::file_copy(here("output", "models", "seqtrialcox", "combined", "ir.csv"), here("output", "manuscript-objects", "ir.csv"), overwrite = TRUE)
-
+fs::file_copy(here("output", "models", "seqtrialcox", "combined", "km.csv"), here("output", "manuscript-objects", "km.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "models", "seqtrialcox", "combined", "incidence.csv"), here("output", "manuscript-objects", "incidence.csv"), overwrite = TRUE)
 fs::file_copy(here("output", "models", "seqtrialcox", "combined", "effects.csv"), here("output", "manuscript-objects", "effects.csv"), overwrite = TRUE)
 
 

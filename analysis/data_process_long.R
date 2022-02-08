@@ -73,7 +73,7 @@ data_admitted_planned <- data_processed %>%
 #   ) %>%
 #   arrange(patient_id, date)
 
-data_positive_test <- data_processed %>%
+data_postest <- data_processed %>%
   select(patient_id, matches("^positive\\_test\\_\\d+\\_date")) %>%
   pivot_longer(
     cols = -patient_id,
@@ -84,9 +84,64 @@ data_positive_test <- data_processed %>%
   ) %>%
   arrange(patient_id, date)
 
+data_covidemergency <- data_processed %>%
+  select(patient_id, matches("^covidemergency\\_\\d+\\_date")) %>%
+  pivot_longer(
+    cols = -patient_id,
+    names_to = c(NA, "covidemergency_index"),
+    names_pattern = "^(.*)_(\\d+)_date",
+    values_to = "date",
+    values_drop_na = TRUE
+  ) %>%
+  arrange(patient_id, date)
+
+data_covidadmitted <- data_processed %>%
+  select(patient_id, matches("^admitted\\_covid\\_\\d+\\_date")) %>%
+  pivot_longer(
+    cols = -patient_id,
+    names_to = c(NA, "covidadmitted_index"),
+    names_pattern = "^(.*)_(\\d+)_date",
+    values_to = "date",
+    values_drop_na = TRUE
+  ) %>%
+  arrange(patient_id, date)
+
+data_covidcc <- data_processed %>%
+  select(patient_id, matches("^covidcc\\_\\d+\\_date")) %>%
+  pivot_longer(
+    cols = -patient_id,
+    names_to = c(NA, "covidcc_index"),
+    names_pattern = "^(.*)_(\\d+)_date",
+    values_to = "date",
+    values_drop_na = TRUE
+  ) %>%
+  arrange(patient_id, date)
+
+
+# these are included for compatibility, event though there is at most one event per person
+data_coviddeath <- data_processed %>%
+  select(patient_id, date=coviddeath_date) %>%
+  arrange(patient_id, date)
+
+data_noncoviddeath <- data_processed %>%
+  select(patient_id, date=noncoviddeath_date) %>%
+  filter(!is.na(date)) %>%
+  arrange(patient_id, date)
+
+data_death <- data_processed %>%
+  select(patient_id, date=death_date) %>%
+  filter(!is.na(date)) %>%
+  arrange(patient_id, date)
+
 # write_rds(data_pr_probable_covid, here("output", cohort, "data", "data_long_pr_probable_covid_dates.rds"), compress="gz")
 # write_rds(data_pr_suspected_covid, here("output", cohort, "data", "data_long_pr_suspected_covid_dates.rds"), compress="gz")
 
 write_rds(data_admitted_unplanned, here("output", "data", "data_long_admitted_unplanned_dates.rds"), compress="gz")
 write_rds(data_admitted_planned, here("output", "data", "data_long_admitted_planned_dates.rds"), compress="gz")
-write_rds(data_positive_test, here("output", "data", "data_long_positive_test_dates.rds"), compress="gz")
+write_rds(data_postest, here("output", "data", "data_long_postest_dates.rds"), compress="gz")
+write_rds(data_covidemergency, here("output", "data", "data_long_covidemergency_dates.rds"), compress="gz")
+write_rds(data_covidadmitted, here("output", "data", "data_long_covidadmitted_dates.rds"), compress="gz")
+write_rds(data_covidcc, here("output", "data", "data_long_covidcc_dates.rds"), compress="gz")
+write_rds(data_coviddeath, here("output", "data", "data_long_coviddeath_dates.rds"), compress="gz")
+write_rds(data_noncoviddeath, here("output", "data", "data_long_noncoviddeath_dates.rds"), compress="gz")
+write_rds(data_death, here("output", "data", "data_long_death_dates.rds"), compress="gz")

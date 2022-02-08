@@ -30,7 +30,6 @@ library('gt')
 source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "survival.R"))
 
-
 output_dir <- here("output", "models", "seqtrialcox", "combined")
 fs::dir_create(output_dir)
 
@@ -46,9 +45,7 @@ events_lookup <- read_rds(here("lib", "design", "event-variables.rds"))
 ## create lookup for treatment / outcome combinations ----
 
 recode_treatment <- c(`BNT162b2` = "pfizer", `mRNA-1273` = "moderna")
-recode_outcome <- c(`Positive SARS-CoV-2 test` = "postest", `Covid-related hospitalisation` = "covidadmitted")
-
-recode_outcome <- set_names(events_lookup$event_descr, events_lookup$event)
+recode_outcome <- set_names(events_lookup$event, events_lookup$event_descr)
 
 recode_subgroup <- c(`Main analysis` = "none",
                      `Dose 1 = ChAdOx1; Dose 2 = ChAdOx1` = "vax12_type-az-az",
@@ -82,27 +79,41 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
 
 }
 
-
+match_metaparams <-
+  model_metaparams %>%
+  select(treatment, treatment_descr) %>%
+  unique()
 
 # combine matching ----
 
 ## match coverage ---
 
 matchcoverage <-
-  model_metaparams %>%
+  match_metaparams %>%
   mutate(
     coverage = pmap(list(treatment, outcome, subgroup), function(x, y, z) read_csv(here("output", "models", "seqtrialcox", x, y, z, glue("report_matchcoverage.csv"))))
   ) %>%
-  unnest(coverage)
+  unnest(coverage) %>%
+  arrange(treatment, vax12_type, matched, vax3_date) %>%
+  group_by(treatment, treatment_descr, vax12_type, matched, vax3_date) %>%
+  summarise(
+    n=sum(n),
+  ) %>%
+  group_by(treatment, treatment_descr, vax12_type, matched) %>%
+  mutate(
+    cumuln = cumsum(n),
+    #round to nearest 6
+    cumuln = ceiling_any(cumuln, 6),
+    n = cumuln - lag(cumuln, 1, 0)
+  )
 
 write_csv(matchcoverage, fs::path(output_dir, "matchcoverage.csv"))
-
 
 
 ## match summary ---
 
 matchsummary <-
-  model_metaparams %>%
+  match_metaparams %>%
   mutate(
     summary = pmap(list(treatment, outcome, subgroup), function(x, y, z) read_csv(here("output", "models", "seqtrialcox", x, y, z, glue("report_matchsummary.csv"))))
   ) %>%
@@ -112,7 +123,7 @@ write_csv(matchsummary, fs::path(output_dir, "matchsummary.csv"))
 
 
 matchsummary_treated <-
-  model_metaparams %>%
+  match_metaparams %>%
   mutate(
     summary = pmap(list(treatment, outcome, subgroup), function(x, y, z) read_csv(here("output", "models", "seqtrialcox", x, y, z, glue("report_matchsummary_treated.csv"))))
   ) %>%
@@ -120,6 +131,27 @@ matchsummary_treated <-
 
 write_csv(matchsummary_treated, fs::path(output_dir, "matchsummary_treated.csv"))
 
+
+## table 1 ----
+
+
+table1 <-
+  match_metaparams %>%
+  mutate(
+    table1 = map(treatment, ~read_csv(here("output", "models", "seqtrialcox", .x, glue("merge_table1.csv"))))
+  ) %>%
+  unnest(table1)
+
+write_csv(table1, fs::path(output_dir, "matchtable1.csv"))
+
+table1by <-
+  match_metaparams %>%
+  mutate(
+    table1by = map(treatment, ~read_csv(here("output", "models", "seqtrialcox", .x, glue("merge_table1by.csv"))))
+  ) %>%
+  unnest(table1by)
+
+write_csv(table1by, fs::path(output_dir, "matchtable1by.csv"))
 
 # combine models ----
 
@@ -160,24 +192,39 @@ formatpercent100 <- function(x,accuracy){
   )
 }
 
-y_breaks <- c(0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2)
+model_descr = c(
+  "Matched" = "0",
+  "region- and trial-stratified" = "1",
+  "Demographic adjustment" = "2",
+  "Matched and fully Adjusted" = "3"
+)
+
+
+y_breaks <- c(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2)
 
 plot_effects <-
-  ggplot(data = model_effects) +
+  model_effects %>%
+  filter(
+    model %in% c(0,3)
+  ) %>%
+  mutate(
+    model_descr = fct_recode(as.character(model), !!!model_descr)
+  ) %>%
+  ggplot() +
   geom_point(aes(y=hr, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
   geom_linerange(aes(ymin=hr.ll, ymax=hr.ul, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
   geom_hline(aes(yintercept=1), colour='grey')+
-  facet_grid(rows=vars(outcome), cols=vars(treatment_descr), switch="y")+
+  facet_grid(rows=vars(outcome_descr), cols=vars(treatment_descr), switch="y")+
   scale_y_log10(
     breaks=y_breaks,
-    limits = c(0.05, max(c(1, model_effects$hr.ul))),
+    limits = c(0.005, 2),
     oob = scales::oob_keep,
-    # sec.axis = sec_axis(
-    #   ~(1-.),
-    #   name="Effectiveness",
-    #   breaks = 1-(y_breaks),
-    #   labels = function(x){formatpercent100(x, 1)}
-    # )
+    sec.axis = sec_axis(
+      ~(1-.),
+      name="Effectiveness",
+      breaks = 1-(y_breaks),
+      labels = function(x){formatpercent100(x, 1)}
+     )
   )+
   scale_x_continuous(breaks=postbaselinecuts, limits=c(min(postbaselinecuts), max(postbaselinecuts)+1), expand = c(0, 0))+
   scale_colour_brewer(type="qual", palette="Set2", guide=guide_legend(ncol=1))+
@@ -190,6 +237,7 @@ plot_effects <-
   theme(
     panel.border = element_blank(),
     axis.line.y = element_line(colour = "black"),
+    axis.line.y.right = element_blank(),
 
     panel.grid.minor.x = element_blank(),
     panel.grid.minor.y = element_blank(),
@@ -231,20 +279,22 @@ glance <-
 write_csv(glance, path = fs::path(output_dir, "model_diagnostics.csv"))
 
 
+
+
 ## incidence rates ----
 
-incidences <-
+incidence <-
   model_metaparams %>%
   mutate(
-    ir = pmap(list(treatment, outcome, subgroup), function(x, y, z) read_csv(here("output", "models", "seqtrialcox", x, y, z, glue("report_ir.csv"))))
+    incidence = pmap(list(treatment, outcome, subgroup), function(x, y, z) read_csv(here("output", "models", "seqtrialcox", x, y, z, glue("report_incidence.csv"))))
   ) %>%
-  unnest(ir)
+  unnest(incidence)
 
-write_csv(incidences, fs::path(output_dir, "ir.csv"))
+write_csv(incidence, fs::path(output_dir, "incidence.csv"))
 
 
-gt_incidences <-
-  incidences %>%
+gt_incidence <-
+  incidence %>%
   select(-treatment, -outcome, -starts_with("events_"), -starts_with("yearsatrisk_"), -rrE) %>%
   gt(
     groupname_col = c("treatment_descr", "outcome_descr"),
@@ -295,5 +345,51 @@ gt_incidences <-
     columns = "fup_period"
   )
 
-gtsave(gt_incidences, fs::path(output_dir, "ir.html"))
+gtsave(gt_incidence, fs::path(output_dir, "incidence.html"))
+
+
+## km rates ----
+
+km <- model_metaparams %>%
+  mutate(
+    km = map2(treatment, outcome, ~read_csv(here("output", "models", "seqtrialcox", .x, .y, glue("report_km.csv"))))
+  ) %>%
+  unnest(km)
+
+write_csv(km, fs::path(output_dir, "km.csv"))
+
+
+
+plot_km <-
+  km %>%
+  ggplot(aes(group=treated_descr, colour=treated_descr, fill=treated_descr)) +
+  geom_step(aes(x=time, y=1-surv))+
+  geom_rect(aes(xmin=time, xmax=leadtime, ymin=1-surv.ll, ymax=1-surv.ul), alpha=0.1, colour="transparent")+
+  facet_grid(rows=vars(outcome_descr), cols=vars(treatment_descr), switch="y")+
+  scale_color_brewer(type="qual", palette="Set1", na.value="grey") +
+  scale_fill_brewer(type="qual", palette="Set1", guide="none", na.value="grey") +
+  scale_x_continuous(breaks = seq(0,600,14), limits=c(min(postbaselinecuts), max(postbaselinecuts)+1), expand = c(0, 0))+
+  scale_y_continuous(expand = expansion(mult=c(0,0.01)))+
+  coord_cartesian(xlim=c(0, NA))+
+  labs(
+    x="Days",
+    y="Cumulative incidence",
+    colour=NULL,
+    title=NULL
+  )+
+  theme_minimal()+
+  theme(
+    axis.line.x = element_line(colour = "black"),
+    panel.grid.minor.x = element_blank(),
+    legend.position=c(.05,.95),
+    legend.justification = c(0,1),
+  )+
+  NULL
+plot_km
+## save plot
+
+ggsave(filename=fs::path(output_dir, "kmplot.svg"), plot_km, width=20, height=15, units="cm")
+ggsave(filename=fs::path(output_dir, "kmplot.png"), plot_km, width=20, height=15, units="cm")
+ggsave(filename=fs::path(output_dir, "kmplot.pdf"), plot_km, width=20, height=15, units="cm")
+
 

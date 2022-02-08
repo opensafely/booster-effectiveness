@@ -1,10 +1,10 @@
 
 # # # # # # # # # # # # # # # # # # # # #
 # This script:
-# imports processed data
-# fits some Cox models with time-varying effects
-# The script must be accompanied by three arguments:
-# `treatment` - the exposure in the regression model, pfizer or moderna
+# imports merged matching data
+# adds outcome variable and restricts follow-up
+# fits the Cox models with time-varying effects
+# The script must be accompanied by two arguments:
 # `outcome` - the dependent variable in the regression model
 # `subgroup` - the subgroup variable for the regression model followed by a hyphen and the level of the subgroup
 
@@ -100,209 +100,68 @@ outcome_var <- events$event_var[events$event==outcome]
 var_labels <- read_rds(here("lib", "design", "variable-labels.rds"))
 
 
-# compose modelling dataset ----
+data_merged <- read_rds(here("output", "models", "seqtrialcox", treatment, "merge_data_merged.rds"))
+data_tte <- read_rds(here("output", "models", "seqtrialcox", treatment, "match_data_tte.rds"))
 
-## one pow per patient ----
-data_cohort <- read_rds(here("output", "data", "data_cohort.rds"))
+## create outcome variables ----
 
-logoutput_datasize(data_cohort)
-
-## baseline variables ----
-
-data_baseline <-
-  data_cohort %>%
-  transmute(
-    patient_id,
-    age,
-    sex,
-    ethnicity_combined,
-    imd_Q5,
-    region,
-    jcvi_group,
-    rural_urban_group,
-    prior_covid_infection,
-    prior_tests_cat,
-    multimorb,
-    learndis,
-    sev_mental,
-    vax12_type,
-    vax2_to_startdate =  study_dates$studystart_date - vax2_date,
-    vax2_week,
-    vax3_date,
-    vax3_type,
-  )
-
-logoutput_datasize(data_baseline)
-
-data_matched <-
-  read_rds(here("output", "models", "seqtrialcox", treatment, outcome, "match_data_matched.rds")) %>%
-  mutate(
-    treated_patient_id = paste0(treated, "_", patient_id),
-  )
-data_tte <- read_rds(here("output", "models", "seqtrialcox", treatment, outcome, "match_data_tte.rds"))
-
-if(removeobjects) rm(data_cohort)
-
-# one row per vaccination or outcome or censoring event ----
-## person-time dataset of vaccination status + outcome
-data_events <-
-  data_tte %>%
-  select(patient_id) %>%
-  tmerge(
-    data1 = .,
-    data2 = data_tte,
-    id = patient_id,
-    tstart = 0L,
-    tstop = tte_stop,
-    treatment_event = event(tte_treatment),
-    treatment_status = tdc(tte_treatment),
-    outcome_event = event(tte_outcome),
-    censor_event = event(tte_censor)
-  ) #%>%
-# tmerge(
-#   data1 = .,
-#   data2 = data_tte,
-#   id = patient_id,
-#   vax3_event = event(tte_vax3, vax3_type),
-#   vax3_status = tdc(tte_vax3, vax3_type),
-#   options= list(tdcstart="")
-# ) %>%
-# mutate(
-#   across(where(is.numeric), as.integer),
-#   vax3_event=factor(vax3_event, levels=c("", "pfizer", "az", "moderna")),
-#   vax3_status=factor(vax3_status, levels=c("", "pfizer", "az", "moderna"))
-# )
-
-logoutput_datasize(data_events)
-
-
-## one row per time-varying covariate value change ----
-data_timevarying <- local({
+data_timevaryingoutcomes <- local({
 
   data_join <-
     data_tte %>%
     select(patient_id, day1_date, censor_date, tte_stop)
 
-  data_positive_test <-
-    read_rds(here("output", "data", "data_long_positive_test_dates.rds")) %>%
+  data_outcome <-
+    read_rds(here("output", "data", glue("data_long_{outcome}_dates.rds"))) %>%
     inner_join(data_join, ., by =c("patient_id")) %>%
     mutate(
-      tte = tte(day1_date, date, censor_date, na.censor=TRUE),
+      tte = tte(day1_date-1, date, censor_date, na.censor=TRUE),
     )
 
-  data_admitted_unplanned <-
-    read_rds(here("output", "data", "data_long_admitted_unplanned_dates.rds")) %>%
-    pivot_longer(
-      cols=c(admitted_date, discharged_date),
-      names_to="status",
-      values_to="date",
-      values_drop_na = TRUE
-    ) %>%
-    inner_join(data_join, ., by =c("patient_id")) %>%
-    mutate(
-      tte = tte(day1_date, date, censor_date, na.censor=TRUE) %>% as.integer(),
-      admittedunplanned_status = if_else(status=="admitted_date", 1L, 0L)
-    )
-
-  data_admitted_planned <-
-    read_rds(here("output", "data", "data_long_admitted_planned_dates.rds")) %>%
-    pivot_longer(
-      cols=c(admitted_date, discharged_date),
-      names_to="status",
-      values_to="date",
-      values_drop_na = TRUE
-    ) %>%
-    inner_join(data_join, ., by =c("patient_id")) %>%
-    mutate(
-      tte = tte(day1_date, date, censor_date, na.censor=TRUE) %>% as.integer(),
-      admittedplanned_status = if_else(status=="admitted_date", 1L, 0L)
-    )
-
-
-  data_timevarying <- data_tte %>%
-    arrange(patient_id) %>%
-    select(patient_id) %>%
+  data_timevaryingoutcomes <-
     tmerge(
-      data1 = .,
+      data1 = data_tte %>% select(patient_id),
       data2 = data_tte,
       id = patient_id,
-      tstart = -1000L,
-      tstop = tte_stop,
-      treatment_status = tdc(tte_treatment)
-    ) %>%
-    tmerge(
-      data1 = .,
-      data2 = data_positive_test,
-      id = patient_id,
-      postest_mostrecent = tdc(tte,tte)
-    ) %>%
-    tmerge(
-      data1 = .,
-      data2 = data_admitted_unplanned,
-      id = patient_id,
-      admittedunplanned_status = tdc(tte, admittedunplanned_status),
-      options = list(tdcstart = 0L)
-    ) %>%
-    tmerge(
-      data1 = .,
-      data2 = data_admitted_planned,
-      id = patient_id,
-      admittedplanned_status = tdc(tte, admittedplanned_status),
-      options = list(tdcstart = 0L)
-    ) %>%
-    mutate(id=NULL) # remove id column if created by tmerge (depedning on version of survival package)
-
-  data_timevarying
-})
-logoutput_datasize(data_timevarying)
-
-
-## create analysis dataset - one row per trial per arm per patient per follow-up week ----
-data_seqtrialcox <- local({
-  data_st0 <-
-    tmerge(
-      data1 = data_matched,
-      data2 = data_matched,
-      id = treated_patient_id,
-      tstart = tte_recruitment,
+      tstart = 0L,
       tstop = tte_stop
     ) %>%
-    mutate(id=NULL) %>% # remove id column if created by tmerge (depending on version of survival package)
+    tmerge(
+      data1 = .,
+      data2 = data_outcome,
+      id = patient_id,
+      ind_outcome = event(tte),
+      tte_outcome = event(tte, tte)
+    ) %>%
+    mutate(
+      tte_outcome = if_else(ind_outcome==1L, as.integer(tte_outcome), NA_integer_),
+      ind_outcome = NULL
+    )
 
-    # add time-varying info as at recruitment date (= tte_trial)
+  data_timevaryingoutcomes
+
+})
+
+
+## combine outcome variables with variables-at-baseline ----
+
+data_seqtrialcox <- local({
+
+  data_st0 <-
+    data_merged %>%
     left_join(
-      data_timevarying %>% rename(tstart2 = tstart, tstop2 = tstop),
+      data_timevaryingoutcomes %>% rename(tstart2 = tstart, tstop2 = tstop),
       by = c("patient_id")
     ) %>%
     filter(
       tstart < tstop2,
       tstart >= tstart2
     ) %>%
-    select(-tstart2, -tstop2) %>%
-
-    # add time-non-varying info
-    left_join(
-      data_baseline %>% select(-all_of(matching_variables)),
-      by=c("patient_id")
-    ) %>%
-
-    # remaining variables that combine both
-    mutate(
-      vax2_dayssince = vax2_to_startdate+tte_recruitment,
-      postest_dayssince = tstart - postest_mostrecent,
-      postest_status = fct_case_when(
-        is.na(postest_dayssince) & !prior_covid_infection ~ "No previous infection",
-        between(postest_dayssince, 0, 21) ~ "Positive test <= 21 days ago",
-        postest_dayssince>21 | prior_covid_infection ~ "Positive test > 21 days ago",
-        TRUE ~ NA_character_
-      ),
-    )
-
-  ## create treatment timescale variables ----
+    select(-tstart2, -tstop2)
 
   # one row per patient per post-recruitment split time
   fup_split <-
-    data_matched %>%
+    data_merged %>%
     uncount(weights = length(postbaselinecuts)-1, .id="period_id") %>%
     mutate(
       fup_time = postbaselinecuts[period_id],
@@ -313,17 +172,17 @@ data_seqtrialcox <- local({
     select(
       patient_id, treated, treated_patient_id, period_id, tte_fup, fup_time,
       fup_period
-   )
+    )
 
   # add post-recruitment periods to data
   data_st <-
-    # re-initialise tmerge object
+    # re-initialise tmerge object and add outcome
     tmerge(
       data1 = data_st0,
-      data2 = data_matched,
+      data2 = data_st0,
       id = treated_patient_id,
       tstart = tte_recruitment,
-      tstop = tte_stop,
+      tstop = pmin(tte_stop, tte_outcome, tte_recruitment+last(postbaselinecuts), na.rm=TRUE),
       ind_outcome = event(tte_outcome)
     ) %>%
     # add post-recruitment periods
@@ -337,6 +196,8 @@ data_seqtrialcox <- local({
     mutate(
       id = NULL,
       # time-zero is recruitment day
+      tstart_calendar = tstart,
+      tstop_calendar = tstop,
       tstart = tstart - tte_recruitment,
       tstop = tstop - tte_recruitment
     ) %>%
@@ -349,7 +210,6 @@ data_seqtrialcox <- local({
     )
 
   data_st
-
 })
 
 ## apply subgrouping if applicable
@@ -360,6 +220,7 @@ if (subgroup!="none") {
 }
 
 logoutput_datasize(data_seqtrialcox)
+
 
 write_rds(data_seqtrialcox, fs::path(output_dir, "model_data_seqtrialcox.rds"))
 
@@ -385,7 +246,7 @@ formula_vaxonly <- as.formula(
 formula_strata <- . ~ . +
   strata(trial_day) +
   strata(region) +
-  strata(jcvi_group) +
+  #strata(jcvi_group) +
   strata(vax12_type)
 
 formula_demog <- . ~ . +
@@ -399,7 +260,9 @@ formula_clinical <- . ~ . +
   prior_tests_cat +
   multimorb +
   learndis +
-  sev_mental
+  sev_mental +
+  immunosuppressed +
+  asplenia
 
 formula_timedependent <- . ~ . +
   postest_status +

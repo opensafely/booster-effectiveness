@@ -32,7 +32,7 @@ data_cohort <- read_rds(here::here("output", "data", "data_cohort.rds"))
 
 
 cumulvax <- data_cohort %>%
-  filter(!is.na(vax3_date), vax3_type %in% c("pfizer", "az", "moderna")) %>%
+  filter(!is.na(vax3_date), vax3_type %in% c("pfizer", "moderna")) %>%
   group_by(vax3_type_descr, vax3_date) %>%
   summarise(
     n=n()
@@ -233,7 +233,7 @@ ggsave(plot_count, filename="plot_vaxdate_count.pdf", path=here("output", "descr
 
 
 cumulvax_region <- data_cohort %>%
-  filter(!is.na(vax3_date), vax3_type %in% c("pfizer", "az", "moderna")) %>%
+  filter(!is.na(vax3_date), vax3_type %in% c("pfizer", "moderna")) %>%
   group_by(region, vax3_type_descr, vax3_date) %>%
   summarise(
     n=n()
@@ -431,7 +431,7 @@ ggsave(plot_count_region, filename="plot_vaxdate_count_region.pdf", path=here("o
 
 
 cumulvax_jcvi <- data_cohort %>%
-  filter(!is.na(vax3_date), vax3_type %in% c("pfizer", "az", "moderna")) %>%
+  filter(!is.na(vax3_date), vax3_type %in% c("pfizer", "moderna")) %>%
   group_by(jcvi_group, vax3_type_descr, vax3_date) %>%
   summarise(
     n=n()
@@ -627,7 +627,7 @@ ggsave(plot_count_jcvi, filename="plot_vaxdate_count_jcvi.pdf", path=here("outpu
 
 
 cumulvax_jcvi_region <- data_cohort %>%
-  filter(!is.na(vax3_date), vax3_type %in% c("pfizer", "az", "moderna")) %>%
+  filter(!is.na(vax3_date), vax3_type %in% c("pfizer", "moderna")) %>%
   group_by(jcvi_group, region, vax3_type_descr, vax3_date) %>%
   summarise(
     n=n()

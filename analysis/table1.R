@@ -32,8 +32,8 @@ data_cohort <- read_rds(here("output", "data", "data_cohort.rds")) %>%
     N=1,
     allpop="All",
     vax12_type = fct_case_when(
-      vax12_type == "az-az" ~ "ChAdOx1-S",
       vax12_type == "pfizer-pfizer" ~ "BNT162b2",
+      vax12_type == "az-az" ~ "ChAdOx1-S",
       vax12_type == "moderna-moderna" ~ "mRNA-1273",
       TRUE ~ NA_character_
     )
@@ -64,7 +64,7 @@ raw_stats <- tab_summary_baseline_redacted$meta_data %>%
   unnest(df_stats)
 
 write_csv(tab_summary_baseline_redacted$table_body, here("output", "descriptive", "table1", "table1.csv"))
-write_csv(tab_summary_baseline_redacted$df_by, here("output", "descriptive", "table1", "table1_by.csv"))
+write_csv(tab_summary_baseline_redacted$df_by, here("output", "descriptive", "table1", "table1by.csv"))
 gtsave(as_gt(tab_summary_baseline_redacted), here("output", "descriptive", "table1", "table1.html"))
 
 
@@ -89,9 +89,9 @@ raw_stats <- tab_summary_jcvi_redacted$meta_data %>%
   select(var_label, df_stats) %>%
   unnest(df_stats)
 
-write_csv(tab_summary_jcvi_redacted$table_body, here("output", "descriptive", "table1", "table1_by_jcvi_group.csv"))
+write_csv(tab_summary_jcvi_redacted$table_body, here("output", "descriptive", "table1", "table1by_jcvi_group.csv"))
 #write_csv(tab_summary_jcvi_redacted$df_by, here("output", "descriptive", "tables", "table1_jcvi_by.csv"))
-gtsave(as_gt(tab_summary_jcvi_redacted), here("output", "descriptive", "table1", "table1_by_jcvi_group.html"))
+gtsave(as_gt(tab_summary_jcvi_redacted), here("output", "descriptive", "table1", "table1by_jcvi_group.html"))
 
 
 
