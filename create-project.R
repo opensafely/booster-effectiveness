@@ -437,8 +437,8 @@ actions_list <- splice(
           .x=expand_grid(
             script=c("model", "report"),
             treatment=c("pfizer", "moderna"),
-            #outcome=c("postest", "covidemergency", "covidadmitted", "coviddeath"),
-            outcome=c("postest", "covidadmitted"),
+            outcome=c("postest", "covidemergency", "covidadmitted", "coviddeath"),
+            #outcome=c("postest", "covidadmitted"),
             subgroup_variable = c("none")
           ),
           "{script}_seqtrialcox_{treatment}_{outcome}_{subgroup_variable}"
@@ -473,8 +473,8 @@ actions_list <- splice(
           .x=expand_grid(
             script=c("model", "report"),
             treatment=c("pfizer", "moderna"),
-            #outcome=c("postest", "covidemergency", "covidadmitted", "covidcc", "coviddeath"),
-            outcome=c("postest", "covidadmitted"),
+            outcome=c("postest", "covidemergency", "covidadmitted",  "coviddeath"),
+            #outcome=c("postest", "covidadmitted"),
             subgroup = paste0("vax12_type-",c("pfizer-pfizer", "az-az"))
           ),
           "{script}_seqtrialcox_{treatment}_{outcome}_{subgroup}"

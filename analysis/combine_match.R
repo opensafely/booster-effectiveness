@@ -84,7 +84,7 @@ matchsummary <-
   ) %>%
   unnest(summary)
 
-write_csv(matchsummary, fs::path(output_dir, "matchsummary.csv"))
+write_csv(matchsummary, fs::path(output_dir, "summary.csv"))
 
 
 matchsummary_treated <-
