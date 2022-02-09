@@ -501,6 +501,7 @@ actions_list <- splice(
       "descriptive_vaxdate",
       "match_seqtrialcox_pfizer",
       "match_seqtrialcox_moderna",
+      "combine_match",
       "combine_model",
       "combine_model_vax12_type"
     ),
@@ -509,7 +510,6 @@ actions_list <- splice(
       png = "output/manuscript-objects/*.png",
     )
   )
-
 
 )
 
