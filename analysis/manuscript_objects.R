@@ -149,16 +149,20 @@ fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_stack_jcvi.
 fs::file_copy(here("output", "models", "seqtrialcox", "pfizer", "match_coverage_stack.png"), here("output", "manuscript-objects", "match_coverage_pfizer_stack.png"), overwrite = TRUE)
 fs::file_copy(here("output", "models", "seqtrialcox", "moderna", "match_coverage_stack.png"), here("output", "manuscript-objects", "match_coverage_moderna_stack.png"), overwrite = TRUE)
 
-fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchtable1.csv"), here("output", "manuscript-objects", "matchtable1.csv"), overwrite = TRUE)
-fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchtable1by.csv"), here("output", "manuscript-objects", "matchtable1by.csv"), overwrite = TRUE)
-fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchcoverage.csv"), here("output", "manuscript-objects", "matchcoverage.csv"), overwrite = TRUE)
-fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchsummary.csv"), here("output", "manuscript-objects", "matchsummary.csv"), overwrite = TRUE)
-fs::file_copy(here("output", "models", "seqtrialcox", "combined", "matchsummary_treated.csv"), here("output", "manuscript-objects", "matchsummary_treated.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "models", "seqtrialcox", "combined", "match", "table1.csv"), here("output", "manuscript-objects", "table1.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "models", "seqtrialcox", "combined", "match", "table1by.csv"), here("output", "manuscript-objects", "table1by.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "models", "seqtrialcox", "combined", "match", "coverage.csv"), here("output", "manuscript-objects", "coverage.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "models", "seqtrialcox", "combined", "match", "summary.csv"), here("output", "manuscript-objects", "summary.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "models", "seqtrialcox", "combined", "match", "summary_treated.csv"), here("output", "manuscript-objects", "summary_treated.csv"), overwrite = TRUE)
 
 
 ## models ----
-fs::file_copy(here("output", "models", "seqtrialcox", "combined", "km.csv"), here("output", "manuscript-objects", "km.csv"), overwrite = TRUE)
-fs::file_copy(here("output", "models", "seqtrialcox", "combined", "incidence.csv"), here("output", "manuscript-objects", "incidence.csv"), overwrite = TRUE)
-fs::file_copy(here("output", "models", "seqtrialcox", "combined", "effects.csv"), here("output", "manuscript-objects", "effects.csv"), overwrite = TRUE)
+
+for(subgroup_variable in c("none", "vax12_type")){
+  fs::file_copy(here("output", "models", "seqtrialcox", "combined", "model", subgroup_variable, "km.csv"), here("output", "manuscript-objects", subgroup_variable, "km.csv"), overwrite = TRUE)
+  fs::file_copy(here("output", "models", "seqtrialcox", "combined", "model", subgroup_variable, "incidence.csv"), here("output", "manuscript-objects", subgroup_variable, "incidence.csv"), overwrite = TRUE)
+  fs::file_copy(here("output", "models", "seqtrialcox", "combined", "model", subgroup_variable, "effects.csv"), here("output", "manuscript-objects", subgroup_variable, "effects.csv"), overwrite = TRUE)
+
+}
 
 

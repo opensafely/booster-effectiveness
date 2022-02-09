@@ -4,8 +4,9 @@
 # imports merged matching data
 # adds outcome variable and restricts follow-up
 # fits the Cox models with time-varying effects
-# The script must be accompanied by one argument:
+# The script must be accompanied by two arguments:
 # `outcome` - the dependent variable in the regression model
+# `subgroup` - the subgroup variable for the regression model followed by a hyphen and the level of the subgroup
 
 # # # # # # # # # # # # # # # # # # # # #
 
@@ -21,12 +22,19 @@ if(length(args)==0){
   # use for interactive testing
   removeobjects <- FALSE
   treatment <- "pfizer"
-  outcome <- "covidadmitted"
+  outcome <- "covidemergency"
+  subgroup <- "none"
+  #subgroup <- "none"
 } else {
   removeobjects <- TRUE
   treatment <- args[[1]]
   outcome <- args[[2]]
+  subgroup <- args[[3]]
 }
+
+subgroup_variable <-  stringr::str_split_fixed(subgroup,"-",2)[,1]
+subgroup_level <- stringr::str_split_fixed(subgroup,"-",2)[,2]
+subgroup_dummy <- paste0(subgroup_variable,"_",subgroup_level)
 
 
 
@@ -54,7 +62,7 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
 
 # create output directories ----
 
-output_dir <- here("output", "models", "seqtrialcox", treatment, outcome)
+output_dir <- here("output", "models", "seqtrialcox", treatment, outcome, subgroup)
 fs::dir_create(output_dir)
 
 ## create special log file ----
@@ -97,8 +105,16 @@ outcome_var <- events$event_var[events$event==outcome]
 var_labels <- read_rds(here("lib", "design", "variable-labels.rds"))
 
 
-data_merged <- read_rds(here("output", "models", "seqtrialcox", treatment, "merge_data_merged.rds"))
-data_tte <- read_rds(here("output", "models", "seqtrialcox", treatment, "match_data_tte.rds"))
+
+data_merged <-
+  read_rds(here("output", "models", "seqtrialcox", treatment, "merge_data_merged.rds")) %>%
+  mutate(none="") %>%
+  fastDummies::dummy_cols(select_columns = subgroup_variable, remove_selected_columns = FALSE) %>%
+  filter(.[[subgroup_dummy]]==1L)
+
+data_tte <-
+  read_rds(here("output", "models", "seqtrialcox", treatment, "match_data_tte.rds")) %>%
+  filter(patient_id %in% data_merged$patient_id)
 
 ## create outcome variables ----
 
@@ -209,6 +225,8 @@ data_seqtrialcox <- local({
   data_st
 })
 
+logoutput_datasize(data_seqtrialcox)
+
 
 write_rds(data_seqtrialcox, fs::path(output_dir, "model_data_seqtrialcox.rds"))
 
@@ -275,8 +293,6 @@ model_descr = c(
   "Demographic adjustment" = "2",
   "Full adjustment" = "3"
 )
-
-
 
 
 ## pre-flight checks ----
