@@ -65,7 +65,7 @@ action_match <- function(treatment){
       name = glue("match_seqtrialcox_{treatment}"),
       run = glue("r:latest analysis/match_seqtrialcox.R"),
       arguments = c(treatment),
-      needs = list("data_selection"),
+      needs = list("data_selection", "data_process_long"),
       highly_sensitive = lst(
         rds = glue("output/models/seqtrialcox/{treatment}/match_*.rds")
       ),
@@ -75,28 +75,7 @@ action_match <- function(treatment){
         #svg = glue("output/models/seqtrialcox/{treatment}/match_*.svg"),
         png = glue("output/models/seqtrialcox/{treatment}/match_*.png"),
         pdf = glue("output/models/seqtrialcox/{treatment}/match_*.pdf"),
-      )
-    ),
-
-    action(
-      name = glue("merge_seqtrialcox_{treatment}"),
-      run = glue("r:latest analysis/merge_seqtrialcox.R"),
-      arguments = c(treatment),
-      needs = list(
-        glue("match_seqtrialcox_{treatment}"),
-        "data_selection",
-        "data_process_long"
-      ),
-      highly_sensitive = lst(
-        rds = glue("output/models/seqtrialcox/{treatment}/merge_*.rds")
-      ),
-      moderately_sensitive = lst(
-        txt = glue("output/models/seqtrialcox/{treatment}/merge_*.txt"),
-        csv = glue("output/models/seqtrialcox/{treatment}/merge_*.csv"),
-        html = glue("output/models/seqtrialcox/{treatment}/merge_*.html")
-        #svg = glue("output/models/seqtrialcox/{treatment}/merge_*.svg"),
-        #png = glue("output/models/seqtrialcox/{treatment}/merge_*.png"),
-        #pdf = glue("output/models/seqtrialcox/{treatment}/merge_*.pdf"),
+        html = glue("output/models/seqtrialcox/{treatment}/match_*.html")
       )
     )
   )
@@ -117,7 +96,6 @@ action_model <- function(
       arguments = c(treatment, outcome, subgroup),
       needs = list(
         glue("match_seqtrialcox_{treatment}"),
-        glue("merge_seqtrialcox_{treatment}"),
         "data_selection",
         "data_process_long"
       ),
@@ -427,10 +405,9 @@ actions_list <- splice(
       as.list(
         glue_data(
           .x=expand_grid(
-            script=c("match", "merge"),
             treatment=c("pfizer", "moderna")
           ),
-          "{script}_seqtrialcox_{treatment}"
+          "match_seqtrialcox_{treatment}"
         )
       )
     ),
@@ -450,10 +427,9 @@ actions_list <- splice(
       as.list(
         glue_data(
           .x=expand_grid(
-            script=c("match", "merge"),
             treatment=c("pfizer", "moderna")
           ),
-          "{script}_seqtrialcox_{treatment}"
+          "match_seqtrialcox_{treatment}"
         )
       ),
       as.list(
@@ -461,8 +437,8 @@ actions_list <- splice(
           .x=expand_grid(
             script=c("model", "report"),
             treatment=c("pfizer", "moderna"),
-            #outcome=c("postest", "covidemergency", "covidadmitted", "coviddeath"),
-            outcome=c("postest", "covidadmitted"),
+            outcome=c("postest", "covidemergency", "covidadmitted", "coviddeath"),
+            #outcome=c("postest", "covidadmitted"),
             subgroup_variable = c("none")
           ),
           "{script}_seqtrialcox_{treatment}_{outcome}_{subgroup_variable}"
@@ -487,10 +463,9 @@ actions_list <- splice(
       as.list(
         glue_data(
           .x=expand_grid(
-            script=c("match", "merge"),
             treatment=c("pfizer", "moderna")
           ),
-          "{script}_seqtrialcox_{treatment}"
+          "match_seqtrialcox_{treatment}"
         )
       ),
       as.list(
@@ -498,8 +473,8 @@ actions_list <- splice(
           .x=expand_grid(
             script=c("model", "report"),
             treatment=c("pfizer", "moderna"),
-            #outcome=c("postest", "covidemergency", "covidadmitted", "covidcc", "coviddeath"),
-            outcome=c("postest", "covidadmitted"),
+            outcome=c("postest", "covidemergency", "covidadmitted",  "coviddeath"),
+            #outcome=c("postest", "covidadmitted"),
             subgroup = paste0("vax12_type-",c("pfizer-pfizer", "az-az"))
           ),
           "{script}_seqtrialcox_{treatment}_{outcome}_{subgroup}"
@@ -526,6 +501,7 @@ actions_list <- splice(
       "descriptive_vaxdate",
       "match_seqtrialcox_pfizer",
       "match_seqtrialcox_moderna",
+      "combine_match",
       "combine_model",
       "combine_model_vax12_type"
     ),
@@ -534,7 +510,6 @@ actions_list <- splice(
       png = "output/manuscript-objects/*.png",
     )
   )
-
 
 )
 

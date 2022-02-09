@@ -90,8 +90,8 @@ cohort_summary <-
     female = mean(sex=="Female"),
     fu_years = sum(tte_censor)/365.25,
     fu_median = median(tte_censor),
-    priorinfection = mean(prior_covid_infection),
-    timesinceseconddose = mean(study_dates$studystart_date - vax2_date),
+    #priorinfection = mean(prior_covid_infection),
+    #timesinceseconddose = mean(study_dates$studystart_date - vax2_date),
 
   )
 
@@ -159,10 +159,10 @@ fs::file_copy(here("output", "models", "seqtrialcox", "combined", "match", "summ
 ## models ----
 
 for(subgroup_variable in c("none", "vax12_type")){
-  fs::file_copy(here("output", "models", "seqtrialcox", "combined", "model", subgroup_variable, "km.csv"), here("output", "manuscript-objects", subgroup_variable, "km.csv"), overwrite = TRUE)
+  fs::dir_create(here("output", "manuscript-objects", subgroup_variable))
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", "model", subgroup_variable, "incidence.csv"), here("output", "manuscript-objects", subgroup_variable, "incidence.csv"), overwrite = TRUE)
+  fs::file_copy(here("output", "models", "seqtrialcox", "combined", "model", subgroup_variable, "km.csv"), here("output", "manuscript-objects", subgroup_variable, "km.csv"), overwrite = TRUE)
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", "model", subgroup_variable, "effects.csv"), here("output", "manuscript-objects", subgroup_variable, "effects.csv"), overwrite = TRUE)
-
 }
 
 

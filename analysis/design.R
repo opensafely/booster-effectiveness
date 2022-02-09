@@ -121,7 +121,7 @@ postbaselinecuts <- c(0,7,seq(14,7*10, 14))
 write_rds(postbaselinecuts, here("lib", "design", "postbaselinecuts.rds"))
 
 # what matching variables
-matching_variables <- c("jcvi_group", "vax12_type", "region", "vax2_week", "prior_covid_infection", "immuno")
+matching_variables <- c("jcvi_group", "vax12_type", "region", "vax2_week", "prior_covid_infection", "immunosuppressed", "status_hospplanned")
 write_rds(matching_variables, here("lib", "design", "matching_variables.rds"))
 
 # cut-off for rolling 7 day average, that determines recruitment period
