@@ -206,7 +206,7 @@ data_processed <- data_extract %>%
 
     prior_tests_cat = cut(prior_covid_test_frequency, breaks=c(0, 1, 2, 3, Inf), labels=c("0", "1", "2", "3+"), right=FALSE),
 
-    prior_covid_infection = !is.na(positive_test_0_date) | !is.na(admitted_covid_0_date) | !is.na(primary_care_covid_case_0_date),
+    prior_covid_infection0 = !is.na(positive_test_0_date) | !is.na(admitted_covid_0_date) | !is.na(primary_care_covid_case_0_date),
 
 
     #covidemergency_1_date = pmin(covidemergency_1_date, covidadmitted_1_date, na.rm=TRUE),
@@ -244,7 +244,6 @@ data_processed <- data_extract %>%
 
     # earliest covid event after study start
     anycovid_1_date = pmin(positive_test_1_date, covidemergency_1_date, admitted_covid_1_date, covidcc_1_date, coviddeath_date, na.rm=TRUE),
-
 
     noncoviddeath_date = if_else(!is.na(death_date) & is.na(coviddeath_date), death_date, as.Date(NA_character_)),
 

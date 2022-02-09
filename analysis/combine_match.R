@@ -84,7 +84,7 @@ matchsummary <-
   ) %>%
   unnest(summary)
 
-write_csv(matchsummary, fs::path(output_dir, "matchsummary.csv"))
+write_csv(matchsummary, fs::path(output_dir, "summary.csv"))
 
 
 matchsummary_treated <-
@@ -103,7 +103,7 @@ write_csv(matchsummary_treated, fs::path(output_dir, "summary_treated.csv"))
 table1 <-
   match_metaparams %>%
   mutate(
-    table1 = map(treatment, ~read_csv(here("output", "models", "seqtrialcox", .x, glue("merge_table1.csv"))))
+    table1 = map(treatment, ~read_csv(here("output", "models", "seqtrialcox", .x, glue("match_table1.csv"))))
   ) %>%
   unnest(table1)
 
@@ -112,7 +112,7 @@ write_csv(table1, fs::path(output_dir, "table1.csv"))
 table1by <-
   match_metaparams %>%
   mutate(
-    table1by = map(treatment, ~read_csv(here("output", "models", "seqtrialcox", .x, glue("merge_table1by.csv"))))
+    table1by = map(treatment, ~read_csv(here("output", "models", "seqtrialcox", .x, glue("match_table1by.csv"))))
   ) %>%
   unnest(table1by)
 

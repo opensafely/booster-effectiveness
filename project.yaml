@@ -123,6 +123,7 @@ actions:
     run: r:latest analysis/match_seqtrialcox.R pfizer
     needs:
     - data_selection
+    - data_process_long
     outputs:
       highly_sensitive:
         rds: output/models/seqtrialcox/pfizer/match_*.rds
@@ -131,25 +132,13 @@ actions:
         csv: output/models/seqtrialcox/pfizer/match_*.csv
         png: output/models/seqtrialcox/pfizer/match_*.png
         pdf: output/models/seqtrialcox/pfizer/match_*.pdf
-
-  merge_seqtrialcox_pfizer:
-    run: r:latest analysis/merge_seqtrialcox.R pfizer
-    needs:
-    - match_seqtrialcox_pfizer
-    - data_selection
-    - data_process_long
-    outputs:
-      highly_sensitive:
-        rds: output/models/seqtrialcox/pfizer/merge_*.rds
-      moderately_sensitive:
-        txt: output/models/seqtrialcox/pfizer/merge_*.txt
-        csv: output/models/seqtrialcox/pfizer/merge_*.csv
-        html: output/models/seqtrialcox/pfizer/merge_*.html
+        html: output/models/seqtrialcox/pfizer/match_*.html
 
   match_seqtrialcox_moderna:
     run: r:latest analysis/match_seqtrialcox.R moderna
     needs:
     - data_selection
+    - data_process_long
     outputs:
       highly_sensitive:
         rds: output/models/seqtrialcox/moderna/match_*.rds
@@ -158,20 +147,7 @@ actions:
         csv: output/models/seqtrialcox/moderna/match_*.csv
         png: output/models/seqtrialcox/moderna/match_*.png
         pdf: output/models/seqtrialcox/moderna/match_*.pdf
-
-  merge_seqtrialcox_moderna:
-    run: r:latest analysis/merge_seqtrialcox.R moderna
-    needs:
-    - match_seqtrialcox_moderna
-    - data_selection
-    - data_process_long
-    outputs:
-      highly_sensitive:
-        rds: output/models/seqtrialcox/moderna/merge_*.rds
-      moderately_sensitive:
-        txt: output/models/seqtrialcox/moderna/merge_*.txt
-        csv: output/models/seqtrialcox/moderna/merge_*.csv
-        html: output/models/seqtrialcox/moderna/merge_*.html
+        html: output/models/seqtrialcox/moderna/match_*.html
 
   ## # # # # # # # # # # # # # # # # # # # 
   ## Models 
@@ -182,7 +158,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer postest none
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -208,7 +183,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer postest vax12_type-az-az
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -234,7 +208,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer postest vax12_type-moderna-moderna
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -260,7 +233,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer postest vax12_type-pfizer-pfizer
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -286,7 +258,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna postest none
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -312,7 +283,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna postest vax12_type-az-az
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -338,7 +308,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna postest vax12_type-moderna-moderna
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -364,7 +333,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna postest vax12_type-pfizer-pfizer
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -392,7 +360,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer covidemergency none
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -418,7 +385,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer covidemergency vax12_type-az-az
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -444,7 +410,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer covidemergency vax12_type-moderna-moderna
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -470,7 +435,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer covidemergency vax12_type-pfizer-pfizer
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -496,7 +460,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna covidemergency none
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -522,7 +485,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna covidemergency vax12_type-az-az
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -548,7 +510,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna covidemergency vax12_type-moderna-moderna
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -574,7 +535,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna covidemergency vax12_type-pfizer-pfizer
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -602,7 +562,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer covidadmitted none
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -628,7 +587,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer covidadmitted vax12_type-az-az
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -654,7 +612,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer covidadmitted vax12_type-moderna-moderna
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -680,7 +637,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer covidadmitted vax12_type-pfizer-pfizer
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -706,7 +662,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna covidadmitted none
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -732,7 +687,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna covidadmitted vax12_type-az-az
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -758,7 +712,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna covidadmitted vax12_type-moderna-moderna
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -784,7 +737,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna covidadmitted vax12_type-pfizer-pfizer
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -812,7 +764,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer covidcc none
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -838,7 +789,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer covidcc vax12_type-az-az
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -864,7 +814,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer covidcc vax12_type-moderna-moderna
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -890,7 +839,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer covidcc vax12_type-pfizer-pfizer
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -916,7 +864,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna covidcc none
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -942,7 +889,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna covidcc vax12_type-az-az
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -968,7 +914,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna covidcc vax12_type-moderna-moderna
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -994,7 +939,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna covidcc vax12_type-pfizer-pfizer
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -1022,7 +966,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer coviddeath none
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -1048,7 +991,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer coviddeath vax12_type-az-az
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -1074,7 +1016,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer coviddeath vax12_type-moderna-moderna
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -1100,7 +1041,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R pfizer coviddeath vax12_type-pfizer-pfizer
     needs:
     - match_seqtrialcox_pfizer
-    - merge_seqtrialcox_pfizer
     - data_selection
     - data_process_long
     outputs:
@@ -1126,7 +1066,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna coviddeath none
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -1152,7 +1091,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna coviddeath vax12_type-az-az
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -1178,7 +1116,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna coviddeath vax12_type-moderna-moderna
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -1204,7 +1141,6 @@ actions:
     run: r:latest analysis/model_seqtrialcox.R moderna coviddeath vax12_type-pfizer-pfizer
     needs:
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_moderna
     - data_selection
     - data_process_long
     outputs:
@@ -1231,8 +1167,6 @@ actions:
     needs:
     - match_seqtrialcox_pfizer
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_pfizer
-    - merge_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/combined/match/*.csv
@@ -1242,16 +1176,22 @@ actions:
     needs:
     - match_seqtrialcox_pfizer
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_pfizer
-    - merge_seqtrialcox_moderna
     - model_seqtrialcox_pfizer_postest_none
+    - model_seqtrialcox_pfizer_covidemergency_none
     - model_seqtrialcox_pfizer_covidadmitted_none
+    - model_seqtrialcox_pfizer_coviddeath_none
     - model_seqtrialcox_moderna_postest_none
+    - model_seqtrialcox_moderna_covidemergency_none
     - model_seqtrialcox_moderna_covidadmitted_none
+    - model_seqtrialcox_moderna_coviddeath_none
     - report_seqtrialcox_pfizer_postest_none
+    - report_seqtrialcox_pfizer_covidemergency_none
     - report_seqtrialcox_pfizer_covidadmitted_none
+    - report_seqtrialcox_pfizer_coviddeath_none
     - report_seqtrialcox_moderna_postest_none
+    - report_seqtrialcox_moderna_covidemergency_none
     - report_seqtrialcox_moderna_covidadmitted_none
+    - report_seqtrialcox_moderna_coviddeath_none
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/combined/model/none/*.csv
@@ -1265,24 +1205,38 @@ actions:
     needs:
     - match_seqtrialcox_pfizer
     - match_seqtrialcox_moderna
-    - merge_seqtrialcox_pfizer
-    - merge_seqtrialcox_moderna
     - model_seqtrialcox_pfizer_postest_vax12_type-pfizer-pfizer
     - model_seqtrialcox_pfizer_postest_vax12_type-az-az
+    - model_seqtrialcox_pfizer_covidemergency_vax12_type-pfizer-pfizer
+    - model_seqtrialcox_pfizer_covidemergency_vax12_type-az-az
     - model_seqtrialcox_pfizer_covidadmitted_vax12_type-pfizer-pfizer
     - model_seqtrialcox_pfizer_covidadmitted_vax12_type-az-az
+    - model_seqtrialcox_pfizer_coviddeath_vax12_type-pfizer-pfizer
+    - model_seqtrialcox_pfizer_coviddeath_vax12_type-az-az
     - model_seqtrialcox_moderna_postest_vax12_type-pfizer-pfizer
     - model_seqtrialcox_moderna_postest_vax12_type-az-az
+    - model_seqtrialcox_moderna_covidemergency_vax12_type-pfizer-pfizer
+    - model_seqtrialcox_moderna_covidemergency_vax12_type-az-az
     - model_seqtrialcox_moderna_covidadmitted_vax12_type-pfizer-pfizer
     - model_seqtrialcox_moderna_covidadmitted_vax12_type-az-az
+    - model_seqtrialcox_moderna_coviddeath_vax12_type-pfizer-pfizer
+    - model_seqtrialcox_moderna_coviddeath_vax12_type-az-az
     - report_seqtrialcox_pfizer_postest_vax12_type-pfizer-pfizer
     - report_seqtrialcox_pfizer_postest_vax12_type-az-az
+    - report_seqtrialcox_pfizer_covidemergency_vax12_type-pfizer-pfizer
+    - report_seqtrialcox_pfizer_covidemergency_vax12_type-az-az
     - report_seqtrialcox_pfizer_covidadmitted_vax12_type-pfizer-pfizer
     - report_seqtrialcox_pfizer_covidadmitted_vax12_type-az-az
+    - report_seqtrialcox_pfizer_coviddeath_vax12_type-pfizer-pfizer
+    - report_seqtrialcox_pfizer_coviddeath_vax12_type-az-az
     - report_seqtrialcox_moderna_postest_vax12_type-pfizer-pfizer
     - report_seqtrialcox_moderna_postest_vax12_type-az-az
+    - report_seqtrialcox_moderna_covidemergency_vax12_type-pfizer-pfizer
+    - report_seqtrialcox_moderna_covidemergency_vax12_type-az-az
     - report_seqtrialcox_moderna_covidadmitted_vax12_type-pfizer-pfizer
     - report_seqtrialcox_moderna_covidadmitted_vax12_type-az-az
+    - report_seqtrialcox_moderna_coviddeath_vax12_type-pfizer-pfizer
+    - report_seqtrialcox_moderna_coviddeath_vax12_type-az-az
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/combined/model/vax12_type/*.csv
@@ -1303,6 +1257,7 @@ actions:
     - descriptive_vaxdate
     - match_seqtrialcox_pfizer
     - match_seqtrialcox_moderna
+    - combine_match
     - combine_model
     - combine_model_vax12_type
     outputs:
