@@ -123,6 +123,7 @@ actions:
     run: r:latest analysis/match_seqtrialcox.R pfizer
     needs:
     - data_selection
+    - data_process_long
     outputs:
       highly_sensitive:
         rds: output/models/seqtrialcox/pfizer/match_*.rds
@@ -137,6 +138,7 @@ actions:
     run: r:latest analysis/match_seqtrialcox.R moderna
     needs:
     - data_selection
+    - data_process_long
     outputs:
       highly_sensitive:
         rds: output/models/seqtrialcox/moderna/match_*.rds

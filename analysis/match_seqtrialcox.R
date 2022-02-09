@@ -168,7 +168,7 @@ data_nontimevarying <-
 
 
 data_timevarying <-
-  read_rds(here("output", "data", "data_timevarying.rds")) %>%
+  read_rds(here("output", "data", "data_long_timevarying.rds")) %>%
   select(
     patient_id,
     tstart,
@@ -436,8 +436,8 @@ data_baseline <-
 
   )
 logoutput_datasize(data_baseline)
-if(removeobjects) rm(data_cohort)
 
+if(removeobjects) rm(data_cohort)
 
 data_tte <- read_rds(here("output", "models", "seqtrialcox", treatment, "match_data_tte.rds"))
 
@@ -473,7 +473,7 @@ write_rds(data_merged, fs::path(output_dir, "match_data_merged.rds"))
 data_coverage <-
   data_matched %>%
   filter(treated==1L) %>%
-  left_join(data_cohort %>% select(patient_id, vax3_date), by="patient_id") %>%
+  left_join(data_tte %>% transmute(patient_id, vax3_date=treatment_date), by="patient_id") %>%
   group_by(across(all_of(rolling_variables)), vax3_date) %>%
   summarise(
     n_matched=n(),

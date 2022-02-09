@@ -65,7 +65,7 @@ action_match <- function(treatment){
       name = glue("match_seqtrialcox_{treatment}"),
       run = glue("r:latest analysis/match_seqtrialcox.R"),
       arguments = c(treatment),
-      needs = list("data_selection"),
+      needs = list("data_selection", "data_process_long"),
       highly_sensitive = lst(
         rds = glue("output/models/seqtrialcox/{treatment}/match_*.rds")
       ),

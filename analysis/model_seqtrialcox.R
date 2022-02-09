@@ -126,7 +126,7 @@ data_timevaryingoutcomes <- local({
     select(patient_id, day0_date, censor_date, tte_stop)
 
   data_outcome <-
-    read_rds(here("output", "data", glue("data_allevents.rds"))) %>%
+    read_rds(here("output", "data", glue("data_long_allevents.rds"))) %>%
     filter(event==outcome) %>%
     inner_join(data_join, ., by =c("patient_id")) %>%
     mutate(

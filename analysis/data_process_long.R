@@ -158,7 +158,7 @@ data_allevents <-
     time = as.integer(date - study_dates$studystart_date-1),
   )
 
-write_rds(data_allevents, here("output", "data", "data_allevents.rds"), compress="gz")
+write_rds(data_allevents, here("output", "data", "data_long_allevents.rds"), compress="gz")
 
 data_timevarying <-
   data_processed %>%
@@ -199,7 +199,7 @@ data_timevarying <-
   ) %>%
   mutate(id=NULL)
 
-write_rds(data_timevarying, here("output", "data", "data_timevarying.rds"), compress="gz")
+write_rds(data_timevarying, here("output", "data", "data_long_timevarying.rds"), compress="gz")
 
 # write_rds(data_pr_probable_covid, here("output", cohort, "data", "data_long_pr_probable_covid_dates.rds"), compress="gz")
 
