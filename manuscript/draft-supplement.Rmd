@@ -1,0 +1,222 @@
+---
+title: "Effectiveness of COVID-19 Booster doses in England: a sequential trials study in OpenSAFELY: Supplementary materials"
+output:
+  html_document:
+    keep_md: yes
+    self_contained: yes
+  word_document: default
+  bookdown::html_document2:
+    number_sections: no
+    toc: no
+  pdf_document:
+    toc: no
+header-includes:
+- \usepackage{float} 
+- \floatplacement{figure}{H}
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+
+library('tidyverse')
+library('here')
+library('glue')
+library('lubridate')
+library('gt')
+library('patchwork')
+library('scales')
+source(here("lib", "functions", "utility.R"))
+
+# where are the outputs (ie the inputs for this manuscript!) saved?
+output_dir_os <- here("output", "manuscript-objects")
+#output_dir_os <- here("released_outputs", "output", "manuscript-objects")
+
+# where should we put the objects created within this rmd script?
+output_dir_rmd <- here("manuscript", "figures")
+fs::dir_create(output_dir_rmd)
+
+# only applicable if `self-contained: yes` option is enables in yaml header
+knitr::opts_chunk$set(
+  echo = TRUE,
+  fig.path = paste0(output_dir_rmd, "/"),
+  fig.pos = 'H' #to stop figures floating around when rendering to pdf
+)
+
+study_dates <-
+  jsonlite::read_json(path=here("lib", "design", "study-dates.json")) %>%
+  map(as.Date)
+
+postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
+
+flowchart <- read_csv(fs::path(output_dir_os, "flowchart.csv"))
+cohortsummary <- read_csv(fs::path(output_dir_os, "cohortsummary.csv"))
+matchtable1 <- read_csv(fs::path(output_dir_os, "matchtable1.csv"))
+matchtable1by <- read_csv(fs::path(output_dir_os, "matchtable1by.csv"))
+matchsummary <- read_csv(fs::path(output_dir_os, "matchsummary.csv"))
+matchsummary_treated <- read_csv(fs::path(output_dir_os, "matchsummary_treated.csv")) %>% filter(treated == 1L)
+matchsummary_control <- read_csv(fs::path(output_dir_os, "matchsummary_treated.csv")) %>% filter(treated == 0L)
+incidences <- read_csv(fs::path(output_dir_os, "ir.csv"))
+
+```
+
+\newpage
+
+
+# Matching details
+
+Booster eligibility was dependent on vaccine priority group, largely determined by clinical vulnerability and age. Booster doses were initially available 6 months after administration of the second dose, later reduced to 3 months following concerns over the surge in cases and the emergence of the seemingly more transmissible Omicron variant. Determining vaccine eligibility for a given person on a given day is therefore complex. To avoid these complexities, we determined trial eligibility for each person on each day of recruitment by asking if there were sufficiently many people with similar characteristics who were being vaccinated on that day. Specifically, if less than X people in the same region, priority group, and week of second vaccine dose had been vaccinated, then they were not eligible for recruitment.
+
+### Table S1: Inclusion criteria
+
+```{r flowchart, echo=FALSE, warning=FALSE, message=FALSE}
+flowchart %>%
+  transmute(
+    Participants = str_wrap(criteria, 40),
+    N = n,
+    `N excluded` = n_exclude,
+    #`% excluded` = pct_exclude,
+    `% remaining` = pct_all
+  ) %>%
+  # mutate(
+  #   Participants=if_else(row_number()==1,"HCWs aged 18-64 receiving BNT162b2 or ChAdOx1 between 4 Jan and 28 Feb",  Participants)
+  # ) %>%
+  gt() %>%
+  fmt_percent(
+    columns = starts_with(c("%")),
+    decimals = 1
+  ) %>%
+  fmt_number(
+    columns = starts_with(c("N")),
+    decimals= 0
+  ) %>%
+  fmt_missing(
+    everything(),
+    missing_text="-"
+  ) %>%
+  tab_style(
+    style=cell_text(whitespace ="pre-wrap"),
+    #style=cell_text(style ="italic"),
+    locations = cells_body(columns = "Participants")
+  )
+```
+
+
+
+\newpage
+### Table S2a: Characteristics at recruitment to Pfizer trial, by treatment status
+
+
+```{r table1_pfizer, echo=FALSE, warning=FALSE, message=FALSE, out.extra=''}
+
+  table1by <- 
+    matchtable1by %>% 
+    filter(treatment=="pfizer")
+    
+  table1 <- 
+    matchtable1 %>%
+    filter(treatment=="pfizer") %>%
+    group_by(variable) %>%
+    mutate(
+      label = if_else(row_number()==1, label, str_c("&nbsp;&nbsp;&nbsp;", label)),
+    ) %>%
+    mutate(
+      across(
+        starts_with("stat_"),
+        ~if_else(is.na(.x) & row_number()==1, "", .x)
+      )
+    ) %>%
+    ungroup() %>%
+    mutate(
+      order = cumsum(lag(variable, 1, first(variable))!=variable)
+    ) %>%
+    select(
+      variable, var_label, label, starts_with("stat_"), order
+    ) %>%
+    rename(!!!set_names(table1by$by_col, table1by$by_chr))
+  
+  table1_gt <-
+    table1 %>%
+    gt() %>%
+    fmt_markdown(columns = "label") %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "gray96")
+      ),
+      locations = cells_body(
+        rows = order%%2 == 0
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_text(weight = "bold")
+      ),
+      locations = cells_column_labels(everything())
+    ) %>%
+    cols_label(
+       label=md("Characteristic")
+    ) %>%
+    cols_hide(c("variable", "var_label", "order")) 
+  
+  table1_gt
+  
+```
+
+### Table S2b: Characteristics at recruitment to Moderna trial, by treatment status
+
+```{r table1_moderna, echo=FALSE, warning=FALSE, message=FALSE, out.extra=''}
+
+  table1by <- 
+    matchtable1by %>% 
+    filter(treatment=="moderna")
+    
+  table1 <- 
+    matchtable1 %>%
+    filter(treatment=="moderna") %>%
+    group_by(variable) %>%
+    mutate(
+      label = if_else(row_number()==1, label, str_c("&nbsp;&nbsp;&nbsp;", label)),
+    ) %>%
+    mutate(
+      across(
+        starts_with("stat_"),
+        ~if_else(is.na(.x) & row_number()==1, "", .x)
+      )
+    ) %>%
+    ungroup() %>%
+    mutate(
+      order = cumsum(lag(variable, 1, first(variable))!=variable)
+    ) %>%
+    select(
+      variable, var_label, label, starts_with("stat_"), order
+    ) %>%
+    rename(!!!set_names(table1by$by_col, table1by$by_chr))
+  
+  table1_gt <-
+    table1 %>%
+    gt() %>%
+    fmt_markdown(columns = "label") %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "gray96")
+      ),
+      locations = cells_body(
+        rows = order%%2 == 0
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_text(weight = "bold")
+      ),
+      locations = cells_column_labels(everything())
+    ) %>%
+    cols_label(
+       label=md("Characteristic")
+    ) %>%
+    cols_hide(c("variable", "var_label", "order")) 
+  
+  table1_gt
+  
+```
+
+
+\newpage
