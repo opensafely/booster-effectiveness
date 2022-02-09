@@ -375,10 +375,14 @@ data_matched <- local({
     matched <- bind_rows(matched, matched_i)
 
   }
-  select(matched, -subclass)
+
+  matched %>%
+  select(-subclass) %>%
+  mutate(
+    treated_patient_id = paste0(treated, "_", patient_id),
+  )
 
 })
-
 
 
 write_rds(data_matched, fs::path(output_dir, "match_data_matched.rds"))
@@ -390,6 +394,78 @@ logoutput_table(controls_per_trial)
 # max trial date
 max_trial_day <- max(data_matched$trial_day, na.rm=TRUE)
 logoutput("max trial day is ", max_trial_day)
+
+
+
+# combine matching dataset with all other variables required for modelling ----
+
+## baseline variables ----
+
+data_baseline <-
+  data_cohort %>%
+  transmute(
+    patient_id,
+    age,
+    ageband,
+    sex,
+    ethnicity_combined,
+    imd_Q5,
+    region,
+    jcvi_group,
+    rural_urban_group,
+    prior_tests_cat,
+    multimorb,
+    learndis,
+    sev_mental,
+    cev,
+    sev_obesity,
+    chronic_heart_disease,
+    chronic_kidney_disease,
+    diabetes,
+    chronic_liver_disease,
+    chronic_resp_disease,
+    chronic_neuro_disease,
+    immunosuppressed,
+    asplenia,
+    immuno,
+
+    vax12_type,
+    vax2_week,
+    vax3_date,
+    vax3_type,
+
+  )
+logoutput_datasize(data_baseline)
+if(removeobjects) rm(data_cohort)
+
+
+data_tte <- read_rds(here("output", "models", "seqtrialcox", treatment, "match_data_tte.rds"))
+
+## create variables-at-time-zero dataset - one row per trial per arm per patient ----
+data_merged <-
+  # add time-varying info as at recruitment date (= tte_trial)
+  data_matched %>%
+  left_join(
+    data_timevarying %>% select(-any_of(matching_variables)),
+    by = c("patient_id")
+  ) %>%
+  filter(
+    tte_recruitment < tstop,
+    tte_recruitment >= tstart
+  ) %>%
+  # add time-non-varying info
+  left_join(
+    data_baseline %>% select(-any_of(matching_variables)),
+    by=c("patient_id")
+  ) %>%
+  # remaining variables that combine both
+  mutate(
+    dayssince_anycovid = tstart - mostrecent_anycovid,
+  )
+
+logoutput_datasize(data_merged)
+
+write_rds(data_merged, fs::path(output_dir, "match_data_merged.rds"))
 
 
 # matching coverage per trial / day of follow up
@@ -437,6 +513,9 @@ write_csv(data_coverage, fs::path(output_dir, "match_data_coverage.csv"))
 # report matching info ----
 
 day1_date <- study_dates$studystart_date
+
+
+
 
 ## candidate matching summary ----
 
@@ -627,5 +706,81 @@ plot_coverage_cumuln
 #ggsave(plot_coverage_cumuln, filename="match_coverage_stack.svg", path=output_dir)
 ggsave(plot_coverage_cumuln, filename="match_coverage_stack.png", path=output_dir)
 ggsave(plot_coverage_cumuln, filename="match_coverage_stack.pdf", path=output_dir)
+
+
+
+
+# table 1 style baseline characteristics ----
+
+library('gt')
+library('gtsummary')
+
+var_labels <- list(
+  N  ~ "Total N",
+  treated_descr ~ "Trial arm",
+  vax12_type ~ "Primary vaccination course (doses 1 and 2)",
+  age ~ "Age",
+  ageband ~ "Age",
+  sex ~ "Sex",
+  ethnicity_combined ~ "Ethnicity",
+  imd_Q5 ~ "IMD",
+  region ~ "Region",
+  rural_urban_group ~ "Rural/urban category",
+  jcvi_group ~ "JCVI group",
+  cev ~ "Clinically extremely vulnerable",
+
+  sev_obesity ~ "Body Mass Index > 40 kg/m^2",
+
+  chronic_heart_disease ~ "Chronic heart disease",
+  chronic_kidney_disease ~ "Chronic kidney disease",
+  diabetes ~ "Diabetes",
+  chronic_liver_disease ~ "Chronic liver disease",
+  chronic_resp_disease ~ "Chronic respiratory disease",
+  chronic_neuro_disease ~ "Chronic neurological disease",
+
+  multimorb ~ "Morbidity count",
+  immunosuppressed ~ "Immunosuppressed",
+  asplenia ~ "Asplenia or poor spleen function",
+  learndis ~ "Learning disabilities",
+  sev_mental ~ "Serious mental illness",
+
+  prior_tests_cat ~ "Number of SARS-CoV-2 tests prior to start date",
+
+  prior_covid_infection ~ "Prior infection",
+  status_hospplanned ~ "In hospital (planned admission)"
+) %>%
+  set_names(., map_chr(., all.vars))
+
+
+tab_summary_baseline <-
+  data_merged %>%
+  mutate(
+    N = 1L,
+    treated_descr = if_else(treated==1L, "Boosted", "Unboosted"),
+  ) %>%
+  select(
+    treated_descr,
+    all_of(names(var_labels)),
+    -age,
+  ) %>%
+  #{unname(var_labels[names(.)])}
+  tbl_summary(
+    by = treated_descr,
+    label = unname(var_labels[names(.)]),
+    statistic = list(N = "{N}")
+  )  %>%
+  modify_footnote(starts_with("stat_") ~ NA) %>%
+  modify_header(stat_by = "**{level}**") %>%
+  bold_labels()
+
+tab_summary_baseline_redacted <- redact_tblsummary(tab_summary_baseline, 5, "[REDACTED]")
+
+raw_stats <- tab_summary_baseline_redacted$meta_data %>%
+  select(var_label, df_stats) %>%
+  unnest(df_stats)
+
+write_csv(tab_summary_baseline_redacted$table_body, fs::path(output_dir, "match_table1.csv"))
+write_csv(tab_summary_baseline_redacted$df_by, fs::path(output_dir, "match_table1by.csv"))
+gtsave(as_gt(tab_summary_baseline_redacted), fs::path(output_dir, "match_table1.html"))
 
 

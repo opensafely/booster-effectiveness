@@ -108,7 +108,7 @@ var_labels <- read_rds(here("lib", "design", "variable-labels.rds"))
 
 
 data_merged <-
-  read_rds(here("output", "models", "seqtrialcox", treatment, "merge_data_merged.rds")) %>%
+  read_rds(here("output", "models", "seqtrialcox", treatment, "match_data_merged.rds")) %>%
   mutate(none="") %>%
   fastDummies::dummy_cols(select_columns = subgroup_variable, remove_selected_columns = FALSE) %>%
   filter(.[[subgroup_dummy]]==1L)
@@ -158,7 +158,9 @@ data_timevaryingoutcomes <- local({
 })
 
 
-## combine outcome variables with variables-at-baseline ----
+## combine all together ----
+# outcome variables with variables-at-baseline and add follow-up periods
+# create one row per trial per arm per patient per follow-up period
 
 data_seqtrialcox <- local({
 

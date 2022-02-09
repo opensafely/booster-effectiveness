@@ -75,28 +75,7 @@ action_match <- function(treatment){
         #svg = glue("output/models/seqtrialcox/{treatment}/match_*.svg"),
         png = glue("output/models/seqtrialcox/{treatment}/match_*.png"),
         pdf = glue("output/models/seqtrialcox/{treatment}/match_*.pdf"),
-      )
-    ),
-
-    action(
-      name = glue("merge_seqtrialcox_{treatment}"),
-      run = glue("r:latest analysis/merge_seqtrialcox.R"),
-      arguments = c(treatment),
-      needs = list(
-        glue("match_seqtrialcox_{treatment}"),
-        "data_selection",
-        "data_process_long"
-      ),
-      highly_sensitive = lst(
-        rds = glue("output/models/seqtrialcox/{treatment}/merge_*.rds")
-      ),
-      moderately_sensitive = lst(
-        txt = glue("output/models/seqtrialcox/{treatment}/merge_*.txt"),
-        csv = glue("output/models/seqtrialcox/{treatment}/merge_*.csv"),
-        html = glue("output/models/seqtrialcox/{treatment}/merge_*.html")
-        #svg = glue("output/models/seqtrialcox/{treatment}/merge_*.svg"),
-        #png = glue("output/models/seqtrialcox/{treatment}/merge_*.png"),
-        #pdf = glue("output/models/seqtrialcox/{treatment}/merge_*.pdf"),
+        html = glue("output/models/seqtrialcox/{treatment}/match_*.html")
       )
     )
   )
@@ -117,7 +96,6 @@ action_model <- function(
       arguments = c(treatment, outcome, subgroup),
       needs = list(
         glue("match_seqtrialcox_{treatment}"),
-        glue("merge_seqtrialcox_{treatment}"),
         "data_selection",
         "data_process_long"
       ),
@@ -427,10 +405,9 @@ actions_list <- splice(
       as.list(
         glue_data(
           .x=expand_grid(
-            script=c("match", "merge"),
             treatment=c("pfizer", "moderna")
           ),
-          "{script}_seqtrialcox_{treatment}"
+          "match_seqtrialcox_{treatment}"
         )
       )
     ),
@@ -450,10 +427,9 @@ actions_list <- splice(
       as.list(
         glue_data(
           .x=expand_grid(
-            script=c("match", "merge"),
             treatment=c("pfizer", "moderna")
           ),
-          "{script}_seqtrialcox_{treatment}"
+          "match_seqtrialcox_{treatment}"
         )
       ),
       as.list(
@@ -487,10 +463,9 @@ actions_list <- splice(
       as.list(
         glue_data(
           .x=expand_grid(
-            script=c("match", "merge"),
             treatment=c("pfizer", "moderna")
           ),
-          "{script}_seqtrialcox_{treatment}"
+          "match_seqtrialcox_{treatment}"
         )
       ),
       as.list(
