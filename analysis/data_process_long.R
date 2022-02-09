@@ -82,7 +82,8 @@ data_postest <- data_processed %>%
     values_to = "date",
     values_drop_na = TRUE
   ) %>%
-  arrange(patient_id, date)
+  arrange(patient_id, date) %>%
+  mutate(event="postest") # need to change name to match "outcome" argument
 
 data_covidemergency <- data_processed %>%
   select(patient_id, matches("^covidemergency\\_\\d+\\_date")) %>%
@@ -178,7 +179,7 @@ data_timevarying <-
     data2=data_allevents,
     id=patient_id,
     #postest = event(time, (event=="positive_test") *1L),
-    postest = event(if_else(event=="positive_test", time, NA_integer_)),
+    postest = event(if_else(event=="postest", time, NA_integer_)),
     covidemergency = event(time, (event=="covidemergency") *1L),
     covidadmitted = event(time, (event=="covidadmitted") *1L),
     covidcc = event(time, (event=="covidcc") *1L),
