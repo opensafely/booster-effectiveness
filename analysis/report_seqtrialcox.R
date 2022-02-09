@@ -4,9 +4,10 @@
 # imports fitted cox models
 # outputs time-dependent effect estimates for booster
 #
-# The script must be accompanied by two arguments,
+# The script must be accompanied by three arguments:
 # `treatment` - the exposure variable in the regression model
 # `outcome` - the dependent variable in the regression model
+# `subgroup` - the subgroup variable for the regression model followed by a hyphen and the level of the subgroup
 # # # # # # # # # # # # # # # # # # # # #
 
 # Preliminaries ----
@@ -21,10 +22,12 @@ if(length(args)==0){
   removeobs <- FALSE
   treatment <- "pfizer"
   outcome <- "postest"
+  subgroup <- "vax12_type-pfizer-pfizer"
 } else {
   removeobs <- TRUE
   treatment <- args[[1]]
   outcome <- args[[2]]
+  subgroup <- args[[3]]
 }
 
 
@@ -39,7 +42,8 @@ source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "survival.R"))
 source(here("lib", "functions", "redaction.R"))
 
-output_dir <- here("output", "models", "seqtrialcox", treatment, outcome)
+output_dir_matched <- here("output", "models", "seqtrialcox", treatment, outcome)
+output_dir <- here("output", "models", "seqtrialcox", treatment, outcome, subgroup)
 
 data_seqtrialcox <- read_rds(fs::path(output_dir, "model_data_seqtrialcox.rds"))
 
@@ -47,7 +51,6 @@ data_seqtrialcox <- read_rds(fs::path(output_dir, "model_data_seqtrialcox.rds"))
 study_dates <-
   jsonlite::read_json(path=here("lib", "design", "study-dates.json")) %>%
   map(as.Date)
-
 
 
 # report model info ----

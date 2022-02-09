@@ -55,7 +55,6 @@ action <- function(
 }
 
 
-
 ## match action function ----
 
 action_match <- function(treatment){
@@ -106,14 +105,16 @@ action_match <- function(treatment){
 }
 
 ## model action function ----
-action_model <- function(treatment, outcome){
+action_model <- function(
+  treatment, outcome, subgroup
+){
 
   splice(
 
     action(
-      name = glue("model_seqtrialcox_{treatment}_{outcome}"),
+      name = glue("model_seqtrialcox_{treatment}_{outcome}_{subgroup}"),
       run = glue("r:latest analysis/model_seqtrialcox.R"),
-      arguments = c(treatment, outcome),
+      arguments = c(treatment, outcome, subgroup),
       needs = list(
         glue("match_seqtrialcox_{treatment}"),
         glue("merge_seqtrialcox_{treatment}"),
@@ -121,26 +122,28 @@ action_model <- function(treatment, outcome){
         "data_process_long"
       ),
       highly_sensitive = lst(
-        rds = glue("output/models/seqtrialcox/{treatment}/{outcome}/model_*.rds")
+        rds = glue("output/models/seqtrialcox/{treatment}/{outcome}/{subgroup}/model_*.rds")
       ),
       moderately_sensitive = lst(
-        txt = glue("output/models/seqtrialcox/{treatment}/{outcome}/model_*.txt"),
-        csv = glue("output/models/seqtrialcox/{treatment}/{outcome}/model_*.csv")
+        txt = glue("output/models/seqtrialcox/{treatment}/{outcome}/{subgroup}/model_*.txt"),
+        csv = glue("output/models/seqtrialcox/{treatment}/{outcome}/{subgroup}/model_*.csv")
       )
     ),
 
     action(
-      name = glue("report_seqtrialcox_{treatment}_{outcome}"),
+      name = glue("report_seqtrialcox_{treatment}_{outcome}_{subgroup}"),
       run = glue("r:latest analysis/report_seqtrialcox.R"),
-      arguments = c(treatment, outcome),
+      arguments = c(treatment, outcome, subgroup),
       needs = list(
         "data_selection",
-        glue("model_seqtrialcox_{treatment}_{outcome}")
+        glue("model_seqtrialcox_{treatment}_{outcome}_{subgroup}"),
+        glue("match_seqtrialcox_{treatment}")
+
       ),
       moderately_sensitive = lst(
-        csv = glue("output/models/seqtrialcox/{treatment}/{outcome}/report_*.csv"),
-        svg = glue("output/models/seqtrialcox/{treatment}/{outcome}/report_*.svg"),
-        png = glue("output/models/seqtrialcox/{treatment}/{outcome}/report_*.png")
+        csv = glue("output/models/seqtrialcox/{treatment}/{outcome}/{subgroup}/report_*.csv"),
+        svg = glue("output/models/seqtrialcox/{treatment}/{outcome}/{subgroup}/report_*.svg"),
+        png = glue("output/models/seqtrialcox/{treatment}/{outcome}/{subgroup}/report_*.png")
       )
     )
   )
@@ -356,7 +359,6 @@ actions_list <- splice(
 
 
 
-
   comment("# # # # # # # # # # # # # # # # # # #", "Matching", "# # # # # # # # # # # # # # # # # # #"),
 
   action_match("pfizer"),
@@ -366,33 +368,91 @@ actions_list <- splice(
 
 
   comment("###  Positive SARS-CoV-2 Test"),
-  action_model("pfizer", "postest"),
-  action_model("moderna", "postest"),
+  action_model("pfizer", "postest", "none"),
+  action_model("pfizer", "postest", "vax12_type-az-az"),
+  action_model("pfizer", "postest", "vax12_type-moderna-moderna"),
+  action_model("pfizer", "postest", "vax12_type-pfizer-pfizer"),
+  action_model("moderna", "postest", "none"),
+  action_model("moderna", "postest", "vax12_type-az-az"),
+  action_model("moderna", "postest", "vax12_type-moderna-moderna"),
+  action_model("moderna", "postest", "vax12_type-pfizer-pfizer"),
 
   comment("###  COVID-19 emergency attendance"),
-  action_model("pfizer", "covidemergency"),
-  action_model("moderna", "covidemergency"),
+  action_model("pfizer", "covidemergency", "none"),
+  action_model("pfizer", "covidemergency", "vax12_type-az-az"),
+  action_model("pfizer", "covidemergency", "vax12_type-moderna-moderna"),
+  action_model("pfizer", "covidemergency", "vax12_type-pfizer-pfizer"),
+  action_model("moderna", "covidemergency", "none"),
+  action_model("moderna", "covidemergency", "vax12_type-az-az"),
+  action_model("moderna", "covidemergency", "vax12_type-moderna-moderna"),
+  action_model("moderna", "covidemergency", "vax12_type-pfizer-pfizer"),
 
 
   comment("###  COVID-19 unplanned admission"),
-  action_model("pfizer", "covidadmitted"),
-  action_model("moderna", "covidadmitted"),
+  action_model("pfizer", "covidadmitted", "none"),
+  action_model("pfizer", "covidadmitted", "vax12_type-az-az"),
+  action_model("pfizer", "covidadmitted", "vax12_type-moderna-moderna"),
+  action_model("pfizer", "covidadmitted", "vax12_type-pfizer-pfizer"),
+  action_model("moderna", "covidadmitted", "none"),
+  action_model("moderna", "covidadmitted", "vax12_type-az-az"),
+  action_model("moderna", "covidadmitted", "vax12_type-moderna-moderna"),
+  action_model("moderna", "covidadmitted", "vax12_type-pfizer-pfizer"),
 
   comment("###  COVID-19 ICU/Critical care admission"),
-  action_model("pfizer", "covidcc"),
-  action_model("moderna", "covidcc"),
+  action_model("pfizer", "covidcc", "none"),
+  action_model("pfizer", "covidcc", "vax12_type-az-az"),
+  action_model("pfizer", "covidcc", "vax12_type-moderna-moderna"),
+  action_model("pfizer", "covidcc", "vax12_type-pfizer-pfizer"),
+  action_model("moderna", "covidcc", "none"),
+  action_model("moderna", "covidcc", "vax12_type-az-az"),
+  action_model("moderna", "covidcc", "vax12_type-moderna-moderna"),
+  action_model("moderna", "covidcc", "vax12_type-pfizer-pfizer"),
 
   comment("###  COVID-19 death"),
-  action_model("pfizer", "coviddeath"),
-  action_model("moderna", "coviddeath"),
+  action_model("pfizer", "coviddeath", "none"),
+  action_model("pfizer", "coviddeath", "vax12_type-az-az"),
+  action_model("pfizer", "coviddeath", "vax12_type-moderna-moderna"),
+  action_model("pfizer", "coviddeath", "vax12_type-pfizer-pfizer"),
+  action_model("moderna", "coviddeath", "none"),
+  action_model("moderna", "coviddeath", "vax12_type-az-az"),
+  action_model("moderna", "coviddeath", "vax12_type-moderna-moderna"),
+  action_model("moderna", "coviddeath", "vax12_type-pfizer-pfizer"),
+
+
 
   action(
-    name = "combine_seqtrialcox",
-    run = "r:latest analysis/combine_seqtrialcox.R",
+    name = "combine_match",
+    run = "r:latest analysis/combine_match.R",
     needs = splice(
       as.list(
         glue_data(
-          .x=expand_grid(treatment=c("pfizer", "moderna"), script=c("match", "merge")),
+          .x=expand_grid(
+            script=c("match", "merge"),
+            treatment=c("pfizer", "moderna")
+          ),
+          "{script}_seqtrialcox_{treatment}"
+        )
+      )
+    ),
+    moderately_sensitive = lst(
+      csv = "output/models/seqtrialcox/combined/match/*.csv",
+      # png = "output/models/seqtrialcox/combined/match/*.png",
+      # pdf = "output/models/seqtrialcox/combined/match/*.pdf",
+      # svg = "output/models/seqtrialcox/combined/match/*.svg"
+    )
+  ),
+
+  action(
+    name = "combine_model",
+    run = "r:latest analysis/combine_model.R",
+    arguments = c("none"),
+    needs = splice(
+      as.list(
+        glue_data(
+          .x=expand_grid(
+            script=c("match", "merge"),
+            treatment=c("pfizer", "moderna")
+          ),
           "{script}_seqtrialcox_{treatment}"
         )
       ),
@@ -401,19 +461,57 @@ actions_list <- splice(
           .x=expand_grid(
             script=c("model", "report"),
             treatment=c("pfizer", "moderna"),
-            outcome=c("postest", "covidemergency", "covidadmitted", "coviddeath")
-            #outcome=c("postest", "covidemergency")
+            #outcome=c("postest", "covidemergency", "covidadmitted", "coviddeath"),
+            outcome=c("postest", "covidadmitted"),
+            subgroup_variable = c("none")
           ),
-          "{script}_seqtrialcox_{treatment}_{outcome}"
-        ),
+          "{script}_seqtrialcox_{treatment}_{outcome}_{subgroup_variable}"
+        )
       )
     ),
     moderately_sensitive = lst(
-      csv = "output/models/seqtrialcox/combined/*.csv",
-      png = "output/models/seqtrialcox/combined/*.png",
-      pdf = "output/models/seqtrialcox/combined/*.pdf",
-      svg = "output/models/seqtrialcox/combined/*.svg",
-      html = "output/models/seqtrialcox/combined/*.html",
+      csv = "output/models/seqtrialcox/combined/model/none/*.csv",
+      png = "output/models/seqtrialcox/combined/model/none/*.png",
+      pdf = "output/models/seqtrialcox/combined/model/none/*.pdf",
+      svg = "output/models/seqtrialcox/combined/model/none/*.svg",
+      html = "output/models/seqtrialcox/combined/model/none/*.html",
+    )
+  ),
+
+
+  action(
+    name = "combine_model_vax12_type",
+    run = "r:latest analysis/combine_model.R",
+    arguments = c("vax12_type"),
+    needs = splice(
+      as.list(
+        glue_data(
+          .x=expand_grid(
+            script=c("match", "merge"),
+            treatment=c("pfizer", "moderna")
+          ),
+          "{script}_seqtrialcox_{treatment}"
+        )
+      ),
+      as.list(
+        glue_data(
+          .x=expand_grid(
+            script=c("model", "report"),
+            treatment=c("pfizer", "moderna"),
+            #outcome=c("postest", "covidemergency", "covidadmitted", "covidcc", "coviddeath"),
+            outcome=c("postest", "covidadmitted"),
+            subgroup = paste0("vax12_type-",c("pfizer-pfizer", "az-az"))
+          ),
+          "{script}_seqtrialcox_{treatment}_{outcome}_{subgroup}"
+        )
+      )
+    ),
+    moderately_sensitive = lst(
+      csv = "output/models/seqtrialcox/combined/model/vax12_type/*.csv",
+      png = "output/models/seqtrialcox/combined/model/vax12_type/*.png",
+      pdf = "output/models/seqtrialcox/combined/model/vax12_type/*.pdf",
+      svg = "output/models/seqtrialcox/combined/model/vax12_type/*.svg",
+      html = "output/models/seqtrialcox/combined/model/vax12_type/*.html",
     )
   ),
 
@@ -428,7 +526,8 @@ actions_list <- splice(
       "descriptive_vaxdate",
       "match_seqtrialcox_pfizer",
       "match_seqtrialcox_moderna",
-      "combine_seqtrialcox"
+      "combine_model",
+      "combine_model_vax12_type"
     ),
     moderately_sensitive = lst(
       csv = "output/manuscript-objects/*.csv",
