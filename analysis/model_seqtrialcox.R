@@ -32,11 +32,6 @@ if(length(args)==0){
   subgroup <- args[[3]]
 }
 
-subgroup_variable <-  stringr::str_split_fixed(subgroup,"-",2)[,1]
-subgroup_level <- stringr::str_split_fixed(subgroup,"-",2)[,2]
-subgroup_dummy <- paste0(subgroup_variable,"_",subgroup_level)
-
-
 
 ## Import libraries ----
 library('tidyverse')
@@ -49,6 +44,12 @@ library('survival')
 source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "survival.R"))
 source(here("lib", "functions", "redaction.R"))
+
+# derive subgroup info
+subgroup_variable <-  str_split_fixed(subgroup,"-",2)[,1]
+subgroup_level <- str_split_fixed(subgroup,"-",2)[,2]
+subgroup_dummy <- paste0(subgroup_variable,"_",subgroup_level)
+
 
 postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 matching_variables <- read_rds(here("lib", "design", "matching_variables.rds"))
@@ -122,13 +123,14 @@ data_timevaryingoutcomes <- local({
 
   data_join <-
     data_tte %>%
-    select(patient_id, day1_date, censor_date, tte_stop)
+    select(patient_id, day0_date, censor_date, tte_stop)
 
   data_outcome <-
-    read_rds(here("output", "data", glue("data_long_{outcome}_dates.rds"))) %>%
+    read_rds(here("output", "data", glue("data_allevents.rds"))) %>%
+    filter(event==outcome) %>%
     inner_join(data_join, ., by =c("patient_id")) %>%
     mutate(
-      tte = tte(day1_date-1, date, censor_date, na.censor=TRUE),
+      tte = tte(day0_date, date, censor_date, na.censor=TRUE),
     )
 
   data_timevaryingoutcomes <-
@@ -167,8 +169,8 @@ data_seqtrialcox <- local({
       by = c("patient_id")
     ) %>%
     filter(
-      tstart < tstop2,
-      tstart >= tstart2
+      tte_recruitment < tstop2,
+      tte_recruitment >= tstart2
     ) %>%
     select(-tstart2, -tstop2)
 
@@ -262,7 +264,6 @@ formula_demog <- . ~ . +
   ethnicity_combined
 
 formula_clinical <- . ~ . +
-  prior_covid_infection +
   prior_tests_cat +
   multimorb +
   learndis +
@@ -271,9 +272,8 @@ formula_clinical <- . ~ . +
   asplenia
 
 formula_timedependent <- . ~ . +
-  postest_status +
-  admittedunplanned_status +
-  admittedplanned_status
+  prior_covid_infection +
+  status_hospplanned
 
 
 formula_remove_outcome = . ~ .

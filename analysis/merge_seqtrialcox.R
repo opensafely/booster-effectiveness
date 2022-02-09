@@ -91,6 +91,7 @@ matching_variables <- read_rds(here("lib", "design", "matching_variables.rds"))
 
 ## one pow per patient ----
 data_cohort <- read_rds(here("output", "data", "data_cohort.rds"))
+data_timevarying <- read_rds(here("output", "data", "data_timevarying.rds"))
 
 # compose modelling dataset ----
 
@@ -108,7 +109,6 @@ data_baseline <-
     region,
     jcvi_group,
     rural_urban_group,
-    prior_covid_infection,
     prior_tests_cat,
     multimorb,
     learndis,
@@ -176,83 +176,83 @@ logoutput_datasize(data_events)
 
 
 ## one row per time-varying covariate value change ----
-data_timevarying <- local({
-
-  data_join <-
-    data_tte %>%
-    select(patient_id, day1_date, censor_date, tte_stop)
-
-  data_postest <-
-    read_rds(here("output", "data", "data_long_postest_dates.rds")) %>%
-    inner_join(data_join, ., by =c("patient_id")) %>%
-    mutate(
-      tte = tte(day1_date-1, date, censor_date, na.censor=TRUE),
-    ) %>%
-    filter(!is.na(tte))
-
-  data_admitted_unplanned <-
-    read_rds(here("output", "data", "data_long_admitted_unplanned_dates.rds")) %>%
-    pivot_longer(
-      cols=c(admitted_date, discharged_date),
-      names_to="status",
-      values_to="date",
-      values_drop_na = TRUE
-    ) %>%
-    inner_join(data_join, ., by =c("patient_id")) %>%
-    mutate(
-      tte = tte(day1_date-1, date, as.Date(Inf), na.censor=TRUE) %>% as.integer(),
-      admittedunplanned_status = if_else(status=="admitted_date", 1L, 0L)
-    )
-
-  data_admitted_planned <-
-    read_rds(here("output", "data", "data_long_admitted_planned_dates.rds")) %>%
-    pivot_longer(
-      cols=c(admitted_date, discharged_date),
-      names_to="status",
-      values_to="date",
-      values_drop_na = TRUE
-    ) %>%
-    inner_join(data_join, ., by =c("patient_id")) %>%
-    mutate(
-      tte = tte(day1_date-1, date, as.Date(Inf), na.censor=TRUE) %>% as.integer(),
-      admittedplanned_status = if_else(status=="admitted_date", 1L, 0L)
-    )
-
-  data_timevarying <- data_tte %>%
-    arrange(patient_id) %>%
-    select(patient_id) %>%
-    tmerge(
-      data1 = .,
-      data2 = data_tte,
-      id = patient_id,
-      tstart = -1000L,
-      tstop = tte_stop,
-      treatment_status = tdc(tte_treatment)
-    ) %>%
-    tmerge(
-      data1 = .,
-      data2 = data_postest,
-      id = patient_id,
-      postest_mostrecent = tdc(tte,tte)
-    ) %>%
-    tmerge(
-      data1 = .,
-      data2 = data_admitted_unplanned,
-      id = patient_id,
-      admittedunplanned_status = tdc(tte, admittedunplanned_status),
-      options = list(tdcstart = 0L)
-    ) %>%
-    tmerge(
-      data1 = .,
-      data2 = data_admitted_planned,
-      id = patient_id,
-      admittedplanned_status = tdc(tte, admittedplanned_status),
-      options = list(tdcstart = 0L)
-    ) %>%
-    mutate(id=NULL) # remove id column if created by tmerge (depedning on version of survival package)
-
-  data_timevarying
-})
+# data_timevarying <- local({
+#
+#   data_join <-
+#     data_tte %>%
+#     select(patient_id, day1_date, censor_date, tte_stop)
+#
+#   data_postest <-
+#     read_rds(here("output", "data", "data_long_postest_dates.rds")) %>%
+#     inner_join(data_join, ., by =c("patient_id")) %>%
+#     mutate(
+#       tte = tte(day1_date-1, date, censor_date, na.censor=TRUE),
+#     ) %>%
+#     filter(!is.na(tte))
+#
+#   data_admitted_unplanned <-
+#     read_rds(here("output", "data", "data_long_admitted_unplanned_dates.rds")) %>%
+#     pivot_longer(
+#       cols=c(admitted_date, discharged_date),
+#       names_to="status",
+#       values_to="date",
+#       values_drop_na = TRUE
+#     ) %>%
+#     inner_join(data_join, ., by =c("patient_id")) %>%
+#     mutate(
+#       tte = tte(day1_date-1, date, as.Date(Inf), na.censor=TRUE) %>% as.integer(),
+#       admittedunplanned_status = if_else(status=="admitted_date", 1L, 0L)
+#     )
+#
+#   data_admitted_planned <-
+#     read_rds(here("output", "data", "data_long_admitted_planned_dates.rds")) %>%
+#     pivot_longer(
+#       cols=c(admitted_date, discharged_date),
+#       names_to="status",
+#       values_to="date",
+#       values_drop_na = TRUE
+#     ) %>%
+#     inner_join(data_join, ., by =c("patient_id")) %>%
+#     mutate(
+#       tte = tte(day1_date-1, date, as.Date(Inf), na.censor=TRUE) %>% as.integer(),
+#       admittedplanned_status = if_else(status=="admitted_date", 1L, 0L)
+#     )
+#
+#   data_timevarying <- data_tte %>%
+#     arrange(patient_id) %>%
+#     select(patient_id) %>%
+#     tmerge(
+#       data1 = .,
+#       data2 = data_tte,
+#       id = patient_id,
+#       tstart = -1000L,
+#       tstop = tte_stop,
+#       treatment_status = tdc(tte_treatment)
+#     ) %>%
+#     tmerge(
+#       data1 = .,
+#       data2 = data_postest,
+#       id = patient_id,
+#       postest_mostrecent = tdc(tte,tte)
+#     ) %>%
+#     tmerge(
+#       data1 = .,
+#       data2 = data_admitted_unplanned,
+#       id = patient_id,
+#       admittedunplanned_status = tdc(tte, admittedunplanned_status),
+#       options = list(tdcstart = 0L)
+#     ) %>%
+#     tmerge(
+#       data1 = .,
+#       data2 = data_admitted_planned,
+#       id = patient_id,
+#       admittedplanned_status = tdc(tte, admittedplanned_status),
+#       options = list(tdcstart = 0L)
+#     ) %>%
+#     mutate(id=NULL) # remove id column if created by tmerge (depedning on version of survival package)
+#
+#   data_timevarying
+# })
 logoutput_datasize(data_timevarying)
 
 if(removeobjects) rm(data_cohort)
@@ -260,42 +260,31 @@ if(removeobjects) rm(data_cohort)
 
 ## create analysis dataset - one row per trial per arm per patient per follow-up week ----
 data_merged <-
-  tmerge(
-    data1 = data_matched,
-    data2 = data_matched,
-    id = treated_patient_id,
-    tstart = tte_recruitment,
-    tstop = tte_stop
-  ) %>%
-  mutate(id=NULL) %>% # remove id column if created by tmerge (depending on version of survival package)
-
   # add time-varying info as at recruitment date (= tte_trial)
+  data_matched %>%
   left_join(
-    data_timevarying %>% rename(tstart2 = tstart, tstop2 = tstop),
+    data_timevarying %>% select(-any_of(matching_variables)),
     by = c("patient_id")
   ) %>%
   filter(
-    tstart < tstop2,
-    tstart >= tstart2
+    tte_recruitment < tstop,
+    tte_recruitment >= tstart
   ) %>%
-  select(-tstart2, -tstop2) %>%
-
   # add time-non-varying info
   left_join(
-    data_baseline %>% select(-all_of(matching_variables)),
+    data_baseline %>% select(-any_of(matching_variables)),
     by=c("patient_id")
   ) %>%
-
   # remaining variables that combine both
   mutate(
-    vax2_dayssince = vax2_to_startdate+tte_recruitment,
-    postest_dayssince = tstart - postest_mostrecent,
-    postest_status = fct_case_when(
-      is.na(postest_dayssince) & !prior_covid_infection ~ "No previous infection",
-      between(postest_dayssince, 0, 21) ~ "Positive test <= 21 days ago",
-      postest_dayssince>21 | prior_covid_infection ~ "Positive test > 21 days ago",
-      TRUE ~ NA_character_
-    ),
+    dayssince_vax2 = vax2_to_startdate+tte_recruitment,
+    dayssince_anycovid = tstart - mostrecent_anycovid,
+    # status_postest = fct_case_when(
+    #   is.na(dayssince_postest) & !prior_covid_infection ~ "No previous infection",
+    #   between(dayssince_postest, 0, 21) ~ "Positive test <= 21 days ago",
+    #   dayssince_postest>21 | prior_covid_infection ~ "Positive test > 21 days ago",
+    #   TRUE ~ NA_character_
+    # ),
   )
 
 logoutput_datasize(data_merged)
@@ -340,13 +329,10 @@ var_labels <- list(
   learndis ~ "Learning disabilities",
   sev_mental ~ "Serious mental illness",
 
-
-
   prior_tests_cat ~ "Number of SARS-CoV-2 tests prior to start date",
 
-  postest_status ~ "Positive test status",
-  admittedunplanned_status ~ "In hospital (unplanned admission)",
-  admittedplanned_status ~ "In hospital (planned admission)"
+  prior_covid_infection ~ "Prior infection",
+  status_hospplanned ~ "In hospital (planned admission)"
 ) %>%
   set_names(., map_chr(., all.vars))
 

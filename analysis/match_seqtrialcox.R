@@ -148,11 +148,14 @@ data_rollingstrata_vaxcount <-
   ) %>%
   filter(vax3_time>=0)
 
-data_matching_variables <-
+
+
+data_nontimevarying <-
   data_cohort %>%
   select(
     patient_id,
-    all_of(c(rolling_variables, matching_variables, "vax3_date"))
+    any_of(c(rolling_variables, matching_variables, "vax3_date")),
+    prior_covid_infection0
   ) %>%
   left_join(
     data_rollingstrata_vaxcount %>% select(all_of(c(rolling_variables, "vax3_date", "recruit"))),
@@ -164,6 +167,17 @@ data_matching_variables <-
   )
 
 
+data_timevarying <-
+  read_rds(here("output", "data", "data_timevarying.rds")) %>%
+  select(
+    patient_id,
+    tstart,
+    tstop,
+    any_of(matching_variables),
+    status_hospunplanned,
+    mostrecent_anycovid,
+  )
+
 ### event times ----
 
 ## tte = time-to-event, and always indicates time from study start date
@@ -171,7 +185,7 @@ data_tte <-
   data_cohort %>%
   transmute(
     patient_id,
-    day1_date = study_dates$studystart_date, # first trial date
+    day0_date = study_dates$studystart_date-1, # day before the first trial date
     treatment_date = if_else(vax3_type==treatment, vax3_date, as.Date(NA)),
     competingtreatment_date = if_else(vax3_type!=treatment, vax3_date, as.Date(NA)),
 
@@ -187,31 +201,22 @@ data_tte <-
 
     # assume vaccination occurs at the start of the day, and all other events occur at the end of the day.
 
-    tte_censor = tte(day1_date-1, censor_date, censor_date, na.censor=TRUE),
+    tte_censor = tte(day0_date, censor_date, censor_date, na.censor=TRUE),
 
-    tte_treatment = tte(day1_date, treatment_date, censor_date, na.censor=TRUE),
-
-
-    tte_anycovid0 = tte(day1_date-1, anycovid_0_date, censor_date, na.censor=TRUE),
-
-    tte_anycovid1 = tte(day1_date-1, anycovid_1_date, censor_date, na.censor=TRUE),
+    tte_treatment = tte(day0_date, treatment_date-1, censor_date, na.censor=TRUE),
 
     tte_stop = pmin(tte_censor, na.rm=TRUE),
 
   ) %>%
   filter(
     # remove anyone with competing vaccine on first trial day
-    (competingtreatment_date>day1_date) | is.na(competingtreatment_date),
+    (competingtreatment_date-1>day0_date) | is.na(competingtreatment_date),
   ) %>%
   mutate(
     # convert tte variables (days since day0), to integer to save space
     across(starts_with("tte_"), as.integer),
     # convert logical to integer so that model coefficients print nicely in gtsummary methods
     across(where(is.logical), ~.x*1L)
-  ) %>%
-  left_join(
-    data_matching_variables %>% select(-vax3_date),
-    by="patient_id"
   )
 
 write_rds(data_tte, fs::path(output_dir, "match_data_tte.rds"))
@@ -245,23 +250,38 @@ data_matched <- local({
 
   # matching formula
   matching_formula <- as.formula(str_c("treated ~ ", paste(matching_variables, collapse=" + ")))
-
+  trial=1
   for(trial in trials){
 
     #cat(trial, "\n")
 
     trial_time <- trial-1
 
+    data_timevarying_i <-
+      filter(
+        data_timevarying,
+        trial_time>=tstart,
+        trial_time<tstop
+      )
+
     # set of people boosted on trial day, + their candidate controls
     matching_candidates_i <-
       data_tte %>%
       arrange(patient_id) %>%
+      # join time invariant variables
+      left_join(data_nontimevarying, by="patient_id") %>%
+      # join time-variant variables
+      left_join(data_timevarying_i, by="patient_id") %>%
+      mutate(
+        prior_covid_infection = prior_covid_infection0 | !is.na(mostrecent_anycovid)
+      ) %>%
       filter(
-        # remove anyone already censored or experienced outcome
+        # remove anyone already censored
         tte_stop > trial_time,
         # remove anyone who has experienced covid within the last 90 days
-        !between(tte_anycovid0, trial_time-90, trial_time) | is.na(tte_anycovid0),
-        !between(tte_anycovid1, trial_time-90, trial_time) | is.na(tte_anycovid1),
+        !between(mostrecent_anycovid, trial_time-90, trial_time) | is.na(mostrecent_anycovid),
+        # remove anyone currently in hospital
+        status_hospunplanned==0L
       ) %>%
       mutate(
         # everyone treated on trial day and eligible
@@ -270,6 +290,7 @@ data_matched <- local({
         control_candidate = (((tte_treatment > trial_time) | is.na(tte_treatment)) & (patient_id %in% candidate_ids0))*1
       ) %>%
       filter((treated==1L) | (control_candidate==1L))
+
 
     if(sum(matching_candidates_i$treated)<1) {
       message("Skipping trial ", trial, " - No treated people eligible for inclusion.")
@@ -356,20 +377,15 @@ data_matched <- local({
   }
   select(matched, -subclass)
 
-
 })
 
-data_matched <- mutate(data_matched,  day1_date = study_dates$studystart_date)
+
 
 write_rds(data_matched, fs::path(output_dir, "match_data_matched.rds"))
-
-
 
 # number of treated/controls per trial
 controls_per_trial <- table(data_matched$trial_day, data_matched$treated)
 logoutput_table(controls_per_trial)
-
-
 
 # max trial date
 max_trial_day <- max(data_matched$trial_day, na.rm=TRUE)
@@ -420,7 +436,7 @@ write_csv(data_coverage, fs::path(output_dir, "match_data_coverage.csv"))
 
 # report matching info ----
 
-
+day1_date <- study_dates$studystart_date
 
 ## candidate matching summary ----
 
@@ -466,8 +482,8 @@ match_summary_treated <-
   group_by(treated) %>%
   summarise(
     n=n(),
-    firstrecruitdate = min(tte_recruitment) + first(day1_date),
-    lastrecruitdate = max(tte_recruitment) + first(day1_date),
+    firstrecruitdate = min(tte_recruitment) + day1_date,
+    lastrecruitdate = max(tte_recruitment) + day1_date,
     fup_sum = sum(tte_stop - tte_recruitment),
     fup_years = sum(tte_stop - tte_recruitment)/365.25,
     fup_mean = mean(tte_stop - tte_recruitment)
@@ -489,8 +505,8 @@ match_summary <-
   data_matched %>%
   summarise(
     n=n(),
-    firstrecruitdate = min(tte_recruitment) + first(day1_date),
-    lastrecruitdate = max(tte_recruitment) + first(day1_date),
+    firstrecruitdate = min(tte_recruitment) + day1_date,
+    lastrecruitdate = max(tte_recruitment) + day1_date,
     fup_sum = sum(tte_stop - tte_recruitment),
     fup_years = sum(tte_stop - tte_recruitment)/365.25,
     fup_mean = mean(tte_stop - tte_recruitment)
