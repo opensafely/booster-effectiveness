@@ -124,17 +124,20 @@ data_covidcc <- data_processed %>%
 data_coviddeath <- data_processed %>%
   select(patient_id, date=coviddeath_date) %>%
   filter(!is.na(date)) %>%
-  arrange(patient_id, date)
+  arrange(patient_id, date) %>%
+  mutate(event="coviddeath")
 
 data_noncoviddeath <- data_processed %>%
   select(patient_id, date=noncoviddeath_date) %>%
   filter(!is.na(date)) %>%
-  arrange(patient_id, date)
+  arrange(patient_id, date)%>%
+  mutate(event="noncoviddeath")
 
 data_death <- data_processed %>%
   select(patient_id, date=death_date) %>%
   filter(!is.na(date)) %>%
-  arrange(patient_id, date)
+  arrange(patient_id, date)%>%
+  mutate(event="death")
 
 # data_death <- data_processed %>%
 #   select(patient_id, date=death_date, cause_of_death) %>%
@@ -185,7 +188,7 @@ data_timevarying <-
     covidcc = event(time, (event=="covidcc") *1L),
     coviddeath = event(time, (event=="coviddeath") *1L),
     death = event(time, (event=="death") *1L),
-    anycovid = event(time, event %in% c("postest", "covidemergency", "covidadmitted", "coviddeath")),
+    anycovid = event(time, (event %in% c("postest", "covidemergency", "covidadmitted", "coviddeath"))*1L),
     mostrecent_anycovid = tdc(time, if_else(event %in% c("postest", "covidemergency", "covidadmitted", "coviddeath"), time, NA_integer_)),
     mostrecent_hospplanned = tdc(time, if_else(event=="discharged_planned", time, NA_integer_)),
     mostrecent_hospunplanned = tdc(time, if_else(event=="discharged_unplanned", time, NA_integer_))
