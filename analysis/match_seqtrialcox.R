@@ -439,7 +439,6 @@ logoutput_datasize(data_baseline)
 
 if(removeobjects) rm(data_cohort)
 
-data_tte <- read_rds(here("output", "models", "seqtrialcox", treatment, "match_data_tte.rds"))
 
 ## create variables-at-time-zero dataset - one row per trial per arm per patient ----
 data_merged <-
