@@ -54,8 +54,8 @@ recode_outcome <- set_names(events_lookup$event, events_lookup$event_descr)
 
 if(subgroup_variable=="none"){
   recode_subgroup_variable <- c(`Main analysis` = "none")
-  recode_subgroup <- c(` `="")
-  subgroup <- c("")
+  recode_subgroup <- c(` `="none")
+  subgroup <- c("none")
 }
 
 if(subgroup_variable=="vax12_type"){
@@ -74,12 +74,14 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
     expand_grid(
       treatment = factor(c("pfizer")),
       outcome = factor(c("postest")),
-      subgroup = factor(recode_subgroup)
+      subgroup = factor(recode_subgroup),
+      subgroup_variable = factor(subgroup_variable)
     ) %>%
     mutate(
       treatment_descr = fct_recode(treatment,  !!!recode_treatment),
       outcome_descr = fct_recode(outcome,  !!!recode_outcome),
-      subgroup_descr = fct_recode(recode_subgroup,  !!!recode_subgroup)
+      subgroup_descr = fct_recode(recode_subgroup,  !!!recode_subgroup),
+      subgroup_variable_descr = fct_recode(subgroup_variable,  !!!recode_subgroup_variable)
     )
 } else {
   model_metaparams <-
@@ -87,12 +89,14 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
       treatment = factor(c("pfizer", "moderna")),
       outcome = factor(c("postest", "covidemergency", "covidadmitted", "coviddeath")),
       #outcome = factor(c("postest", "covidadmission")),
-      subgroup = factor(recode_subgroup)
+      subgroup = factor(recode_subgroup),
+      subgroup_variable = factor(subgroup_variable)
     ) %>%
     mutate(
       treatment_descr = fct_recode(treatment,  !!!recode_treatment),
       outcome_descr = fct_recode(outcome,  !!!recode_outcome),
-      subgroup_descr = fct_recode(subgroup,  !!!recode_subgroup)
+      subgroup_descr = fct_recode(subgroup,  !!!recode_subgroup),
+      subgroup_variable_descr = fct_recode(subgroup_variable,  !!!recode_subgroup_variable)
     )
 }
 
