@@ -103,9 +103,6 @@ study_dates <-
 events <- read_rds(here("lib", "design", "event-variables.rds"))
 outcome_var <- events$event_var[events$event==outcome]
 
-var_labels <- read_rds(here("lib", "design", "variable-labels.rds"))
-
-
 
 data_merged <-
   read_rds(here("output", "models", "seqtrialcox", treatment, "match_data_merged.rds")) %>%

@@ -92,8 +92,6 @@ study_dates <-
 ## import metadata ----
 events <- read_rds(here("lib", "design", "event-variables.rds"))
 
-var_labels <- read_rds(here("lib", "design", "variable-labels.rds"))
-
 # Prepare data ----
 
 ## one pow per patient ----
