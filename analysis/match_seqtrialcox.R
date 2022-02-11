@@ -468,8 +468,6 @@ data_baseline <-
   )
 logoutput_datasize(data_baseline)
 
-if(removeobjects) rm(data_cohort)
-
 
 ## create variables-at-time-zero dataset - one row per trial per arm per patient ----
 data_merged <-
@@ -507,7 +505,7 @@ data_coverage <-
   data_summary %>%
   filter(treated==1L) %>%
   #left_join(data_tte %>% transmute(patient_id, vax3_date=treatment_date), by="patient_id") %>%
-  left_join(data_cohort %>% select(patient_id, all_of(rolling_variables), vax3_date), by="patient_id") %>%
+  left_join(data_nontimevarying %>% select(patient_id, all_of(rolling_variables), vax3_date), by="patient_id") %>%
   group_by(across(all_of(rolling_variables)), vax3_date) %>%
   summarise(
     n_treated=sum(treated, na.rm=TRUE),
