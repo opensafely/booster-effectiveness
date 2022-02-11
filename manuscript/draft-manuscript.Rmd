@@ -242,13 +242,11 @@ We have developed a publicly available website <https://opensafely.org/> through
 
 # Results
 
-## Study population
+## Study population and matching
 
-A total of `r label_number(1, big.mark=",")(filter(flowchart, crit=="c0") %>% pull(n))` fully vaccinated (received a primary course of two COVID-19 vaccine doses) people aged 18 and over and registered at a TPP practice on `r format(as.Date(study_dates$studystart_date), "%d %B %Y")` were identified the database, with `r label_number(1, big.mark=",")(filter(flowchart, crit=="c4") %>% pull(n))` (`r label_percent(0.1)(filter(flowchart, crit=="c4") %>% pull(pct_all))`) eligible for inclusion (supplementary Tables S1 and S2). Of these, `r label_number(1, big.mark=",")(cohortsummary$n_boosted)` received a booster dose during the recruitment period (up to `r format(as.Date(study_dates$lastvax3_date), "%d %B %Y")`). `r label_number(1, big.mark=",")(cohortsummary$n_3pfizer)` ( `r label_percent(0.1)(cohortsummary$prop_3pfizer)`) for BNT162b2 and `r label_number(1, big.mark=",")(cohortsummary$n_3moderna)` ( `r label_percent(0.1)(cohortsummary$prop_3moderna)`) for mRNA-1273 (Figure 1).
+A total of `r filter(matchsummary, treatment=="pfizer") %>% pull(n_treated))` BNT162b2 booster doses were administered between `r format(as.Date(study_dates$studystart_date), "%d %B %Y")` and `r format(as.Date(study_dates$studyend_date), "%d %B %Y")` in adults registered at a TPP practice, with `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_eligible))` (`r label_percent(0.1)(filter(matchsummary, treatment=="pfizer") %>% pull(prop_eligible_treated))`) eligible for inclusion into the treatment arm (supplementary Tables S1 and S2). Of these, `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` (`r label_percent(0.1)(filter(matchsummary, treatment=="pfizer") %>% pull(prop_matched_eligible))`) were successfully matched with unboosted controls (Figure 1), with `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(fup_years))` person-years of follow-up across both trial arms (Table 2). 
 
-## Matching
-
-`r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n))` (`r label_percent(0.1)(filter(matchsummary, treatment=="pfizer") %>% pull(prop_recruited))`) BNT162b2 booster recipients were successfully matched to unboosted controls, contributing `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(fup_years))` person-years of follow-up across both trial arms. For mRNA-1273, this was `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="moderna") %>% pull(n))` (`r label_percent(0.1)(filter(matchsummary, treatment=="moderna") %>% pull(prop_recruited))`) and `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="moderna") %>% pull(fup_years))` person-years of follow-up (Table 2). 
+<!-- For mRNA-1273, this was `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="moderna") %>% pull(n))` (`r label_percent(0.1)(filter(matchsummary, treatment=="moderna") %>% pull(prop_recruited))`) and `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="moderna") %>% pull(fup_years))` person-years of follow-up (Table 2).  -->
 
 Characteristics at recruitment between treatment and controls arms are provided in supplementary materials (Table S2). Characteristics were (??) well-balanced between trial arms.
 
@@ -257,7 +255,7 @@ Characteristics at recruitment between treatment and controls arms are provided 
 
 #### Figure 1: Booster vaccination uptake, and matching success
 
-Booster vaccination update over the duration of the study cohort, and the proportion of those that were matched for modelling.
+Booster vaccination uptake over the duration of the study period, and the proportion of those that were matched for modelling.
 
 ```{r, vaxdate, echo=FALSE, message=FALSE, warning=FALSE, out.width='60%', out.height='50%', results='asis', out.extra=''}
 #read_rds(fs::path(output_dir_os, "descriptive", "vaxdate", "plot_vaxdate_stack.rds"))
@@ -285,8 +283,8 @@ matchcoverage  %>%
     aes(
       x=vax3_date+0.5,
       y=cumuln,
-      group=fct_rev(matched),
-      fill=fct_rev(matched),
+      group=status,
+      fill=status,
       colour=NULL
     ),
     position=position_stack(),

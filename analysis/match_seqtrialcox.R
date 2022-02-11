@@ -34,6 +34,7 @@ library('tidyverse')
 library('here')
 library('glue')
 library('survival')
+library('MatchIt')
 
 ## Import custom user functions from lib
 
@@ -224,7 +225,7 @@ logoutput_datasize(data_tte)
 
 library("MatchIt")
 
-data_matched <- local({
+local({
 
   ## sequential trial matching routine is as follows:
   # each daily trial includes all n people who were vaccinated on that day (treated=1) and
@@ -244,11 +245,13 @@ data_matched <- local({
   candidate_ids0 <- data_tte$patient_id
 
   # initialise matching summary data
-  matched <- NULL
+  data_treated <- NULL
+  data_eligible <- NULL
+  data_matched <- NULL
 
   # matching formula
   matching_formula <- as.formula(str_c("treated ~ ", paste(matching_variables, collapse=" + ")))
-  trial=1
+  #trial=1
   for(trial in trials){
 
     #cat(trial, "\n")
@@ -260,6 +263,15 @@ data_matched <- local({
         data_timevarying,
         trial_time>=tstart,
         trial_time<tstop
+      )
+
+    data_treated_i <-
+      data_tte %>%
+      filter(tte_treatment %in% trial_time) %>%
+      transmute(
+        patient_id,
+        treated=1L,
+        trial_time=tte_treatment
       )
 
     # set of people boosted on trial day, + their candidate controls
@@ -282,20 +294,30 @@ data_matched <- local({
         status_hospunplanned==0L
       ) %>%
       mutate(
+        treated = tte_treatment %in% trial_time,
         # everyone treated on trial day and eligible
-        treated = ((tte_treatment %in% trial_time) & treated_within_recruitment_period)*1,
+        treated_candidate = ((tte_treatment %in% trial_time) & treated_within_recruitment_period)*1,
         # everyone not yet treated by trial day, not yet censored, and not already selected as a control
         control_candidate = (((tte_treatment > trial_time) | is.na(tte_treatment)) & (patient_id %in% candidate_ids0))*1
       ) %>%
-      filter((treated==1L) | (control_candidate==1L))
+      filter((treated_candidate==1L) | (control_candidate==1L))
+
+    data_eligible_i <-
+      matching_candidates_i %>%
+      filter(treated_candidate==1L) %>%
+      transmute(
+        patient_id,
+        eligible=1L,
+        trial_time=tte_treatment
+      )
 
 
-    if(sum(matching_candidates_i$treated)<1) {
-      message("Skipping trial ", trial, " - No treated people eligible for inclusion.")
-      next
+    if(sum(matching_candidates_i$treated_candidate)<1) {
+      message("Terminating trial sequence at trial ", trial, " - No treated people eligible for inclusion.")
+      break
     }
 
-    n_treated_all <- sum(matching_candidates_i$treated)
+    n_treated_all <- sum(matching_candidates_i$treated_candidate)
 
     safely_matchit <- purrr::safely(matchit)
 
@@ -313,13 +335,13 @@ data_matched <- local({
       )[[1]]
 
     if(is.null(matching_i)) {
-      message("Skipping trial ", trial, " - No exact matches found.")
-      next
+      message("Terminating trial sequence at trial ", trial, " - No exact matches found.")
+      break
     }
     # summary info for recruited people
     # - one row per person
     # - match_id is within matching_i
-    matched_i <-
+    data_matched_i <-
       as.data.frame(matching_i$X) %>%
       add_column(
         subclass = matching_i$subclass,
@@ -338,8 +360,8 @@ data_matched <- local({
       ) %>%
       group_by(subclass, treated) %>%
       filter(
-        row_number() <= pmin(n_treated, n_control),
-        !is.na(subclass) # equivalent to weight != 0
+        row_number() <= pmin(n_treated, n_control), # 1:1 matching only
+        !is.na(subclass) # remove unmatchd people. equivalent to weight != 0
       ) %>%
       group_by(treated) %>%
       mutate(
@@ -359,26 +381,37 @@ data_matched <- local({
       ) %>%
       ungroup()
 
-    n_treated_matched <- sum(matched_i$treated)
+    n_treated_matched <- sum(data_matched_i$treated)
 
     if(n_treated_matched < (0.1*n_treated_all)) {
 
-      message("Skipping trial ", trial, " - Only ", n_treated_matched, "boosted people out of ", n_treated_all, " (", n_treated_matched*100/n_treated_all, "%) had a match.")
-      next
+      message("Terminating trial sequence at trial ", trial, " - Only ", n_treated_matched, "boosted people out of ", n_treated_all, " (", n_treated_matched*100/n_treated_all, "%) had a match.")
+      break
     }
 
     #update list of candidate controls to those who have not already been recruited
-    candidate_ids0 <- candidate_ids0[!(candidate_ids0 %in% matched_i$patient_id)]
+    candidate_ids0 <- candidate_ids0[!(candidate_ids0 %in% data_matched_i$patient_id)]
 
-    matched <- bind_rows(matched, matched_i)
-
+    data_treated <- bind_rows(data_treated, data_treated_i)
+    data_eligible <- bind_rows(data_eligible, data_eligible_i)
+    data_matched <- bind_rows(data_matched, data_matched_i)
   }
 
-  matched %>%
-  select(-subclass) %>%
-  mutate(
-    treated_patient_id = paste0(treated, "_", patient_id),
-  )
+  data_summary <<-
+    data_treated %>%
+    left_join(data_eligible, by=c("patient_id", "trial_time")) %>%
+    left_join(data_matched %>% filter(treated==1L) %>% transmute(patient_id, matched=1L, trial_time=tte_treatment), by=c("patient_id", "trial_time")) %>%
+    mutate(
+      eligible=replace_na(eligible, 0L),
+      matched=replace_na(matched, 0L)
+    )
+
+  data_matched <<-
+    data_matched %>%
+    select(-subclass) %>%
+    mutate(
+      treated_patient_id = paste0(treated, "_", patient_id),
+    )
 
 })
 
@@ -467,42 +500,52 @@ write_rds(data_merged, fs::path(output_dir, "match_data_merged.rds"))
 
 # matching coverage per trial / day of follow up
 
+
+status_recode <- c(`Treated, ineligible` = "ineligible", `Treated, eligible, unmatched`= "unmatched", `Treated, eligible, matched` = "matched")
+
 data_coverage <-
-  data_matched %>%
+  data_summary %>%
   filter(treated==1L) %>%
-  left_join(data_tte %>% transmute(patient_id, vax3_date=treatment_date), by="patient_id") %>%
+  #left_join(data_tte %>% transmute(patient_id, vax3_date=treatment_date), by="patient_id") %>%
+  left_join(data_cohort %>% select(patient_id, all_of(rolling_variables), vax3_date), by="patient_id") %>%
   group_by(across(all_of(rolling_variables)), vax3_date) %>%
   summarise(
-    n_matched=n(),
-  ) %>%
-  left_join(
-    data_rollingstrata_vaxcount,
-    .
+    n_treated=sum(treated, na.rm=TRUE),
+    n_eligible=sum(eligible, na.rm=TRUE),
+    n_matched=sum(matched, na.rm=TRUE)
   ) %>%
   mutate(
-    n_matched = replace_na(n_matched, 0L),
-    n_unmatched = n-n_matched,
-    n = NULL
+    n_unmatched = n_eligible - n_matched,
+    n_ineligible = n_treated - n_eligible,
   ) %>%
+  # left_join(
+  #   .,
+  #   data_rollingstrata_vaxcount
+  # ) %>%
   pivot_longer(
-    cols = c(n_matched, n_unmatched),
-    names_to = "matched",
+    cols = c(n_ineligible, n_unmatched, n_matched),
+    names_to = "status",
     names_prefix = "n_",
     values_to = "n"
   ) %>%
-  arrange(jcvi_group, vax12_type, vax3_date, matched) %>%
-  group_by(jcvi_group, vax12_type, vax3_date, matched) %>%
+  arrange(jcvi_group, vax12_type, vax3_date, status) %>%
+  group_by(jcvi_group, vax12_type, vax3_date, status) %>%
   summarise(
     n = sum(n),
   ) %>%
-  group_by(jcvi_group, vax12_type, matched) %>%
+  group_by(jcvi_group, vax12_type, status) %>%
   complete(
     vax3_date = full_seq(.$vax3_date, 1), # go X days before to
     fill = list(n=0)
   ) %>%
   mutate(
     cumuln = cumsum(n),
-    matched = factor(matched, c("unmatched", "matched"))
+    status = fct_case_when(
+      status=="ineligible" ~ "Treated, ineligible",
+      status=="unmatched" ~ "Treated, eligible, unmatched",
+      status=="matched" ~ "Treated, eligible, matched",
+      TRUE ~ NA_character_
+    )
   )
 
 write_csv(data_coverage, fs::path(output_dir, "match_data_coverage.csv"))
@@ -512,20 +555,20 @@ write_csv(data_coverage, fs::path(output_dir, "match_data_coverage.csv"))
 day1_date <- study_dates$studystart_date
 
 
-
-
 ## candidate matching summary ----
 
 ## matching summary ----
 
 candidate_summary_trial <-
-  data_tte %>%
-  filter(tte_treatment <= tte_stop) %>%
-  mutate(trial_day=tte_treatment+1) %>%
-  group_by(trial_day) %>%
+  data_summary %>%
+  group_by(trial_time) %>%
   summarise(
-    total_treated=n()
+    n_treated=sum(treated, na.rm=TRUE),
+    n_eligible=sum(eligible, na.rm=TRUE),
+    n_matched=sum(matched, na.rm=TRUE),
+    n_unmatched=n_eligible-n_matched,
   ) %>%
+  mutate(trial_day=trial_time+1) %>%
   ungroup()
 
 match_summary_trial <-
@@ -547,7 +590,9 @@ match_summary_trial <-
   ) %>%
   left_join(candidate_summary_trial, by="trial_day") %>%
   mutate(
-    prop_recruited = n_1/total_treated
+    prop_matched_treated = n_1/n_treated,
+    prop_matched_eligible = n_1/n_eligible,
+    prop_eligible_treated = n_eligible/n_treated
   )
 
 write_csv(match_summary_trial, fs::path(output_dir, "match_summary_trial.csv"))
@@ -570,12 +615,13 @@ write_csv(match_summary_treated, fs::path(output_dir, "match_summary_treated.csv
 
 
 candidate_summary <-
-  data_tte %>%
-  filter(tte_treatment <= tte_stop) %>%
+  data_summary %>%
   summarise(
-    total_treated=n()
-  ) %>%
-  ungroup()
+    n_treated=sum(treated, na.rm=TRUE),
+    n_eligible=sum(eligible, na.rm=TRUE),
+    n_matched=sum(matched, na.rm=TRUE),
+    n_unmatched=n_eligible-n_matched,
+  )
 
 match_summary <-
   data_matched %>%
@@ -589,7 +635,9 @@ match_summary <-
   ) %>%
   bind_cols(candidate_summary) %>%
   mutate(
-    prop_recruited = (n/2)/total_treated
+    prop_matched_treated = n_matched/n_treated,
+    prop_matched_eligible = n_matched/n_eligible,
+    prop_eligible_treated = n_eligible/n_treated
   )
 
 write_csv(match_summary, fs::path(output_dir, "match_summary.csv"))
@@ -606,8 +654,8 @@ plot_coverage_n <-
     aes(
       x=vax3_date+0.5,
       y=n,
-      group=matched,
-      fill=matched,
+      group=status,
+      fill=status,
       colour=NULL
     ),
     position=position_stack(),
@@ -659,8 +707,8 @@ plot_coverage_cumuln <-
     aes(
       x=vax3_date+0.5,
       y=cumuln,
-      group=matched,
-      fill=matched,
+      group=status,
+      fill=status,
       colour=NULL
     ),
     position=position_stack(),
