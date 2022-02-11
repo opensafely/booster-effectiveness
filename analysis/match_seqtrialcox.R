@@ -313,8 +313,8 @@ local({
 
 
     if(sum(matching_candidates_i$treated_candidate)<1) {
-      message("Terminating trial sequence at trial ", trial, " - No treated people eligible for inclusion.")
-      break
+      message("Skipping trial ", trial, " - No treated people eligible for inclusion.")
+      next
     }
 
     n_treated_all <- sum(matching_candidates_i$treated_candidate)
