@@ -13,8 +13,8 @@ args <- commandArgs(trailingOnly=TRUE)
 if(length(args)==0){
   # use for interactive testing
   removeobs <- FALSE
-  #subgroup_variable <- "vax12_type"
-  subgroup_variable <- "none"
+  subgroup_variable <- "vax12_type"
+  #subgroup_variable <- "none"
 } else {
   removeobs <- TRUE
   subgroup_variable <- args[[1]]

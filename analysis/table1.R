@@ -19,8 +19,6 @@ source(here("lib", "functions", "redaction.R"))
 ## create output directories ----
 fs::dir_create(here("output", "descriptive", "table1"))
 
-## import metadata ----
-var_labels <- read_rds(here("lib", "design", "variable-labels.rds"))
 
 #list_formula <- read_rds(here("output", "data", "metadata_formulas.rds"))
 #list2env(list_formula, globalenv())
