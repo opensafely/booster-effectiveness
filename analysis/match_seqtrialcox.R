@@ -468,6 +468,7 @@ data_baseline <-
   )
 logoutput_datasize(data_baseline)
 
+if(removeobjects) rm(data_cohort)
 
 ## create variables-at-time-zero dataset - one row per trial per arm per patient ----
 data_merged <-
