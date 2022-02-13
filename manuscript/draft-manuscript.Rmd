@@ -34,8 +34,8 @@ library('scales')
 source(here("lib", "functions", "utility.R"))
 
 # where are the outputs (ie the inputs for this manuscript!) saved?
-#output_dir_os <- here("output", "manuscript-objects")
-output_dir_os <- here("released_output", "manuscript-objects")
+output_dir_os <- here("output", "manuscript-objects")
+#output_dir_os <- here("released_output", "manuscript-objects")
 
 # where should we put the objects created within this rmd script?
 output_dir_rmd <- here("manuscript", "figures")
@@ -85,10 +85,10 @@ incidences <- read_csv(fs::path(output_dir_os, "incidence.csv")) %>% mutate(even
   outcomes <- 
     c(
       "postest",
-      "covidemergency"#,
-      #"covidadmitted",
+      #"covidemergency",
+      "covidadmitted",
       #"covidcc",
-      #"coviddeath"
+      "coviddeath"
     ) %>% 
     set_names(., .)
 
@@ -109,7 +109,7 @@ incidences <- read_csv(fs::path(output_dir_os, "incidence.csv")) %>% mutate(even
 #     diff_CI_to = paste0(label_number(0.01, scale=1000)(diff.ll), " to ", label_number(0.01, scale=1000)(diff.ul))
 #   )
 
-hazards <- read_csv(fs::path(output_dir_os, "effects.csv")) %>%
+hazards_none <- read_csv(fs::path(output_dir_os, "none", "effects.csv")) %>%
   mutate(
     treatment_descr = fct_inorder(treatment_descr),
     outcome_descr = fct_inorder(outcome_descr),
@@ -117,9 +117,19 @@ hazards <- read_csv(fs::path(output_dir_os, "effects.csv")) %>%
     hr_display = paste0(number_format(accuracy=0.01)(hr), " (", number_format(accuracy=0.01)(hr.ll), "-", number_format(accuracy=0.01)(hr.ul), ")")
   )
 
+hazards_vax12_type <- read_csv(fs::path(output_dir_os, "vax12_type", "effects.csv")) %>%
+  mutate(
+    treatment_descr = fct_inorder(treatment_descr),
+    outcome_descr = fct_inorder(outcome_descr),
+    #model_name = fct_inorder(str_wrap(model_name, 15)),
+    hr_display = paste0(number_format(accuracy=0.01)(hr), " (", number_format(accuracy=0.01)(hr.ll), "-", number_format(accuracy=0.01)(hr.ul), ")")
+  )
+
+
 #cmlinc3 <- cmlinc %>% filter(model==3)
 #riskdiff3 <- riskdiff %>% filter(model==3)
-hazards3 <- hazards %>% filter(model==3)
+hazards3_none <- hazards_none %>% filter(model==3)
+hazards3_vax12_type <- hazards_vax12_type %>% filter(model==3)
   
   
 ```
@@ -189,9 +199,11 @@ In this cohort of fully vaccinated people in England, a booster dose was estimat
 # Introduction
 
 
-The national COVID-19 vaccination programme in the United Kingdom began a new phase in September 2021 with the administration of the first booster COVID-19 vaccine doses in those who had already received their primary vaccination course (that is, "fully vaccinated" with a complete first and second dose). Initially offered to those at highest risk of severe disease, eligibility was extended to the entire adult population by the end of the year. In the vast majority of cases, BNT162b2 and mRNA-1273 vaccines were used and administered without consideration of the type of primary course.
+The national COVID-19 vaccination programme in the United Kingdom began a new phase in September 2021 with the administration of the first booster COVID-19 vaccine doses in those who had already received their primary vaccination course (that is, "fully vaccinated" with a complete first and second dose). Initially offered to those at highest risk of severe disease, eligibility was extended to the entire adult population by the end of the year. 
 
-We set out to estimate the effectiveness of booster doses amongst the fully vaccinated adult population in England using the OpenSAFELY-TPP linked primary care database covering around 40% of England's population.
+We set out to estimate the effectiveness of booster doses amongst the fully vaccinated adult population in England using the OpenSAFELY-TPP linked primary care database covering around 40% of England's population. 
+
+In the vast majority of cases, BNT162b2 and mRNA-1273 vaccines were used, and administered without consideration of the type of primary course. BNT162b2 was used from 16 September 2022, and mRNA-1273 from X onwards. Consequently, available follow-up of BNT162b2 recipients is longer, and so in this early analysis we restrict to effectiveness of this vaccine. An analysis of mRNA-1273 booster effectiveness is planned when sufficient follow-up has accrued.
 
 # Methods
 
@@ -199,30 +211,43 @@ We set out to estimate the effectiveness of booster doses amongst the fully vacc
 
 The OpenSAFELY-TPP database (<https://opensafely.org>) covers 24 million people registered at GP practices that use TPP SystmOne electronic health record software. It includes pseudonymized data such as coded diagnoses, medications and physiological parameters. No free text data are included. This primary care data is linked (via NHS numbers) with A&E attendance and in-patient hospital spell records via NHS Digital's Hospital Episode Statistics (HES), national coronavirus testing records via the Second Generation Surveillance System (SGSS), and national death registry records from the Office for National Statistics (ONS). Vaccination status is available in the GP record directly via the National Immunisation Management System (NIMS). HCW status is recorded for all vaccine recipients at the time of vaccination, and this information is sent to OpenSAFELY-TPP from NHS Digital's COVID-19 data store.
 
-## Study population and design
+## Study design and population
 
-We studied adults (18 and over) in England who had received a complete primary COVID-19 vaccination course (two doses) of BNT162b2 or ChAdOx1-S and who were registered at a GP practice using TPP's SystmOne clinical information system. People were not eligible for inclusion if: they were a vaccinated health care worker, resident in a care or nursing home, medically housebound or receiving end-of-life care (due to distinct clustering of vaccine uptake and infection risk in these groups that could not be reasonably measured and controlled for); had received heterologous (i.e., mixed) first and second vaccine dose; information on sex, ethnicity, deprivation, and geographical region was not known.
+We used a sequential trials approach designed to emulate a sequence of daily two-arm parallel randomised controlled trials. For each trial, the treatment arm comprised people who received a BNT162b2 booster dose on that day, and the control arm comprised the same number of randomly selected unboosted people, matched on key characteristics described below.
 
-After exclusions for missing values on demographic variables, there were no missing values in remaining variables as they were defined by the presence or absence of clinical codes or events in the patient record.
+Trial recruitment was considered between `r format(as.Date(study_dates$studystart_date), "%d %B %Y")` and `r format(as.Date(study_dates$studyend_date), "%d %B %Y")` inclusive. Trial eligibility on each day of recruitment was as follows: adults (18 and over) who were registered at a GP practice using TPP's SystmOne clinical information system; received a primary COVID-19 vaccination course of either two BNT162b2 doses or two ChAdOx1-S doses (mRNA-1273 was not considered due to small numbers); not a vaccinated health care worker, not a resident in a care or nursing home, and not medically housebound or receiving end-of-life care (due to distinct clustering of vaccine uptake and infection risk in these groups that could not be reasonably measured and controlled for); no evidence of SARS-CoV-2 infection or COVID-19 disease within 90 days prior to recruitment; not undergoing an unplanned hospital admission; information on sex, ethnicity, deprivation, and geographical region was complete. 
 
-We used a sequential trials approach designed to emulate a sequence of two-arm parallel randomised controlled trials recruiting participants between `r format(as.Date(study_dates$studystart_date), "%d %B %Y")` to `r format(as.Date(study_dates$studyend_date), "%d %B %Y")` inclusive. For each trial, the treatment arm comprises people who received a booster dose on that day, and the control arm comprises the same number of unboosted people selected using exact 1:1 matching without replacement. Trial arms are matched on primary course vaccine type (BNT162b2, ChAdOx1-S, or mRNA-1273), the calendar week of the second vaccine dose, geographical region, prior infection status, and vaccine priority group (as determined by the Joint Committee for Vaccine and immunisation expert working group). People selected as controls are not eligible to be included again as a control in a subsequent trial, but are eligible for selection into the treatment arm of a subsequent trial. Unmatched booster recipients were not included.
+Additional eligiblity criteria based on sufficiently many people being vaccinated on each day within region, priority group, and second dose week strata were also used to ensure unboosted people were both eligible and able to receive a booster dose at the time of potential recruitment. The trial sequence was terminated early if nobody was eligible for the treatment arm or fewer than 10% of eligible treated people were successfully matched. See supplementary materials for further details.
 
-Additional eligiblity criteria based on sufficiently many people being vaccinated on each day within region, priority group, and second dose week strata were also used to ensure unboosted people were both eligible and able to receive a booster dose at the time of potential recruitment. The trial sequence was terminated early if fewer than 10% of treated people were successfully matched. See supplementary materials for further details.
+The control arms were selected using exact 1:1 matching without replacement. Participants were matched on primary course vaccine type (BNT162b2 or ChAdOx1-S), the calendar week of the second vaccine dose, geographical region, prior infection, immunosuppression, and vaccine priority group (as determined by the Joint Committee for Vaccine and immunisation expert working group). People selected as controls were not eligible to be included again as a control in a subsequent trial, but were eligible for selection into the treatment arm of a subsequent trial. Any unmatched booster recipients were dropped.
+
+After exclusions for missing values on demographic variables, there were no missing values in remaining variables as they were each defined by the presence or absence of clinical codes or events in the patient record.
 
 
 ## Outcomes
 
-The following five outcomes were considered: positive SARS-CoV-2 test; COVID-19 A&E attendance; unplanned COVID-19 hospital admission; COVID-19 critical care admission; COVID-19 death. Positive SARS-CoV-2 tests were identified using SGSS records and based on swab date. Both polymerase chain reaction (PCR) and lateral flow tests are included, without differentiation between symptomatic and asymptomatic infection. COVID-19 A&E attendances were identified using HES emergency care records with U07.1 ("COVID-19, virus identified") or U07.2 ("COVID-19, virus not identified") ICD-10 diagnosis codes @emergenc. Unplanned COVID-19 hospital admissions and critical care admissions were identified using HES in-patient hospital records with U07.1 or U07.2 reason for admission ICD-10 codes. COVID-19 deaths with ICD-10 codes (as above) mentioned anywhere on the death certificate (i.e., as an underlying or contributing cause of death) were included.
+
+## Outcomes
+
+The following three outcomes were considered: positive SARS-CoV-2 test; unplanned COVID-19 hospital admission; COVID-19 death. Positive SARS-CoV-2 tests were identified using SGSS records and based on swab date. Both polymerase chain reaction (PCR) and lateral flow tests are included, without differentiation between symptomatic and asymptomatic infection. 
+Unplanned COVID-19 hospital admissions were identified using HES in-patient hospital records with U07.1 or U07.2 reason for admission ICD-10 codes. COVID-19 deaths with the same COVID-19 ICD-10 codes mentioned anywhere on the death certificate (i.e., as an underlying or contributing cause of death) were included.
+
+
+<!-- COVID-19 A&E attendances were identified using HES emergency care records with U07.1 ("COVID-19, virus identified") or U07.2 ("COVID-19, virus not identified") ICD-10 diagnosis codes @emergenc. -->
+
+
+COVID-19 related A&E attendance and critical/intensive care admission we also considered but there were doubts over data the reliability of event ascertainment in these cases.
+
 
 ## Additional variables
 
-Participant characteristics used describe the cohort and for confounder adjustment include: age, sex (male or female), English Index of Multiple Deprivation (IMD, grouped by quintiles), ethnicity (Black, Mixed, South Asian, White, Other, as per the UK census), NHS region (East of England, Midlands, London, North East and Yorkshire, North West, South East, South West), number of conditions in the clinically "at risk" classification, as per national prioritisation guidelines, the number of SARS-CoV-2 tests in the 6 months prior to the study start date (via SGSS), rurality (urban conurbation, urban city or town, rural town or village), evidence of prior SARS-CoV-2 infection (positive SARS-CoV-2 test, "probable" infection documented in primary care, or COVID-19 hospitalisation), learning disabilities, severe mental illness, undergoing an unplanned hospital admission, undergoing a planned hospital admission. All characteristics were ascertained as at the trial recruitment date (or study start date if assumed to be fixed from that date onwards).
+Participant characteristics used describe trial participants and for confounder adjustment include: age, sex (male or female), English Index of Multiple Deprivation (IMD, grouped by quintiles), ethnicity (Black, Mixed, South Asian, White, Other, as per the UK census), NHS region (East of England, Midlands, London, North East and Yorkshire, North West, South East, South West), number of conditions in the clinically "at risk" classification, as per national prioritisation guidelines, the number of SARS-CoV-2 tests in the 6 months prior to the study start date (via SGSS), rurality (urban conurbation, urban city or town, rural town or village), evidence of prior SARS-CoV-2 infection (positive SARS-CoV-2 test, "probable" infection documented in primary care, or COVID-19 hospitalisation), learning disabilities, severe mental illness, undergoing an unplanned hospital admission, undergoing a planned hospital admission. All characteristics were ascertained as at the trial recruitment date (or study start date if assumed to be fixed from that date onwards).
 
 ## Statistical Analysis
 
-Time zero was the trial recruitment day, and trial participants were followed up for no more than 12 weeks from this day. Follow-up was censored earlier than this at `r format(as.Date(study_dates$studyend_date), "%d %B %Y")`, death, or GP practice de-registration. Additionally for each matched pair, follow-up for both the boosted and unboosted person was censored if the control is boosted.
+Time zero was the trial recruitment day, and trial participants were followed up for no more than 10 weeks from this day. Follow-up was censored earlier than this at `r format(as.Date(study_dates$studyend_date), "%d %B %Y")`, death, or GP practice de-registration. Additionally for each matched pair, follow-up for both the boosted and unboosted person was censored if the control is boosted.
 
-Data from each trial were pooled and analysed using Cox regression with period-specific hazard ratios for treatment, in two-week periods. Baseline hazards were allowed to differ for participants differing by recruitment day, region, priority group, and week and type of second vaccine dose, via Cox stratification. Other variables were included as covariates. A robust variance estimator was used to account for participant clustering.
+Trials were pooled and analysed using Cox regression with period-specific hazard ratios for treatment, in two-week periods. Baseline hazards were allowed to differ for participants differing by recruitment day, region, and week and type of second vaccine dose, via Cox stratification. Other variables were included as covariates. A robust variance estimator was used to account for participant clustering.
 
 [The primary estimand is the average treatment effect in the recruited population. To estimate this, expected cumulative incidence rates are computed for each participant assuming treatment was received by everyone in both trial arms at time zero. These curves are then averaged over all participants to give the marginal cumulative incidence. This is repeated assuming nobody is treated in either arm, and their difference taken. Calculating standard errors for these quantities is challenging, whether approached analytically (due to complex variance components) or computationally (via bootstrapping, due to the large datasets involved) and is there not reported. ]
 
@@ -244,18 +269,20 @@ We have developed a publicly available website <https://opensafely.org/> through
 
 ## Study population and matching
 
-A total of `r filter(matchsummary, treatment=="pfizer") %>% pull(n_treated))` BNT162b2 booster doses were administered between `r format(as.Date(study_dates$studystart_date), "%d %B %Y")` and `r format(as.Date(study_dates$studyend_date), "%d %B %Y")` in adults registered at a TPP practice, with `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_eligible))` (`r label_percent(0.1)(filter(matchsummary, treatment=="pfizer") %>% pull(prop_eligible_treated))`) eligible for inclusion into the treatment arm (supplementary Tables S1 and S2). Of these, `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` (`r label_percent(0.1)(filter(matchsummary, treatment=="pfizer") %>% pull(prop_matched_eligible))`) were successfully matched with unboosted controls (Figure 1), with `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(fup_years))` person-years of follow-up across both trial arms (Table 2). 
+A total of `r filter(matchsummary, treatment=="pfizer") %>% pull(n_treated))` BNT162b2 booster doses were administered between `r format(as.Date(study_dates$studystart_date), "%d %B %Y")` and `r format(as.Date(study_dates$studyend_date), "%d %B %Y")` in adults registered at a TPP practice, with `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_eligible))` (`r label_percent(0.1)(filter(matchsummary, treatment=="pfizer") %>% pull(prop_eligible_treated))`) eligible for inclusion into the treatment arm (supplementary Tables S1 and S2). Of these, `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` (`r label_percent(0.1)(filter(matchsummary, treatment=="pfizer") %>% pull(prop_matched_eligible))`) were successfully matched with unboosted controls (Figure 1).
 
 <!-- For mRNA-1273, this was `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="moderna") %>% pull(n))` (`r label_percent(0.1)(filter(matchsummary, treatment=="moderna") %>% pull(prop_recruited))`) and `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="moderna") %>% pull(fup_years))` person-years of follow-up (Table 2).  -->
 
-Characteristics at recruitment between treatment and controls arms are provided in supplementary materials (Table S2). Characteristics were (??) well-balanced between trial arms.
+Participant characteristics at trial recruitment between trial arms were often well-balanced (Table 1), with some notable exceptions. Unboosted controls were typically... These unbalanced characteristics were adjusted for in the Cox regression models.
 
+
+There were `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(fup_years))` person-years of follow-up across both trial arms (Table 2). 
 
 \newpage
 
-#### Figure 1: Booster vaccination uptake, and matching success
+#### Figure 1: Booster vaccination uptake, treatment arm eligiblity and matching success
 
-Booster vaccination uptake over the duration of the study period, and the proportion of those that were matched for modelling.
+Booster vaccination uptake over the duration of the study period, and the number of boosted people who were eligible and matched.
 
 ```{r, vaxdate, echo=FALSE, message=FALSE, warning=FALSE, out.width='60%', out.height='50%', results='asis', out.extra=''}
 #read_rds(fs::path(output_dir_os, "descriptive", "vaxdate", "plot_vaxdate_stack.rds"))
@@ -324,10 +351,9 @@ matchcoverage  %>%
 cat("  \n\n")
 ```
 
-#### Table 1: Baseline characteristics
+#### Table 1: Participant characteristics
 
-
-Participant characteristics as on the day of recruitment into the treatment or control arms, stratified by treatment and outcome type. 
+Participant characteristics as on the day of recruitment into the treatment or control arm. 
 
 ```{r table1, echo=FALSE, warning=FALSE, message=FALSE}
 table1_body <- read_csv(fs::path(output_dir_os, "matchtable1.csv"))
@@ -335,6 +361,7 @@ table1_by <- read_csv(fs::path(output_dir_os, "matchtable1by.csv"))
 
 table1 <- 
   table1_body %>%
+  #filter(outcome %in% outcomes) %>%
   group_by(variable) %>%
   mutate(
     label = if_else(row_number()==1, label, str_c("&nbsp;&nbsp;&nbsp;", label)),
@@ -384,10 +411,12 @@ table1 %>%
 
 #### Table 2: Recruitment, follow-up, and event incidence
 
-
 ```{r table2, echo=FALSE, warning=FALSE, message=FALSE}
 incidences %>%
-  filter(fup_period == "All") %>%
+  filter(
+    fup_period == "All",
+    outcome %in% c("postest", "covidadmitted", "coviddeath")
+  ) %>%
   left_join(
     matchsummary %>% select(treatment, eligible_1=total_treated, recruit_prop_1 = prop_recruited),
     by=c("treatment")
@@ -461,19 +490,27 @@ incidences %>%
 
 ## Estimated booster effectiveness
 
-In the BNT162b2 and mRNA-1273 analyses respectively, matched participants contributed `r filter(incidences, treatment=="pfizer", outcome=="postest", fup_period=="all") %>% pull(events)` and `r filter(incidences, treatment=="moderna", outcome=="postest", fup_period=="all") %>% pull(events)` positive SARS-CoV-2 tests, `r filter(incidences, treatment=="pfizer", outcome=="covidattendance", fup_period=="all") %>% pull(events)` and `r filter(incidences, treatment=="moderna", outcome=="covidattendance", fup_period=="all") %>% pull(events)` COVID-19 A&E attendances, `r filter(incidences, treatment=="pfizer", outcome=="covidadmitted", fup_period=="all") %>% pull(events)` and `r filter(incidences, treatment=="moderna", outcome=="covidadmitted", fup_period=="all") %>% pull(events)` COVID-19 hospital admissions, `r filter(incidences, treatment=="pfizer", outcome=="covidcc", fup_period=="all") %>% pull(events)` and `r filter(incidences, treatment=="moderna", outcome=="covidcc", fup_period=="all") %>% pull(events)` COVID-19 ciritical care admissions, and `r filter(incidences, treatment=="pfizer", outcome=="coviddeath", fup_period=="all") %>% pull(events)` and `r filter(incidences, treatment=="moderna", outcome=="coviddeath", fup_period=="all") %>% pull(events)` COVID-19 deaths (Table 2). 
+Trial participants contributed `r filter(incidences, treatment=="pfizer", outcome=="postest", fup_period=="all") %>% pull(events)` positive SARS-CoV-2 tests, `r filter(incidences, treatment=="pfizer", outcome=="covidadmitted", fup_period=="all") %>% pull(events)` COVID-19 hospital admissions, and `r filter(incidences, treatment=="pfizer", outcome=="coviddeath", fup_period=="all") %>% pull(events)` COVID-19 deaths (Table 2). 
 
-During the fifth and sixth week after recruitment (days 28-41) the estimated hazard ratio comparing a BNT162b2 booster dose to no dose for a positive test was `r filter(hazards, outcome=="postest", treatment=="pfizer", model==3, term_left==28) %>% pull(hr_display)`, for COVID-19 A&E attendances was `r filter(hazards, outcome=="covidattendance", treatment=="pfizer", model==3, term_left==28) %>% pull(hr_display)`, for COVID-19 hospital admission was `r filter(hazards, outcome=="covidadmitted", treatment=="pfizer", model==3, term_left==28) %>% pull(hr_display)`, for COVID-19 critical care admission was `r filter(hazards, outcome=="covidcc", treatment=="pfizer", model==3, term_left==28) %>% pull(hr_display)`, and for COVID-19 death was `r filter(hazards, outcome=="coviddeath", treatment=="pfizer", model==3, term_left==28) %>% pull(hr_display)` (Figure 2). For mRNA-1273, the corresponding estimated hazard ratios were `r filter(hazards, outcome=="postest", treatment=="moderna", model==3, term_left==28) %>% pull(hr_display)`, for COVID-19 A&E attendances was `r filter(hazards, outcome=="covidattendance", treatment=="moderna", model==3, term_left==28) %>% pull(hr_display)`, for COVID-19 hospital admission was `r filter(hazards, outcome=="covidadmitted", treatment=="moderna", term_left==28) %>% pull(hr_display)`, for COVID-19 critical care admission was `r filter(hazards, outcome=="covidcc", treatment=="moderna", model==3, term_left==28) %>% pull(hr_display)`, and for COVID-19 death was `r filter(hazards, outcome=="coviddeath", treatment=="moderna", model==3, term_left==28) %>% pull(hr_display)`. 
+<!-- `r filter(incidences, treatment=="pfizer", outcome=="covidattendance", fup_period=="all") %>% pull(events)` COVID-19 A&E attendances, `r filter(incidences, treatment=="pfizer", outcome=="covidcc", fup_period=="all") %>% pull(events)` COVID-19 ciritical care admissions, -->
+
+During the fifth and sixth week after recruitment (days 28-41) the estimated hazard ratio comparing a BNT162b2 booster dose to no dose was `r filter(hazards_none, outcome=="postest", treatment=="pfizer", model==3, term_left==28) %>% pull(hr_display)` for a positive test, `r filter(hazards_none, outcome=="covidadmitted", treatment=="pfizer", model==3, term_left==28) %>% pull(hr_display)` for COVID-19 hospital admission, and `r filter(hazards_none, outcome=="coviddeath", treatment=="pfizer", model==3, term_left==28) %>% pull(hr_display)` for COVID-19 death (Figure 2). 
+
+<!-- `r filter(hazards_none, outcome=="covidattendance", treatment=="pfizer", model==3, term_left==28) %>% pull(hr_display)` for COVID-19 A&E attendances, `r filter(hazards_none, outcome=="covidcc", treatment=="pfizer", model==3, term_left==28) %>% pull(hr_display)` for COVID-19 critical care admission,  -->
+
+<!-- For mRNA-1273, the corresponding estimated hazard ratios were `r filter(hazards, outcome=="postest", treatment=="moderna", model==3, term_left==28) %>% pull(hr_display)`, for COVID-19 A&E attendances was `r filter(hazards, outcome=="covidattendance", treatment=="moderna", model==3, term_left==28) %>% pull(hr_display)`, for COVID-19 hospital admission was `r filter(hazards, outcome=="covidadmitted", treatment=="moderna", term_left==28) %>% pull(hr_display)`, for COVID-19 critical care admission was `r filter(hazards, outcome=="covidcc", treatment=="moderna", model==3, term_left==28) %>% pull(hr_display)`, and for COVID-19 death was `r filter(hazards, outcome=="coviddeath", treatment=="moderna", model==3, term_left==28) %>% pull(hr_display)`.  -->
 
 
-Estimated effectiveness by primary vaccine course...
+For the same period, the estimated effectiveness for BNT162b2 and ChAdOx1-S primary courses respectively were  `r filter(hazards_vax12_type, outcome=="postest", treatment=="pfizer", vax12_type=="pfizer-pfizer", model==3, term_left==28) %>% pull(hr_display)` and `r filter(hazards_vax12_type, outcome=="postest", treatment=="pfizer", vax12_type=="az-az", model==3, term_left==28) %>% pull(hr_display)` for a positive test, `r filter(hazards_vax12_type, outcome=="covidadmitted", treatment=="pfizer", vax12_type=="pfizer-pfizer", model==3, term_left==28) %>% pull(hr_display)` and `r filter(hazards_vax12_type, outcome=="covidadmitted", treatment=="pfizer", vax12_type=="az-az", model==3, term_left==28) %>% pull(hr_display)` for COVID-19 hospital admission, and `r filter(hazards_vax12_type, outcome=="coviddeath", treatment=="pfizer", vax12_type=="pfizer-pfizer", model==3, term_left==28) %>% pull(hr_display)` and `r filter(hazards_vax12_type, outcome=="coviddeath", treatment=="pfizer", vax12_type=="az-az", model==3, term_left==28) %>% pull(hr_display)` for COVID-19 death (Figure 2). 
 
+<!--  `r filter(hazards_vax12_type, outcome=="covidemergency", treatment=="pfizer", vax12_type=="pfizer-pfizer", model==3, term_left==28) %>% pull(hr_display)` and `r filter(hazards_vax12_type, outcome=="emergency", treatment=="pfizer", vax12_type=="az-az", model==3, term_left==28) %>% pull(hr_display)` for COVID-19 A&E attendances, -->
+<!-- `r filter(hazards_vax12_type, outcome=="covidcc", treatment=="pfizer", vax12_type=="pfizer-pfizer", model==3, term_left==28) %>% pull(hr_display)` and `r filter(hazards_vax12_type, outcome=="covidcc", treatment=="pfizer", vax12_type=="az-az", model==3, term_left==28) %>% pull(hr_display)` for COVID-19 critical care admission, -->
 
 \newpage
 
 #### Figure 2: Estimated booster effectiveness
 
-For each outcome based on the fully adjusted model, the period-specific hazard ratio for boosting versus not boosting is shown. Models with less extensive confounder adjustment are provided in supplementary materials (supplementary Figure SX). 
+For each outcome based on the fully adjusted model, the period-specific hazard ratio for boosting with BNT162b2 versus not boosting is shown, stratified by primary course. Models with less extensive confounder adjustment are provided in supplementary materials (supplementary Figure SX). 
 
 
 ```{r plot_effects, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
@@ -583,12 +620,13 @@ formatpercent100 <- function(x,accuracy){
   y_breaks <- c(0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2)
 
   plot_hazards <-
-    hazards3 %>%
+    hazards3_vax12_type %>%
+    filter(outcome %in% c("postest", "covidadmitted", "coviddeath")) %>%
     ggplot()+
     geom_point(aes(y=hr, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
     geom_linerange(aes(ymin=hr.ll, ymax=hr.ul, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
     geom_hline(aes(yintercept=1), colour='grey')+
-    facet_grid(rows=vars(outcome_descr), cols=vars(treatment_descr), switch="y")+
+    facet_grid(rows=vars(outcome_descr), cols=vars(subgroup_descr), switch="y")+
     scale_y_log10(
       breaks=y_breaks,
       limits = c(0.01, 1.5),

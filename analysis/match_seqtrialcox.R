@@ -411,6 +411,7 @@ local({
     select(-subclass) %>%
     mutate(
       treated_patient_id = paste0(treated, "_", patient_id),
+      fup = pmin(tte_stop - tte_recruitment, last(postbaselinecuts))
     )
 
 })
@@ -425,7 +426,6 @@ logoutput_table(controls_per_trial)
 # max trial date
 max_trial_day <- max(data_matched$trial_day, na.rm=TRUE)
 logoutput("max trial day is ", max_trial_day)
-
 
 
 # combine matching dataset with all other variables required for modelling ----
@@ -470,6 +470,9 @@ logoutput_datasize(data_baseline)
 
 if(removeobjects) rm(data_cohort)
 
+
+
+
 ## create variables-at-time-zero dataset - one row per trial per arm per patient ----
 data_merged <-
   # add time-varying info as at recruitment date (= tte_trial)
@@ -496,6 +499,7 @@ logoutput_datasize(data_merged)
 
 write_rds(data_merged, fs::path(output_dir, "match_data_merged.rds"))
 
+if(removeobjects) rm(data_matched)
 
 # matching coverage per trial / day of follow up
 
@@ -571,13 +575,13 @@ candidate_summary_trial <-
   ungroup()
 
 match_summary_trial <-
-  data_matched %>%
+  data_merged %>%
   group_by(trial_day, treated) %>%
   summarise(
     n=n(),
-    fup_sum = sum(tte_stop - tte_recruitment),
-    fup_years = sum(tte_stop - tte_recruitment)/365.25,
-    fup_mean = mean(tte_stop - tte_recruitment)
+    fup_sum = sum(fup),
+    fup_years = sum(fup)/365.25,
+    fup_mean = mean(fup)
   ) %>%
   arrange(
     trial_day, treated
@@ -598,15 +602,15 @@ write_csv(match_summary_trial, fs::path(output_dir, "match_summary_trial.csv"))
 
 
 match_summary_treated <-
-  data_matched %>%
+  data_merged %>%
   group_by(treated) %>%
   summarise(
     n=n(),
     firstrecruitdate = min(tte_recruitment) + day1_date,
     lastrecruitdate = max(tte_recruitment) + day1_date,
-    fup_sum = sum(tte_stop - tte_recruitment),
-    fup_years = sum(tte_stop - tte_recruitment)/365.25,
-    fup_mean = mean(tte_stop - tte_recruitment)
+    fup_sum = sum(fup),
+    fup_years = sum(fup)/365.25,
+    fup_mean = mean(fup)
   )
 
 write_csv(match_summary_treated, fs::path(output_dir, "match_summary_treated.csv"))
@@ -623,14 +627,14 @@ candidate_summary <-
   )
 
 match_summary <-
-  data_matched %>%
+  data_merged %>%
   summarise(
     n=n(),
     firstrecruitdate = min(tte_recruitment) + day1_date,
     lastrecruitdate = max(tte_recruitment) + day1_date,
-    fup_sum = sum(tte_stop - tte_recruitment),
-    fup_years = sum(tte_stop - tte_recruitment)/365.25,
-    fup_mean = mean(tte_stop - tte_recruitment)
+    fup_sum = sum(fup),
+    fup_years = sum(fup)/365.25,
+    fup_mean = mean(fup)
   ) %>%
   bind_cols(candidate_summary) %>%
   mutate(
@@ -762,15 +766,16 @@ library('gtsummary')
 var_labels <- list(
   N  ~ "Total N",
   treated_descr ~ "Trial arm",
+  fup ~ "Follow-up (days)",
   vax12_type ~ "Primary vaccination course (doses 1 and 2)",
-  age ~ "Age",
+  jcvi_group ~ "JCVI group",
+  #age ~ "Age",
   ageband ~ "Age",
   sex ~ "Sex",
   ethnicity_combined ~ "Ethnicity",
   imd_Q5 ~ "IMD",
   region ~ "Region",
-  rural_urban_group ~ "Rural/urban category",
-  jcvi_group ~ "JCVI group",
+  #rural_urban_group ~ "Rural/urban category",
   cev ~ "Clinically extremely vulnerable",
 
   sev_obesity ~ "Body Mass Index > 40 kg/m^2",
@@ -805,14 +810,12 @@ tab_summary_baseline <-
   select(
     treated_descr,
     all_of(names(var_labels)),
-    -age,
   ) %>%
-  #{unname(var_labels[names(.)])}
   tbl_summary(
     by = treated_descr,
     label = unname(var_labels[names(.)]),
     statistic = list(N = "{N}")
-  )  %>%
+  ) %>%
   modify_footnote(starts_with("stat_") ~ NA) %>%
   modify_header(stat_by = "**{level}**") %>%
   bold_labels()
