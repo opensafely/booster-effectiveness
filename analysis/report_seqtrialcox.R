@@ -257,14 +257,21 @@ dat_surv <-
   select(treated_descr, n_events, surv_obj_tidy) %>%
   unnest(surv_obj_tidy)
 
-data_surv_rounded <- dat_surv %>%
+data_surv_rounded <-
+  dat_surv %>%
   mutate(
     # Use ceiling not round. This is slightly biased upwards,
     # but means there's no disclosure risk at the boundaries (0 and 1) where masking would otherwise be threshold/2
     surv = ceiling_any(surv, 1/floor(max(n.risk, na.rm=TRUE)/(threshold+1))),
     surv.ll = ceiling_any(surv.ll, 1/floor(max(n.risk, na.rm=TRUE)/(threshold+1))),
     surv.ul = ceiling_any(surv.ul, 1/floor(max(n.risk, na.rm=TRUE)/(threshold+1))),
-  )
+    cml.event = ceiling_any(cumsum(replace_na(n.event, 0)), threshold+1),
+    cml.censor = ceiling_any(cumsum(replace_na(n.censor, 0)), threshold+1),
+    n.event = c(NA, diff(cml.event)),
+    n.censor = c(NA, diff(cml.censor)),
+    n.risk = ceiling_any(max(n.risk, na.rm=TRUE), threshold+1) - (cml.event + cml.censor)
+  ) %>%
+  select(treated_descr, time, leadtime, interval, surv, surv.ll, surv.ul, n.risk, n.event, n.censor)
 
 
 write_csv(data_surv_rounded, fs::path(output_dir, "report_km.csv"))
