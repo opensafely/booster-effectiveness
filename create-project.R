@@ -498,6 +498,7 @@ actions_list <- splice(
     moderately_sensitive = lst(
       csv = "output/manuscript-objects/*.csv",
       png = "output/manuscript-objects/*.png",
+      csv = "output/manuscript-objects/*/*.csv",
     )
   )
 
