@@ -1014,5 +1014,5 @@ actions:
       moderately_sensitive:
         csv: output/manuscript-objects/*.csv
         png: output/manuscript-objects/*.png
-        csv: output/manuscript-objects/*/*.csv
+        csvsubgroup: output/manuscript-objects/*/*.csv
 
