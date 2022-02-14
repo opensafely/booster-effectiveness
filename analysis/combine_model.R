@@ -13,7 +13,7 @@ args <- commandArgs(trailingOnly=TRUE)
 if(length(args)==0){
   # use for interactive testing
   removeobs <- FALSE
-  subgroup_variable <- "vax12_type"
+  subgroup_variable <- "none"
   #subgroup_variable <- "none"
 } else {
   removeobs <- TRUE
@@ -50,20 +50,24 @@ events_lookup <- read_rds(here("lib", "design", "event-variables.rds"))
 recode_treatment <- c(`BNT162b2` = "pfizer", `mRNA-1273` = "moderna")
 recode_outcome <- set_names(events_lookup$event, events_lookup$event_descr)
 
-
-
 if(subgroup_variable=="none"){
-  recode_subgroup_variable <- c(`Main analysis` = "none")
   recode_subgroup <- c(` `="none")
+  recode_subgroup_variable <- c(`Main analysis` = "none")
+  recode_subgroup_level <- c("none")
   subgroup <- c("none")
 }
 
 if(subgroup_variable=="vax12_type"){
-  recode_subgroup_variable <- c(`Subgroup: primary vaccine course` = "vax12_type")
   recode_subgroup <- c(
-    `BNT162b2-BNT162b2` = "vax12_type-pfizer-pfizer",
-    `ChAdOx1-ChAdOx1` = "vax12_type-az-az"#,
+    `Primary vaccine course: BNT162b2-BNT162b2` = "vax12_type-pfizer-pfizer",
+    `Primary vaccine course: ChAdOx1-ChAdOx1` = "vax12_type-az-az"#,
     #`mRNA-1273-mRNA-1273` = "vax12_type-moderna-moderna"
+  )
+  recode_subgroup_variable <- c(`Primary vaccine course` = "vax12_type")
+  recode_subgroup_level <- c(
+    `BNT162b2-BNT162b2` = "pfizer-pfizer",
+    `ChAdOx1-ChAdOx1` = "az-az"#,
+    #`mRNA-1273-mRNA-1273` = "moderna-moderna"
   )
 }
 
@@ -75,13 +79,15 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
       treatment = factor(c("pfizer")),
       outcome = factor(c("postest")),
       subgroup = factor(recode_subgroup),
-      subgroup_variable = factor(subgroup_variable)
+      subgroup_variable = factor(subgroup_variable),
     ) %>%
     mutate(
+      subgroup_level = str_split_fixed(subgroup,"-",2)[,2],
       treatment_descr = fct_recode(treatment,  !!!recode_treatment),
       outcome_descr = fct_recode(outcome,  !!!recode_outcome),
       subgroup_descr = fct_recode(recode_subgroup,  !!!recode_subgroup),
-      subgroup_variable_descr = fct_recode(subgroup_variable,  !!!recode_subgroup_variable)
+      subgroup_variable_descr = fct_recode(subgroup_variable,  !!!recode_subgroup_variable),
+      subgroup_level_descr = fct_recode(subgroup_level,  !!!recode_subgroup_level),
     )
 } else {
   model_metaparams <-
@@ -90,9 +96,10 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
       outcome = factor(c("postest", "covidemergency", "covidadmitted", "coviddeath")),
       #outcome = factor(c("postest", "covidadmission")),
       subgroup = factor(recode_subgroup),
-      subgroup_variable = factor(subgroup_variable)
+      subgroup_variable = factor(subgroup_variable),
     ) %>%
     mutate(
+      subgroup_level = str_split_fixed(subgroup,"-",2)[,2],
       treatment_descr = fct_recode(treatment,  !!!recode_treatment),
       outcome_descr = fct_recode(outcome,  !!!recode_outcome),
       subgroup_descr = fct_recode(subgroup,  !!!recode_subgroup),
