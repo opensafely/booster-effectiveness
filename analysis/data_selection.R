@@ -42,6 +42,7 @@ data_criteria <- data_processed %>%
     has_imd = !is.na(imd),
     has_ethnicity = !is.na(ethnicity_combined),
     has_region = !is.na(region),
+    has_msoa = is.na(msoa),
     isnot_hscworker = !hscworker,
     isnot_carehomeresident = !care_home_combined,
     isnot_endoflife = !endoflife,
@@ -70,7 +71,7 @@ data_criteria <- data_processed %>%
       vax1_afterfirstvaxdate &
       vax2_beforelastvaxdate &
       vax3_afterstudystartdate &
-      has_age & has_sex & has_imd & has_ethnicity & has_region &
+      has_age & has_sex & has_imd & has_ethnicity & has_msoa &
       has_vaxgap12 & has_vaxgap23 & has_knownvax1 & has_knownvax2 & vax12_homologous &
       isnot_hscworker &
       isnot_carehomeresident & isnot_endoflife &
@@ -91,7 +92,7 @@ data_flowchart <- data_criteria %>%
   transmute(
     c0 = vax1_afterfirstvaxdate & vax2_beforelastvaxdate & vax3_afterstudystartdate,# & jcvi_group_6orhigher,
     #c1_1yearfup = c0_all & (has_follow_up_previous_year),
-    c1 = c0 & (has_age & has_sex & has_imd & has_ethnicity & has_region),
+    c1 = c0 & (has_age & has_sex & has_imd & has_ethnicity & has_msoa),
     c2 = c1 & (has_vaxgap12 & has_vaxgap23 & has_knownvax1 & has_knownvax2 & vax12_homologous),
     c3 = c2 & (isnot_hscworker ),
     c4 = c3 & (isnot_carehomeresident & isnot_endoflife & isnot_housebound),
