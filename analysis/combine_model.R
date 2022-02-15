@@ -103,7 +103,8 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
       treatment_descr = fct_recode(treatment,  !!!recode_treatment),
       outcome_descr = fct_recode(outcome,  !!!recode_outcome),
       subgroup_descr = fct_recode(subgroup,  !!!recode_subgroup),
-      subgroup_variable_descr = fct_recode(subgroup_variable,  !!!recode_subgroup_variable)
+      subgroup_variable_descr = fct_recode(subgroup_variable,  !!!recode_subgroup_variable),
+      subgroup_level_descr = fct_recode(subgroup_level,  !!!recode_subgroup_level),
     )
 }
 
