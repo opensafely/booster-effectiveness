@@ -379,8 +379,7 @@ local({
       ) %>%
       group_by(subclass, treated) %>%
       filter(
-        row_number() <= pmin(n_treated, n_control), # 1:1 matching only
-        !is.na(subclass) # remove unmatchd people. equivalent to weight != 0
+        !is.na(subclass) # remove unmatched people. equivalent to weight != 0
       ) %>%
       group_by(treated) %>%
       mutate(
