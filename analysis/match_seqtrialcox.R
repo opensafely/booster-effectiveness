@@ -98,8 +98,7 @@ events <- read_rds(here("lib", "design", "event-variables.rds"))
 # Prepare data ----
 
 ## one pow per patient ----
-data_cohort <- read_rds(here("output", "data", "data_cohort.rds")) %>%
-  filter(!is.na(msoa))
+data_cohort <- read_rds(here("output", "data", "data_cohort.rds"))
 
 logoutput_datasize(data_cohort)
 
