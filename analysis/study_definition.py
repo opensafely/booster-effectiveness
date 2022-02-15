@@ -606,7 +606,7 @@ study = StudyDefinition(
     # see https://github.com/opensafely-core/cohort-extractor/pull/497 for codes
     # see https://docs.opensafely.org/study-def-variables/#sus for more info
     with_admission_method=["11", "12", "13", "81"],
-    with_patient_classification = ["1", "2"], # ordinary and day-case admissions only 
+    with_patient_classification = ["1"], # ordinary admissions only 
     date_format="YYYY-MM-DD",
     find_last_match_in_period=True,
   ),
@@ -616,7 +616,7 @@ study = StudyDefinition(
     # see https://github.com/opensafely-core/cohort-extractor/pull/497 for codes
     # see https://docs.opensafely.org/study-def-variables/#sus for more info
     with_admission_method=["11", "12", "13", "81"],
-    with_patient_classification = ["1", "2"], # ordinary and day-case admissions only
+    with_patient_classification = ["1"], # ordinary admissions only
     date_format="YYYY-MM-DD",
     find_last_match_in_period=True
   ), 
@@ -628,7 +628,7 @@ study = StudyDefinition(
     # see https://github.com/opensafely-core/cohort-extractor/pull/497 for codes
     # see https://docs.opensafely.org/study-def-variables/#sus for more info
     with_admission_method=["11", "12", "13", "81"],
-    with_patient_classification = ["1", "2"], # ordinary and day-case admissions only
+    with_patient_classification = ["1"], # ordinary and day-case admissions only
   ),
   
   
