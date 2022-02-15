@@ -363,34 +363,19 @@ local({
     data_matched_i <-
       as.data.frame(matching_i$X) %>%
       add_column(
-        subclass = matching_i$subclass,
+        match_id = matching_i$subclass,
         treated = matching_i$treat,
         patient_id = matching_candidates_i$patient_id,
         weight = matching_i$weights,
         trial_day = trial,
       ) %>%
 
-      # filter treated and controls to ensure exact 1:1 matching
-      arrange(subclass, desc(treated), patient_id) %>%
-      group_by(subclass) %>%
-      mutate(
-        n_treated = sum(treated),
-        n_control = sum(1-treated)
-      ) %>%
-      group_by(subclass, treated) %>%
-      filter(
-        !is.na(subclass) # remove unmatched people. equivalent to weight != 0
-      ) %>%
-      group_by(treated) %>%
-      mutate(
-        match_id = row_number()
-      ) %>%
-      arrange(subclass, match_id, desc(treated)) %>%
+      filter(!is.na(match_id)) %>% # remove unmatched people. equivalent to weight != 0
+      arrange(match_id, desc(treated)) %>%
       left_join(
         matching_candidates_i %>% select(patient_id, starts_with("tte_")),
         by = "patient_id"
       ) %>%
-      select(-n_treated, -n_control) %>%
       group_by(match_id) %>%
       mutate(
         tte_recruitment = trial_time,
@@ -426,7 +411,6 @@ local({
 
   data_matched <<-
     data_matched %>%
-    select(-subclass) %>%
     mutate(
       treated_patient_id = paste0(treated, "_", patient_id),
       fup = pmin(tte_stop - tte_recruitment, last(postbaselinecuts))
