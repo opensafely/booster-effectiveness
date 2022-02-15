@@ -56,6 +56,7 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
       admitted_covid_ccdays_2 = as.numeric(as.character(admitted_covid_ccdays_2)),
       admitted_covid_ccdays_3 = as.numeric(as.character(admitted_covid_ccdays_3)),
       admitted_covid_ccdays_4 = as.numeric(as.character(admitted_covid_ccdays_4)),
+      msoa = sample(factor(c("1", "2")), size=n(), replace=TRUE) # override msoa so matching success more likely
     )
 
 

@@ -328,21 +328,7 @@ local({
       safely_matchit(
         formula = matching_formula,
         data = matching_candidates_i,
-        method = "nearest",
-        replace = FALSE,
-        estimand = "ATE",
-        exact = exact_variables,
-        caliper = caliper_variables, std.caliper=FALSE,
-        m.order = "data", # data is sorted on (effectively random) patient ID
-        #verbose = TRUE,
-        ratio = 1L # irritatingly you can't set this for "exact" method, so have to filter later
-      )[[1]]
-
-    matching_i <-
-      matchit(
-        formula = matching_formula,
-        data = matching_candidates_i,
-        method = "nearest",
+        method = "nearest", distance = "mahalanobis", # these two options don't really do anything because we only want exact + caliper matching
         replace = FALSE,
         estimand = "ATT",
         exact = exact_variables,
@@ -350,7 +336,8 @@ local({
         m.order = "data", # data is sorted on (effectively random) patient ID
         #verbose = TRUE,
         ratio = 1L # irritatingly you can't set this for "exact" method, so have to filter later
-      )
+      )[[1]]
+
 
     if(is.null(matching_i)) {
       message("Terminating trial sequence at trial ", trial, " - No exact matches found.")
@@ -399,7 +386,7 @@ local({
     data_matched <- bind_rows(data_matched, data_matched_i)
   }
 
-  data_summary <<-
+   data_summary <<-
     data_treated %>%
     left_join(data_eligible, by=c("patient_id", "trial_time")) %>%
     left_join(data_matched %>% filter(treated==1L) %>% transmute(patient_id, matched=1L, trial_time=tte_treatment), by=c("patient_id", "trial_time")) %>%
