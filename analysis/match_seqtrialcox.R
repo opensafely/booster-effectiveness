@@ -44,6 +44,8 @@ source(here("lib", "functions", "redaction.R"))
 
 postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 matching_variables <- read_rds(here("lib", "design", "matching_variables.rds"))
+exact_variables <- read_rds(here("lib", "design", "exact_variables.rds"))
+caliper_variables <- read_rds(here("lib", "design", "caliper_variables.rds"))
 
 if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
   recruitment_period_cutoff <- 0.1
@@ -96,7 +98,8 @@ events <- read_rds(here("lib", "design", "event-variables.rds"))
 # Prepare data ----
 
 ## one pow per patient ----
-data_cohort <- read_rds(here("output", "data", "data_cohort.rds"))
+data_cohort <- read_rds(here("output", "data", "data_cohort.rds")) %>%
+  filter(!is.na(msoa))
 
 logoutput_datasize(data_cohort)
 
@@ -326,13 +329,29 @@ local({
       safely_matchit(
         formula = matching_formula,
         data = matching_candidates_i,
-        method = "exact",
+        method = "nearest",
         replace = FALSE,
         estimand = "ATE",
-        #m.order = "data", # data is sorted on (effectively random) patient ID
+        exact = exact_variables,
+        caliper = caliper_variables, std.caliper=FALSE,
+        m.order = "data", # data is sorted on (effectively random) patient ID
         #verbose = TRUE,
-        #ratio = 1L # irritatingly you can't set this for "exact" method, so have to filter later
+        ratio = 1L # irritatingly you can't set this for "exact" method, so have to filter later
       )[[1]]
+
+    matching_i <-
+      matchit(
+        formula = matching_formula,
+        data = matching_candidates_i,
+        method = "nearest",
+        replace = FALSE,
+        estimand = "ATT",
+        exact = exact_variables,
+        caliper = caliper_variables, std.caliper=FALSE,
+        m.order = "data", # data is sorted on (effectively random) patient ID
+        #verbose = TRUE,
+        ratio = 1L # irritatingly you can't set this for "exact" method, so have to filter later
+      )
 
     if(is.null(matching_i)) {
       message("Terminating trial sequence at trial ", trial, " - No exact matches found.")
