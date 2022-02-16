@@ -238,7 +238,7 @@ local({
   # within the construct of the model, there are no time-dependent variables, only time-dependent treatment effects (modelled as piecewise constant hazards)
 
 
-  max_trial_day <- pmin(max(data_tte$tte_treatment, na.rm=TRUE), NA, na.rm=TRUE)
+  max_trial_day <- pmin(max(data_tte$tte_treatment, na.rm=TRUE), study_dates$lastvax3_date - study_dates$studystart_date, na.rm=TRUE)
   trials <- seq_len(max_trial_day)
 
   # initialise list of candidate controls
@@ -442,7 +442,7 @@ data_baseline <-
     ethnicity_combined,
     imd_Q5,
     region,
-    jcvi_group,
+    jcvi_group_descr,
     rural_urban_group,
     prior_tests_cat,
     multimorb,
@@ -461,6 +461,7 @@ data_baseline <-
     immuno,
 
     vax12_type,
+    vax12_type_descr,
     vax2_week,
     vax3_date,
     vax3_type,
@@ -767,8 +768,8 @@ var_labels <- list(
   N  ~ "Total N",
   treated_descr ~ "Trial arm",
   fup ~ "Follow-up (days)",
-  vax12_type ~ "Primary vaccination course (doses 1 and 2)",
-  jcvi_group ~ "JCVI group",
+  vax12_type_descr ~ "Primary vaccination course (doses 1 and 2)",
+  jcvi_group_descr  ~ "JCVI group",
   #age ~ "Age",
   ageband ~ "Age",
   sex ~ "Sex",
