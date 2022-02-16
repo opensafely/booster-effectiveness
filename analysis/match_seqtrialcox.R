@@ -168,6 +168,8 @@ data_nontimevarying <-
   )
 
 
+if(removeobjects) rm(data_rollingstrata_vaxcount)
+
 data_timevarying <-
   read_rds(here("output", "data", "data_long_timevarying.rds")) %>%
   select(
@@ -225,7 +227,6 @@ write_rds(data_tte, fs::path(output_dir, "match_data_tte.rds"))
 logoutput_datasize(data_tte)
 
 
-library("MatchIt")
 
 local({
 
@@ -252,11 +253,12 @@ local({
   data_matched <- NULL
 
   # matching formula
-  matching_formula <- as.formula(str_c("treated ~ ", paste(matching_variables, collapse=" + ")))
+
+  #matching_formula <- as.formula(str_c("treated ~ ", paste(matching_variables, collapse=" + ")))
+  matching_formula <- treated ~ 1
+
   #trial=1
   for(trial in trials){
-
-    #cat(trial, "\n")
 
     trial_time <- trial-1
 
@@ -326,9 +328,10 @@ local({
     # run matching algorithm
     matching_i <-
       safely_matchit(
+        #matchit(
         formula = matching_formula,
         data = matching_candidates_i,
-        method = "nearest", distance = "mahalanobis", # these two options don't really do anything because we only want exact + caliper matching
+        method = "nearest", distance = "glm", # these two options don't really do anything because we only want exact + caliper matching
         replace = FALSE,
         estimand = "ATT",
         exact = exact_variables,
@@ -488,6 +491,7 @@ logoutput_datasize(data_merged)
 write_rds(data_merged, fs::path(output_dir, "match_data_merged.rds"))
 
 if(removeobjects) rm(data_matched)
+if(removeobjects) rm(data_timevarying)
 
 # matching coverage per trial / day of follow up
 
@@ -509,10 +513,6 @@ data_coverage <-
     n_unmatched = n_eligible - n_matched,
     n_ineligible = n_treated - n_eligible,
   ) %>%
-  # left_join(
-  #   .,
-  #   data_rollingstrata_vaxcount
-  # ) %>%
   pivot_longer(
     cols = c(n_ineligible, n_unmatched, n_matched),
     names_to = "status",
