@@ -188,8 +188,11 @@ data_processed <- data_extract %>%
     ,
     multimorb = cut(multimorb, breaks = c(0, 1, 2, Inf), labels=c("0", "1", "2+"), right=FALSE),
     immuno = immunosuppressed | asplenia,
+
+
     # original priority groups https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1007737/Greenbook_chapter_14a_30July2021.pdf#page=15
     # new priority groups https://www.england.nhs.uk/coronavirus/wp-content/uploads/sites/52/2021/07/C1327-covid-19-vaccination-autumn-winter-phase-3-planning.pdf
+    # group 10 split into 16-39 and 40-49 because of earlier roll-out in 40+ from 15 Nov https://www.gov.uk/government/news/jcvi-issues-advice-on-covid-19-booster-vaccines-for-those-aged-40-to-49-and-second-doses-for-16-to-17-year-olds
     jcvi_group = fct_case_when(
       care_home_combined | hscworker  ~ "1",
       age_august2021>=80 ~ "2",
@@ -200,7 +203,23 @@ data_processed <- data_extract %>%
       age_august2021>=60 ~ "7",
       age_august2021>=55 ~ "8",
       age_august2021>=50 ~ "9",
-      TRUE ~ "10"
+      age_august2021>=40 ~ "10a",
+      TRUE ~ "10b"
+    ),
+
+    jcvi_group_descr = fct_recode(
+      jcvi_group,
+      "Care home residents and health and social care workers"="1",
+      "80+ years"="2",
+      "75-79 years"="3",
+      "70-74 years or clinically extremely vulnerable"="4",
+      "65-69 years"="5",
+      "16-64 years or clinically at-risk"="6",
+      "60-64 years"="7",
+      "55-59 years"="8",
+      "50-54 years"="9",
+      "40-49 years"="10a",
+      "16-39 years"="10b",
     ),
 
 
@@ -350,6 +369,8 @@ data_processed <- data_processed %>%
 
     vax12_type = paste0(vax1_type, "-", vax2_type),
 
+
+
     vax1_type_descr = fct_case_when(
       vax1_type == "pfizer" ~ "BNT162b2",
       vax1_type == "az" ~ "ChAdOx1",
@@ -374,6 +395,8 @@ data_processed <- data_processed %>%
       vax4_type == "moderna" ~ "Moderna",
       TRUE ~ NA_character_
     ),
+
+    vx12_type_descr = paste0(vax1_type_descr, "-", vax2_type_descr),
 
     vax1_date = covid_vax_1_date,
     vax2_date = covid_vax_2_date,
