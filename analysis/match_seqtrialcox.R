@@ -150,6 +150,43 @@ data_rollingstrata_vaxcount <-
   filter(vax3_time>=0)
 
 
+## baseline variables ----
+
+data_baseline <-
+  data_cohort %>%
+  transmute(
+    patient_id,
+    age,
+    ageband,
+    sex,
+    ethnicity_combined,
+    imd_Q5,
+    region,
+    jcvi_group,
+    rural_urban_group,
+    prior_tests_cat,
+    multimorb,
+    learndis,
+    sev_mental,
+    cev,
+    sev_obesity,
+    chronic_heart_disease,
+    chronic_kidney_disease,
+    diabetes,
+    chronic_liver_disease,
+    chronic_resp_disease,
+    chronic_neuro_disease,
+    immunosuppressed,
+    asplenia,
+    immuno,
+
+    vax12_type,
+    vax2_week,
+    vax3_date,
+    vax3_type,
+
+  )
+logoutput_datasize(data_baseline)
 
 data_nontimevarying <-
   data_cohort %>%
@@ -166,6 +203,8 @@ data_nontimevarying <-
     treated_within_recruitment_period = replace_na(recruit, FALSE),
     recruit=NULL,
   )
+
+
 
 
 if(removeobjects) rm(data_rollingstrata_vaxcount)
@@ -226,7 +265,7 @@ write_rds(data_tte, fs::path(output_dir, "match_data_tte.rds"))
 
 logoutput_datasize(data_tte)
 
-
+if(removeobjects) rm(data_cohort)
 
 local({
 
@@ -328,7 +367,6 @@ local({
     # run matching algorithm
     matching_i <-
       safely_matchit(
-        #matchit(
         formula = matching_formula,
         data = matching_candidates_i,
         method = "nearest", distance = "glm", # these two options don't really do anything because we only want exact + caliper matching
@@ -420,47 +458,6 @@ logoutput("max trial day is ", max_trial_day)
 
 
 # combine matching dataset with all other variables required for modelling ----
-
-## baseline variables ----
-
-data_baseline <-
-  data_cohort %>%
-  transmute(
-    patient_id,
-    age,
-    ageband,
-    sex,
-    ethnicity_combined,
-    imd_Q5,
-    region,
-    jcvi_group,
-    rural_urban_group,
-    prior_tests_cat,
-    multimorb,
-    learndis,
-    sev_mental,
-    cev,
-    sev_obesity,
-    chronic_heart_disease,
-    chronic_kidney_disease,
-    diabetes,
-    chronic_liver_disease,
-    chronic_resp_disease,
-    chronic_neuro_disease,
-    immunosuppressed,
-    asplenia,
-    immuno,
-
-    vax12_type,
-    vax2_week,
-    vax3_date,
-    vax3_type,
-
-  )
-logoutput_datasize(data_baseline)
-
-if(removeobjects) rm(data_cohort)
-
 
 
 
