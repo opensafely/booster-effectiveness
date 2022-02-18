@@ -301,6 +301,7 @@ local({
   #trial=1
   for(trial in trials){
 
+    cat("matching trial ", trial, "\n")
     trial_time <- trial-1
 
     data_timevarying_i <-
