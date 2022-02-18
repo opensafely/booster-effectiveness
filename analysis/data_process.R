@@ -397,7 +397,7 @@ data_processed <- data_processed %>%
       TRUE ~ NA_character_
     ),
 
-    vx12_type_descr = paste0(vax1_type_descr, "-", vax2_type_descr),
+    vax12_type_descr = paste0(vax1_type_descr, "-", vax2_type_descr),
 
     vax1_date = covid_vax_1_date,
     vax2_date = covid_vax_2_date,

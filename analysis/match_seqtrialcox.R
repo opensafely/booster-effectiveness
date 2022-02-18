@@ -182,6 +182,7 @@ data_baseline <-
     immuno,
 
     vax12_type,
+    vax12_type_descr,
     vax2_week,
     vax3_date,
     vax3_type,
