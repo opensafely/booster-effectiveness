@@ -268,7 +268,6 @@ logoutput_datasize(data_tte)
 
 if(removeobjects) rm(data_cohort)
 
-
 local({
 
   ## sequential trial matching routine is as follows:
@@ -458,9 +457,6 @@ logoutput_table(controls_per_trial)
 # max trial date
 max_trial_day <- max(data_matched$trial_day, na.rm=TRUE)
 logoutput("max trial day is ", max_trial_day)
-
-
-# combine matching dataset with all other variables required for modelling ----
 
 
 
@@ -754,8 +750,8 @@ var_labels <- list(
   N  ~ "Total N",
   treated_descr ~ "Trial arm",
   fup ~ "Follow-up (days)",
-  vax12_type ~ "Primary vaccination course (doses 1 and 2)",
-  jcvi_group_descr ~ "JCVI group",
+  vax12_type_descr ~ "Primary vaccination course (doses 1 and 2)",
+  jcvi_group_descr  ~ "JCVI group",
   #age ~ "Age",
   ageband ~ "Age",
   sex ~ "Sex",

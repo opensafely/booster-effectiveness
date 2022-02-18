@@ -80,7 +80,7 @@ write_rds(treatment_lookup, here("lib", "design", "treatment-lookup.rds"))
 
 
 # where to split follow-up time after recruitment
-postbaselinecuts <- c(0,7,seq(14,7*10, 14))
+postbaselinecuts <- c(0,7,14,28,42,70)
 write_rds(postbaselinecuts, here("lib", "design", "postbaselinecuts.rds"))
 
 # what matching variables
