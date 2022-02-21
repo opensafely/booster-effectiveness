@@ -89,7 +89,7 @@ exact_variables <- c(
   "jcvi_group",
   "vax12_type",
   #"vax2_week",
-  "msoa",
+  "region",
   "sex",
   "cev",
   "multimorb",
