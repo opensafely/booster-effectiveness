@@ -67,15 +67,29 @@ action_match <- function(treatment){
       arguments = c(treatment),
       needs = list("data_selection", "data_process_long"),
       highly_sensitive = lst(
-        rds = glue("output/models/seqtrialcox/{treatment}/match_*.rds")
+        rds = glue("output/match/{treatment}/match_*.rds")
       ),
       moderately_sensitive = lst(
-        txt = glue("output/models/seqtrialcox/{treatment}/match_*.txt"),
-        csv = glue("output/models/seqtrialcox/{treatment}/match_*.csv"),
-        #svg = glue("output/models/seqtrialcox/{treatment}/match_*.svg"),
-        png = glue("output/models/seqtrialcox/{treatment}/match_*.png"),
-        pdf = glue("output/models/seqtrialcox/{treatment}/match_*.pdf"),
-        html = glue("output/models/seqtrialcox/{treatment}/match_*.html")
+        txt = glue("output/match/{treatment}/match_*.txt"),
+        #csv = glue("output/match/{treatment}/match_*.csv"),
+      )
+    ),
+
+    action(
+      name = glue("merge_seqtrialcox_{treatment}"),
+      run = glue("r:latest analysis/merge_seqtrialcox.R"),
+      arguments = c(treatment),
+      needs = list("data_selection", "data_process_long", glue("match_seqtrialcox_{treatment}")),
+      highly_sensitive = lst(
+        rds = glue("output/match/{treatment}/merge_*.rds")
+      ),
+      moderately_sensitive = lst(
+        txt = glue("output/match/{treatment}/merge_*.txt"),
+        csv = glue("output/match/{treatment}/merge_*.csv"),
+        #svg = glue("output/match/{treatment}/merge_*.svg"),
+        png = glue("output/match/{treatment}/merge_*.png"),
+        pdf = glue("output/match/{treatment}/merge_*.pdf"),
+        html = glue("output/match/{treatment}/merge_*.html")
       )
     )
   )
@@ -395,17 +409,18 @@ actions_list <- splice(
       as.list(
         glue_data(
           .x=expand_grid(
+            script = c("match", "merge"),
             treatment=c("pfizer", "moderna")
           ),
-          "match_seqtrialcox_{treatment}"
+          "{script}_seqtrialcox_{treatment}",
         )
       )
     ),
     moderately_sensitive = lst(
-      csv = "output/models/seqtrialcox/combined/match/*.csv",
-      # png = "output/models/seqtrialcox/combined/match/*.png",
-      # pdf = "output/models/seqtrialcox/combined/match/*.pdf",
-      # svg = "output/models/seqtrialcox/combined/match/*.svg"
+      csv = "output/match/combined/*.csv",
+      # png = "output/match/combined/*.png",
+      # pdf = "output/match/combined/*.pdf",
+      # svg = "output/match/combined/*.svg"
     )
   ),
 

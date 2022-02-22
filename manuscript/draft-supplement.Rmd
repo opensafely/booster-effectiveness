@@ -54,6 +54,7 @@ matchsummary <- read_csv(fs::path(output_dir_os, "matchsummary.csv"))
 matchsummary_treated <- read_csv(fs::path(output_dir_os, "matchsummary_treated.csv")) %>% filter(treated == 1L)
 matchsummary_control <- read_csv(fs::path(output_dir_os, "matchsummary_treated.csv")) %>% filter(treated == 0L)
 matchcoverage <- read_csv(fs::path(output_dir_os, "matchcoverage.csv"))
+matchflowchart <- read_csv(fs::path(output_dir_os, "matchflowchart.csv"))
 incidences <- read_csv(fs::path(output_dir_os, "incidence.csv")) %>% mutate(events=events_1+events_0)
 
 ```
@@ -113,6 +114,7 @@ hazards_none <- read_csv(fs::path(output_dir_os, "none", "effects.csv")) %>%
 
 hazards_vax12_type <- read_csv(fs::path(output_dir_os, "vax12_type", "effects.csv")) %>%
   mutate(
+    model_descr = fct_inorder(model_descr),
     subgroup_descr = fct_inorder(subgroup_descr),
     subgroup_level_descr = fct_inorder(subgroup_level_descr),
     treatment_descr = fct_inorder(treatment_descr),
@@ -167,24 +169,49 @@ Note that we excluded care home residents and health care workers in our analysi
 ### Table S1: Inclusion criteria
 
 ```{r flowchart, echo=FALSE, warning=FALSE, message=FALSE}
-flowchart %>%
+
+matchflowchart %>%
   transmute(
-    Participants = str_wrap(criteria, 40),
-    N = n,
-    `N excluded` = n_exclude,
-    #`% excluded` = pct_exclude,
-    `% remaining` = pct_all
+    treatment,
+    stage,
+    criteria = str_wrap(criteria, 40),
+    n,
+    n_exclude,
+    pct_all
   ) %>%
-  # mutate(
-  #   Participants=if_else(row_number()==1,"HCWs aged 18-64 receiving BNT162b2 or ChAdOx1 between 4 Jan and 28 Feb",  Participants)
-  # ) %>%
+  pivot_wider(
+    id_cols = c(stage, criteria),
+    names_from = treatment,
+    values_from = c(n, n_exclude, pct_all)
+  ) %>%
   gt() %>%
+  cols_label(
+    stage="",
+    criteria = "",
+    
+    n_pfizer = "N",
+    #n_moderna = "N",
+
+    n_exclude_pfizer = "N excluded",
+    #n_exclude_moderna = "N excluded",
+    
+    pct_all_pfizer = "% remaining",
+    #pct_all_moderna = "% remaining",
+  ) %>%
+  tab_spanner(
+    label = "BNT162b2",
+    columns = ends_with("pfizer")
+  ) %>%
+  # tab_spanner(
+  #   label = "mRNA-1273",
+  #   columns = ends_with("moderna")
+  # ) %>%
   fmt_percent(
-    columns = starts_with(c("%")),
+    columns = starts_with(c("pct_")),
     decimals = 1
   ) %>%
   fmt_number(
-    columns = starts_with(c("N")),
+    columns = starts_with(c("n_")),
     decimals= 0
   ) %>%
   fmt_missing(
@@ -194,7 +221,7 @@ flowchart %>%
   tab_style(
     style=cell_text(whitespace ="pre-wrap"),
     #style=cell_text(style ="italic"),
-    locations = cells_body(columns = "Participants")
+    locations = cells_body(columns = "criteria")
   )
 ```
 

@@ -59,6 +59,7 @@ cohortsummary <- read_csv(fs::path(output_dir_os, "cohortsummary.csv"))
 matchsummary <- read_csv(fs::path(output_dir_os, "matchsummary.csv"))
 matchsummary_treated <- read_csv(fs::path(output_dir_os, "matchsummary_treated.csv")) %>% filter(treated == 1L)
 matchsummary_control <- read_csv(fs::path(output_dir_os, "matchsummary_treated.csv")) %>% filter(treated == 0L)
+matchflowchart <- read_csv(fs::path(output_dir_os, "matchflowchart.csv"))
 matchcoverage <- read_csv(fs::path(output_dir_os, "matchcoverage.csv"))
 incidences <- read_csv(fs::path(output_dir_os, "none", "incidence.csv")) %>% mutate(events=events_1+events_0)
 
@@ -168,13 +169,13 @@ With the approval of NHS England we used the OpenSAFELY-TPP database, covering 4
 
 *Results*
 
-We matched `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` BNT162b2 booster recipients to unboosted controls with only two doses. During days 14-20 after the booster, the estimated hazard ratio (95% CI) comparing a BNT162b2 booster dose to two doses only was `r filter(hazards_none, outcome=="postest", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for documented SARS-CoV-2 infection, `r filter(hazards_none, outcome=="covidadmitted", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(hazards_none, outcome=="coviddeath", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 death.
+We matched `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` BNT162b2 booster recipients to unboosted controls with only two doses. During days 14-20 after the booster, the estimated hazard ratio (95% CI) comparing a BNT162b2 booster dose to two doses only was `r filter(hazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for documented SARS-CoV-2 infection, `r filter(hazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(hazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 death.
 
 *Conclusion*
 
 BNT162b2 boosting was estimated to be highly effective in protecting against COVID-19 related hospitalisation and death.
 
-<!-- **Keywords** COVID-19; Vaccine effectiveness; Target trial; EHR data -->
+**Keywords** COVID-19; Booster vaccine effectiveness; Target trial; EHR data
 
 <!-- *Objectives* To estimate the effectiveness of the BNT162b2 and mRNA-1273 mRNA-1273 booster COVID-19 vaccines against infection and COVID-19 disease. -->
 
@@ -200,15 +201,11 @@ BNT162b2 boosting was estimated to be highly effective in protecting against COV
 
 <!-- * figure 1 chart with SMD / %-point differences -->
 
-<!-- * flowchart incl matching -->
-
 <!-- * check for moderna references and remove if necessary -->
 
 <!-- * check final recruitment day and include in results -->
 
 <!-- * check if rolling average restrictions are ever used (need to output dataset) -->
-
-<!-- * JCVI group spell out -->
 
 <!-- * references -->
 
@@ -288,11 +285,11 @@ We have developed a publicly available website <https://opensafely.org/> through
 
 ## Study population and matching
 
-A total of `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_treated))` BNT162b2 booster doses were administered between `r format(as.Date(matchsummary_treated$firstrecruitdate), "%d %B %Y")` and `r format(as.Date(matchsummary_treated$lastrecruitdate), "%d %B %Y")` in adults registered at a TPP practice, with `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_eligible))` (`r label_percent(0.1)(filter(matchsummary, treatment=="pfizer") %>% pull(prop_eligible_treated))`) eligible for inclusion into the treatment group. Of these, `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` (`r label_percent(0.1)(filter(matchsummary, treatment=="pfizer") %>% pull(prop_matched_eligible))`) were successfully matched with unboosted controls (Figure 1).
+A total of `r label_number(1, big.mark=",")(filter(matchflowchart, crit=="c0", treatment=="pfizer") %>% pull(n))` BNT162b2 booster recipients were identified between `r format(as.Date(matchsummary_treated$firstrecruitdate), "%d %B %Y")` and `r format(as.Date(matchsummary_treated$lastrecruitdate), "%d %B %Y")` in adults registered at a TPP practice, with `r label_number(1, big.mark=",")(filter(matchflowchart, treatment=="pfizer", crit=="c7") %>% pull(n))` (`r label_percent(0.1)(filter(matchflowchart, treatment=="pfizer", crit=="c7") %>% pull(pct_all))`) eligible for inclusion into the treatment group. Of these, `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` (`r label_percent(0.1)(filter(matchsummary, treatment=="pfizer") %>% pull(prop_matched_eligible))`) were successfully matched with unboosted controls (Figure S1).
 
 <!-- For mRNA-1273, this was `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="moderna") %>% pull(n))` (`r label_percent(0.1)(filter(matchsummary, treatment=="moderna") %>% pull(prop_matched_eligible))`) and `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="moderna") %>% pull(fup_years))` person-years of follow-up (Table 2).  -->
 
-Participant characteristics at trial recruitment between treatment groups (Table 1) were typically well-balanced (necessarily so on matched characteristics), though with some exceptions, for instance unboosted controls had higher levels of deprivation, higher rates of learning disabilities and severe mental illness, and lower SARS-CoV-2 testing frequency. These unbalanced characteristics were adjusted for in the Cox regression models.
+Participant characteristics at trial recruitment between treatment groups (Table 1) were typically well-balanced though with some exceptions. For instance, unboosted controls had higher levels of deprivation, higher rates of learning disabilities and severe mental illness, and lower SARS-CoV-2 testing frequency.
 
 There were `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(fup_years))` person-years of follow-up across both treatment groups (Table 2).
 
@@ -461,7 +458,7 @@ incidences %>%
   mutate(
     rate_1=if_else(rate_1<0.001, "<0.001", label_number(0.001)(rate_1)),
     rate_0=if_else(rate_0<0.001, "<0.001", label_number(0.001)(rate_0)),
-  )
+  ) %>%
   gt(
     groupname_col = c("treatment_descr"),
   ) %>%
@@ -502,13 +499,13 @@ Participants in the emulated trial contributed `r label_number(1, big.mark=",")(
 
 <!-- `r filter(incidences, treatment=="pfizer", outcome=="covidattendance", fup_period=="all") %>% pull(events)` COVID-19 A&E attendances, `r filter(incidences, treatment=="pfizer", outcome=="covidcc", fup_period=="all") %>% pull(events)` COVID-19 ciritical care admissions, -->
 
-In the 14-20 days period of follow-up, the estimated effectiveness (95% CI) comparing a BNT162b2 booster dose to two doses only, was `r filter(hazards_none, outcome=="postest", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for documented infection, `r filter(hazards_none, outcome=="covidadmitted", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(hazards_none, outcome=="coviddeath", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 death (Figure 2).
+In the 14-20 days period of follow-up, the estimated effectiveness (95% CI) comparing a BNT162b2 booster dose to two doses only, was `r filter(hazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for documented infection, `r filter(hazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(hazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 death (Figure 2).
 
-<!-- `r filter(hazards_none, outcome=="covidattendance", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 A&E attendances, `r filter(hazards_none, outcome=="covidcc", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 critical care admission,  -->
+<!-- `r filter(hazards, subgroup=="none", outcome=="covidattendance", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 A&E attendances, `r filter(hazards, subgroup=="none", outcome=="covidcc", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 critical care admission,  -->
 
-<!-- For mRNA-1273, the corresponding estimated effectiveness were `r filter(hazards_none, outcome=="postest", treatment=="moderna", model==3, term_left==14) %>% pull(ve_display)`, for COVID-19 A&E attendances was `r filter(hazards_none, outcome=="covidattendance", treatment=="moderna", model==3, term_left==14) %>% pull(ve_display)`, for COVID-19 hospital admission was `r filter(hazards_none, outcome=="covidadmitted", treatment=="moderna", term_left==14) %>% pull(ve_display)`, for COVID-19 critical care admission was `r filter(hazards_none, outcome=="covidcc", treatment=="moderna", model==3, term_left==14) %>% pull(ve_display)`, and for COVID-19 death was `r filter(hazards_none, outcome=="coviddeath", treatment=="moderna", model==3, term_left==14) %>% pull(ve_display)`.  -->
+<!-- For mRNA-1273, the corresponding estimated effectiveness were `r filter(hazards, subgroup=="none", outcome=="postest", treatment=="moderna", model==3, term_left==14) %>% pull(ve_display)`, for COVID-19 A&E attendances was `r filter(hazards, subgroup=="none", outcome=="covidattendance", treatment=="moderna", model==3, term_left==14) %>% pull(ve_display)`, for COVID-19 hospital admission was `r filter(hazards, subgroup=="none", outcome=="covidadmitted", treatment=="moderna", term_left==14) %>% pull(ve_display)`, for COVID-19 critical care admission was `r filter(hazards, subgroup=="none", outcome=="covidcc", treatment=="moderna", model==3, term_left==14) %>% pull(ve_display)`, and for COVID-19 death was `r filter(hazards, subgroup=="none", outcome=="coviddeath", treatment=="moderna", model==3, term_left==14) %>% pull(ve_display)`.  -->
 
-For the same period, the estimated effectiveness (95% CI) comparing a BNT162b2 booster dose to two doses only separately for 2× BNT162b2 and 2× ChAdOx1-S primary course recipients respectively were `r filter(hazards_vax12_type, outcome=="postest", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3, term_left==14) %>% pull(ve_display)` and `r filter(hazards_vax12_type, outcome=="postest", treatment=="pfizer", subgroup_level=="az-az", model==3, term_left==14) %>% pull(ve_display)` for documented infection, `r filter(hazards_vax12_type, outcome=="covidadmitted", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3, term_left==14) %>% pull(ve_display)` and `r filter(hazards_vax12_type, outcome=="covidadmitted", treatment=="pfizer", subgroup_level=="az-az", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(hazards_vax12_type, outcome=="coviddeath", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3, term_left==14) %>% pull(ve_display)` and `r filter(hazards_vax12_type, outcome=="coviddeath", treatment=="pfizer", subgroup_level=="az-az", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 death (Figure 2).
+For the same period, the estimated effectiveness (95% CI) comparing a BNT162b2 booster dose to two doses only separately for 2× BNT162b2 and 2× ChAdOx1-S primary course recipients respectively were `r filter(hazards, outcome=="postest", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3, term_left==14) %>% pull(ve_display)` and `r filter(hazards, outcome=="postest", treatment=="pfizer", subgroup_level=="az-az", model==3, term_left==14) %>% pull(ve_display)` for documented infection, `r filter(hazards, outcome=="covidadmitted", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3, term_left==14) %>% pull(ve_display)` and `r filter(hazards, outcome=="covidadmitted", treatment=="pfizer", subgroup_level=="az-az", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(hazards, outcome=="coviddeath", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3, term_left==14) %>% pull(ve_display)` and `r filter(hazards, outcome=="coviddeath", treatment=="pfizer", subgroup_level=="az-az", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 death (Figure 2).
 
 \newpage
 

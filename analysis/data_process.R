@@ -220,7 +220,7 @@ data_processed <- data_extract %>%
       "55-59 years"="8",
       "50-54 years"="9",
       "40-49 years"="10a",
-      "16-39 years"="10b",
+      "16-39 years"="10b"
     ),
 
 

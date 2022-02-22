@@ -22,7 +22,7 @@ if(length(args)==0){
   removeobs <- FALSE
   treatment <- "pfizer"
   outcome <- "postest"
-  subgroup <- "vax12_type-pfizer-pfizer"
+  subgroup <- "none"
 } else {
   removeobs <- TRUE
   treatment <- args[[1]]

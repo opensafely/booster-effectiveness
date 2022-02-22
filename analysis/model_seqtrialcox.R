@@ -22,7 +22,7 @@ if(length(args)==0){
   # use for interactive testing
   removeobjects <- FALSE
   treatment <- "pfizer"
-  outcome <- "covidemergency"
+  outcome <- "postest"
   subgroup <- "none"
   #subgroup <- "none"
 } else {
@@ -53,13 +53,6 @@ subgroup_dummy <- paste0(subgroup_variable,"_",subgroup_level)
 
 postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 matching_variables <- read_rds(here("lib", "design", "matching_variables.rds"))
-
-if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
-  recruitment_period_cutoff <- 0.1
-} else{
-  recruitment_period_cutoff <- read_rds(here("lib", "design", "recruitment_period_cutoff.rds"))
-}
-
 
 # create output directories ----
 
@@ -105,13 +98,18 @@ outcome_var <- events$event_var[events$event==outcome]
 
 
 data_merged <-
-  read_rds(here("output", "models", "seqtrialcox", treatment, "match_data_merged.rds")) %>%
-  mutate(none="") %>%
+  read_rds(here("output", "match", treatment, "match_data_merged.rds")) %>%
+  filter(matched %in% 1L) %>%
+  mutate(
+    none="",
+    treated_patient_id = paste0(treated, "_", patient_id),
+    fup = pmin(tte_stop - tte_recruitment, last(postbaselinecuts)),
+  ) %>%
   fastDummies::dummy_cols(select_columns = subgroup_variable, remove_selected_columns = FALSE) %>%
   filter(.[[subgroup_dummy]]==1L)
 
 data_tte <-
-  read_rds(here("output", "models", "seqtrialcox", treatment, "match_data_tte.rds")) %>%
+  read_rds(here("output", "match", treatment, "match_data_tte.rds")) %>%
   filter(patient_id %in% data_merged$patient_id)
 
 ## create outcome variables ----
@@ -228,7 +226,6 @@ data_seqtrialcox <- local({
 
 logoutput_datasize(data_seqtrialcox)
 
-
 write_rds(data_seqtrialcox, fs::path(output_dir, "model_data_seqtrialcox.rds"))
 
 # outcome frequency
@@ -251,7 +248,7 @@ formula_vaxonly <- as.formula(
 
 # cox stratification
 formula_strata <- . ~ . +
-  strata(trial_day) +
+  strata(trial_time) +
   strata(region) +
   #strata(jcvi_group) +
   strata(vax12_type)
@@ -454,7 +451,7 @@ cox_model <- function(number, formula_cox){
 
 summary0 <- cox_model(0, formula0_pw)
 summary1 <- cox_model(1, formula1_pw)
-summary2 <- cox_model(2, formula2_pw)
+#summary2 <- cox_model(2, formula2_pw)
 summary3 <- cox_model(3, formula3_pw)
 
 # combine results
@@ -462,7 +459,7 @@ model_glance <-
   bind_rows(
     summary0$glance,
     summary1$glance,
-    summary2$glance,
+    #summary2$glance,
     summary3$glance,
   ) %>%
   mutate(
@@ -474,7 +471,7 @@ model_tidy <-
   bind_rows(
     summary0$tidy,
     summary1$tidy,
-    summary2$tidy,
+    #summary2$tidy,
     summary3$tidy,
   ) %>%
   mutate(

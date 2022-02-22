@@ -29,7 +29,7 @@ library('gt')
 source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "survival.R"))
 
-output_dir <- here("output", "models", "seqtrialcox", "combined", "match")
+output_dir <- here("output", "match", "combined")
 fs::dir_create(output_dir)
 
 ## import globally defined study dates and convert to "Date"
@@ -47,6 +47,8 @@ match_metaparams <-
   tibble(
     treatment = factor(recode_treatment),
     treatment_descr = fct_recode(treatment,  !!!recode_treatment),
+  ) %>% filter(
+    treatment=="pfizer"
   )
 
 # combine matching ----
@@ -56,7 +58,7 @@ match_metaparams <-
 matchcoverage <-
   match_metaparams %>%
   mutate(
-    coverage = map(treatment, ~read_csv(here("output", "models", "seqtrialcox", .x, glue("match_data_coverage.csv"))))
+    coverage = map(treatment, ~read_csv(here("output", "match", .x, glue("merge_data_coverage.csv")), guess_max = 999999))
   ) %>%
   unnest(coverage) %>%
   arrange(treatment, vax12_type, status, vax3_date) %>%
@@ -80,7 +82,7 @@ write_csv(matchcoverage, fs::path(output_dir, "coverage.csv"))
 matchsummary <-
   match_metaparams %>%
   mutate(
-    summary = map(treatment, ~read_csv(here("output", "models", "seqtrialcox", .x, glue("match_summary.csv"))))
+    summary = map(treatment, ~read_csv(here("output",  "match", .x, glue("merge_summary.csv"))))
   ) %>%
   unnest(summary)
 
@@ -90,7 +92,7 @@ write_csv(matchsummary, fs::path(output_dir, "summary.csv"))
 matchsummary_treated <-
   match_metaparams %>%
   mutate(
-    summary = map(treatment, ~read_csv(here("output", "models", "seqtrialcox", .x, glue("match_summary_treated.csv"))))
+    summary = map(treatment, ~read_csv(here("output",  "match", .x, glue("merge_summary_treated.csv"))))
   ) %>%
   unnest(summary)
 
@@ -103,7 +105,7 @@ write_csv(matchsummary_treated, fs::path(output_dir, "summary_treated.csv"))
 table1 <-
   match_metaparams %>%
   mutate(
-    table1 = map(treatment, ~read_csv(here("output", "models", "seqtrialcox", .x, glue("match_table1.csv"))))
+    table1 = map(treatment, ~read_csv(here("output", "match", .x, glue("merge_table1.csv"))))
   ) %>%
   unnest(table1)
 
@@ -112,19 +114,27 @@ write_csv(table1, fs::path(output_dir, "table1.csv"))
 table1by <-
   match_metaparams %>%
   mutate(
-    table1by = map(treatment, ~read_csv(here("output", "models", "seqtrialcox", .x, glue("match_table1by.csv"))))
+    table1by = map(treatment, ~read_csv(here("output", "match", .x, glue("merge_table1by.csv"))))
   ) %>%
   unnest(table1by)
 
 write_csv(table1by, fs::path(output_dir, "table1by.csv"))
 
 
+matchsmd <-
+  match_metaparams %>%
+  mutate(
+    smd = map(treatment, ~read_csv(here("output", "match", .x, glue("merge_data_smd.csv"))))
+  ) %>%
+  unnest(smd)
+
+write_csv(matchsmd, fs::path(output_dir, "smd.csv"))
 
 
 matchflowchart <-
   match_metaparams %>%
   mutate(
-    flowchart = map(treatment, ~read_csv(here("output", "models", "seqtrialcox", .x, glue("match_data_flowchart.csv"))))
+    flowchart = map(treatment, ~read_csv(here("output", "match", .x, glue("merge_data_flowchart.csv"))))
   ) %>%
   unnest(flowchart)
 
