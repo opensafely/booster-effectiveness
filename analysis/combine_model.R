@@ -53,7 +53,7 @@ recode_outcome <- set_names(events_lookup$event, events_lookup$event_descr)
 if(subgroup_variable=="none"){
   recode_subgroup <- c(` `="none")
   recode_subgroup_variable <- c(`Main analysis` = "none")
-  recode_subgroup_level <- c("none")
+  recode_subgroup_level <- c(`Any`="none")
   subgroup <- c("none")
 }
 
@@ -122,7 +122,10 @@ model_effects <-
     model_descr = fct_reorder(model_descr, model),
     hr = exp(estimate),
     hr.ll = exp(conf.low),
-    hr.ul = exp(conf.high)
+    hr.ul = exp(conf.high),
+    ve = 1-hr,
+    ve.ll = 1-hr.ul,
+    ve.ul = 1-hr.ll
   ) %>%
   filter(
     # this filtering is necessary for dummy data,
