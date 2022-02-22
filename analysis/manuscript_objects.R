@@ -149,11 +149,13 @@ fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_stack_jcvi.
 #fs::file_copy(here("output", "models", "seqtrialcox", "pfizer", "match_coverage_stack.png"), here("output", "manuscript-objects", "match_coverage_pfizer_stack.png"), overwrite = TRUE)
 #fs::file_copy(here("output", "models", "seqtrialcox", "moderna", "match_coverage_stack.png"), here("output", "manuscript-objects", "match_coverage_moderna_stack.png"), overwrite = TRUE)
 
-fs::file_copy(here("output", "models", "seqtrialcox", "combined", "match", "table1.csv"), here("output", "manuscript-objects", "matchtable1.csv"), overwrite = TRUE)
-fs::file_copy(here("output", "models", "seqtrialcox", "combined", "match", "table1by.csv"), here("output", "manuscript-objects", "matchtable1by.csv"), overwrite = TRUE)
-fs::file_copy(here("output", "models", "seqtrialcox", "combined", "match", "coverage.csv"), here("output", "manuscript-objects", "matchcoverage.csv"), overwrite = TRUE)
-fs::file_copy(here("output", "models", "seqtrialcox", "combined", "match", "summary.csv"), here("output", "manuscript-objects", "matchsummary.csv"), overwrite = TRUE)
-fs::file_copy(here("output", "models", "seqtrialcox", "combined", "match", "summary_treated.csv"), here("output", "manuscript-objects", "matchsummary_treated.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "match", "combined", "table1.csv"), here("output", "manuscript-objects", "matchtable1.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "match", "combined", "table1by.csv"), here("output", "manuscript-objects", "matchtable1by.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "match", "combined", "coverage.csv"), here("output", "manuscript-objects", "matchcoverage.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "match", "combined", "summary.csv"), here("output", "manuscript-objects", "matchsummary.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "match", "combined", "summary_treated.csv"), here("output", "manuscript-objects", "matchsummary_treated.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "match", "combined", "smd.csv"), here("output", "manuscript-objects", "matchsmd.csv"), overwrite = TRUE)
+fs::file_copy(here("output", "match", "combined", "flowchart.csv"), here("output", "manuscript-objects", "matchflowchart.csv"), overwrite = TRUE)
 
 
 ## models ----

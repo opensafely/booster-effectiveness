@@ -126,13 +126,25 @@ actions:
     - data_process_long
     outputs:
       highly_sensitive:
-        rds: output/models/seqtrialcox/pfizer/match_*.rds
+        rds: output/match/pfizer/match_*.rds
       moderately_sensitive:
-        txt: output/models/seqtrialcox/pfizer/match_*.txt
-        csv: output/models/seqtrialcox/pfizer/match_*.csv
-        png: output/models/seqtrialcox/pfizer/match_*.png
-        pdf: output/models/seqtrialcox/pfizer/match_*.pdf
-        html: output/models/seqtrialcox/pfizer/match_*.html
+        txt: output/match/pfizer/match_*.txt
+
+  merge_seqtrialcox_pfizer:
+    run: r:latest analysis/merge_seqtrialcox.R pfizer
+    needs:
+    - data_selection
+    - data_process_long
+    - match_seqtrialcox_pfizer
+    outputs:
+      highly_sensitive:
+        rds: output/match/pfizer/merge_*.rds
+      moderately_sensitive:
+        txt: output/match/pfizer/merge_*.txt
+        csv: output/match/pfizer/merge_*.csv
+        png: output/match/pfizer/merge_*.png
+        pdf: output/match/pfizer/merge_*.pdf
+        html: output/match/pfizer/merge_*.html
 
   match_seqtrialcox_moderna:
     run: r:latest analysis/match_seqtrialcox.R moderna
@@ -141,13 +153,25 @@ actions:
     - data_process_long
     outputs:
       highly_sensitive:
-        rds: output/models/seqtrialcox/moderna/match_*.rds
+        rds: output/match/moderna/match_*.rds
       moderately_sensitive:
-        txt: output/models/seqtrialcox/moderna/match_*.txt
-        csv: output/models/seqtrialcox/moderna/match_*.csv
-        png: output/models/seqtrialcox/moderna/match_*.png
-        pdf: output/models/seqtrialcox/moderna/match_*.pdf
-        html: output/models/seqtrialcox/moderna/match_*.html
+        txt: output/match/moderna/match_*.txt
+
+  merge_seqtrialcox_moderna:
+    run: r:latest analysis/merge_seqtrialcox.R moderna
+    needs:
+    - data_selection
+    - data_process_long
+    - match_seqtrialcox_moderna
+    outputs:
+      highly_sensitive:
+        rds: output/match/moderna/merge_*.rds
+      moderately_sensitive:
+        txt: output/match/moderna/merge_*.txt
+        csv: output/match/moderna/merge_*.csv
+        png: output/match/moderna/merge_*.png
+        pdf: output/match/moderna/merge_*.pdf
+        html: output/match/moderna/merge_*.html
 
   ## # # # # # # # # # # # # # # # # # # # 
   ## Models 
@@ -917,9 +941,11 @@ actions:
     needs:
     - match_seqtrialcox_pfizer
     - match_seqtrialcox_moderna
+    - merge_seqtrialcox_pfizer
+    - merge_seqtrialcox_moderna
     outputs:
       moderately_sensitive:
-        csv: output/models/seqtrialcox/combined/match/*.csv
+        csv: output/match/combined/*.csv
 
   combine_model:
     run: r:latest analysis/combine_model.R none

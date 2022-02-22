@@ -3,7 +3,7 @@
 # This script:
 # imports processed data
 # chooses matching sets for each sequential trial
-# reports on matching quality
+# outputs matching summary
 #
 # The script must be accompanied by one arguments:
 # `treatment` - the exposure in the regression model, pfizer or moderna
@@ -56,7 +56,7 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
 
 # create output directories ----
 
-output_dir <- here("output", "models", "seqtrialcox", treatment)
+output_dir <- here("output", "match", treatment)
 fs::dir_create(output_dir)
 
 ## create special log file ----
@@ -149,46 +149,7 @@ data_rollingstrata_vaxcount <-
   ) %>%
   filter(vax3_time>=0)
 
-
-## baseline variables ----
-
-data_baseline <-
-  data_cohort %>%
-  transmute(
-    patient_id,
-    age,
-    ageband,
-    sex,
-    ethnicity_combined,
-    imd_Q5,
-    region,
-    jcvi_group,
-    jcvi_group_descr,
-    rural_urban_group,
-    prior_tests_cat,
-    multimorb,
-    learndis,
-    sev_mental,
-    cev,
-    sev_obesity,
-    chronic_heart_disease,
-    chronic_kidney_disease,
-    diabetes,
-    chronic_liver_disease,
-    chronic_resp_disease,
-    chronic_neuro_disease,
-    immunosuppressed,
-    asplenia,
-    immuno,
-
-    vax12_type,
-    vax12_type_descr,
-    vax2_week,
-    vax3_date,
-    vax3_type,
-
-  )
-logoutput_datasize(data_baseline)
+write_rds(data_rollingstrata_vaxcount, fs::path(output_dir, "match_data_rollingstrata_vaxcount.rds"))
 
 data_nontimevarying <-
   data_cohort %>%
@@ -206,9 +167,6 @@ data_nontimevarying <-
     recruit=NULL,
   )
 
-
-
-
 if(removeobjects) rm(data_rollingstrata_vaxcount)
 
 data_timevarying <-
@@ -219,6 +177,7 @@ data_timevarying <-
     tstop,
     any_of(matching_variables),
     status_hospunplanned,
+    status_hospplanned,
     mostrecent_anycovid,
   )
 
@@ -247,7 +206,7 @@ data_tte <-
 
     tte_censor = tte(day0_date, censor_date, censor_date, na.censor=TRUE),
 
-    tte_treatment = tte(day0_date, treatment_date-1, censor_date, na.censor=TRUE),
+    tte_treatment = tte(day0_date, treatment_date-1, censor_date-1, na.censor=TRUE), # -1 to move censoring forward by one day so that everybody has at least one day of follow up
 
     tte_stop = pmin(tte_censor, na.rm=TRUE),
 
@@ -267,6 +226,48 @@ write_rds(data_tte, fs::path(output_dir, "match_data_tte.rds"))
 
 logoutput_datasize(data_tte)
 
+
+## baseline variables ----
+
+data_baseline <-
+  data_cohort %>%
+  transmute(
+    patient_id,
+    age,
+    ageband,
+    sex,
+    ethnicity_combined,
+    imd_Q5,
+    region,
+    jcvi_group,
+    jcvi_group_descr,
+    prior_tests_cat,
+    multimorb,
+    learndis,
+    sev_mental,
+    cev,
+    sev_obesity,
+    chronic_heart_disease,
+    chronic_kidney_disease,
+    diabetes,
+    chronic_liver_disease,
+    chronic_resp_disease,
+    asthma,
+    chronic_neuro_disease,
+    prior_covid_infection0,
+    immunosuppressed,
+    asplenia,
+    immuno,
+
+    vax12_type,
+    vax12_type_descr,
+    vax2_week,
+    vax3_date,
+    vax3_type,
+
+  )
+logoutput_datasize(data_baseline)
+
 if(removeobjects) rm(data_cohort)
 
 local({
@@ -282,8 +283,8 @@ local({
   # within the construct of the model, there are no time-dependent variables, only time-dependent treatment effects (modelled as piecewise constant hazards)
 
 
-  max_trial_day <- pmin(max(data_tte$tte_treatment, na.rm=TRUE), study_dates$lastvax3_date - study_dates$studystart_date, na.rm=TRUE)
-  trials <- seq_len(max_trial_day)
+  max_trial_time <- study_dates$lastvax3_date - study_dates$studystart_date
+  trials <- seq_len(max_trial_time+1)
 
   # initialise list of candidate controls
   candidate_ids0 <- data_tte$patient_id
@@ -297,6 +298,8 @@ local({
 
   #matching_formula <- as.formula(str_c("treated ~ ", paste(matching_variables, collapse=" + ")))
   matching_formula <- treated ~ 1
+
+  already_stopped <- FALSE
 
   #trial=1
   for(trial in trials){
@@ -317,8 +320,9 @@ local({
       transmute(
         patient_id,
         treated=1L,
-        trial_time=tte_treatment
+        trial_time=trial_time,
       )
+    data_treated <- bind_rows(data_treated, data_treated_i)
 
     # set of people boosted on trial day, + their candidate controls
     matching_candidates_i <-
@@ -333,7 +337,7 @@ local({
       ) %>%
       filter(
         # remove anyone already censored
-        tte_stop > trial_time,
+        tte_stop >= trial_time,
         # remove anyone who has experienced covid within the last 90 days
         !between(mostrecent_anycovid, trial_time-90, trial_time) | is.na(mostrecent_anycovid),
         # remove anyone currently in hospital
@@ -354,11 +358,12 @@ local({
       transmute(
         patient_id,
         eligible=1L,
-        trial_time=tte_treatment
+        trial_time=trial_time,
       )
+    data_eligible <- bind_rows(data_eligible, data_eligible_i)
 
 
-    if(sum(matching_candidates_i$treated_candidate)<1) {
+    if(sum(matching_candidates_i$treated_candidate)<1 | already_stopped) {
       message("Skipping trial ", trial, " - No treated people eligible for inclusion.")
       next
     }
@@ -384,9 +389,10 @@ local({
       )[[1]]
 
 
-    if(is.null(matching_i)) {
+    if(is.null(matching_i) | already_stopped) {
       message("Terminating trial sequence at trial ", trial, " - No exact matches found.")
-      break
+      already_stopped <- TRUE
+      next
     }
     # summary info for recruited people
     # - one row per person
@@ -398,7 +404,7 @@ local({
         treated = matching_i$treat,
         patient_id = matching_candidates_i$patient_id,
         weight = matching_i$weights,
-        trial_day = trial,
+        trial_time = trial_time,
       ) %>%
 
       filter(!is.na(match_id)) %>% # remove unmatched people. equivalent to weight != 0
@@ -417,402 +423,86 @@ local({
 
     n_treated_matched <- sum(data_matched_i$treated)
 
-    if(n_treated_matched < (0.1*n_treated_all)) {
-
+    if(n_treated_matched < (0.1*n_treated_all) | already_stopped) {
       message("Terminating trial sequence at trial ", trial, " - Only ", n_treated_matched, "boosted people out of ", n_treated_all, " (", n_treated_matched*100/n_treated_all, "%) had a match.")
-      break
+      already_stopped <- TRUE
+      next
     }
 
+    data_matched <- bind_rows(data_matched, data_matched_i)
     #update list of candidate controls to those who have not already been recruited
     candidate_ids0 <- candidate_ids0[!(candidate_ids0 %in% data_matched_i$patient_id)]
 
-    data_treated <- bind_rows(data_treated, data_treated_i)
-    data_eligible <- bind_rows(data_eligible, data_eligible_i)
-    data_matched <- bind_rows(data_matched, data_matched_i)
+
   }
 
-   data_summary <<-
+  trial_time <- NULL
+
+  data_matched <-
+    data_matched %>%
+    transmute(patient_id, match_id, matched=1L, control=1L-treated, trial_time, tte_recruitment, tte_controlistreated, tte_stop)
+
+  data_matchstatus <<-
     data_treated %>%
     left_join(data_eligible, by=c("patient_id", "trial_time")) %>%
-    left_join(data_matched %>% filter(treated==1L) %>% transmute(patient_id, matched=1L, trial_time=tte_treatment), by=c("patient_id", "trial_time")) %>%
+    left_join(data_matched %>% filter(control==0L), by=c("patient_id", "trial_time")) %>%
     mutate(
-      eligible=replace_na(eligible, 0L),
-      matched=replace_na(matched, 0L)
+      eligible = replace_na(eligible, 0L),
+      matched = replace_na(matched, 0L),
+      control = if_else(matched==1L, 0L, NA_integer_)
+    ) %>%
+    bind_rows(
+      data_matched %>% filter(control==1L) %>% mutate(treated=0L)
     )
-
-  data_matched <<-
-    data_matched %>%
-    mutate(
-      treated_patient_id = paste0(treated, "_", patient_id),
-      fup = pmin(tte_stop - tte_recruitment, last(postbaselinecuts))
-    )
-
 })
 
-
-write_rds(data_matched, fs::path(output_dir, "match_data_matched.rds"))
+write_rds(data_matchstatus, fs::path(output_dir, "match_data_matchstatus.rds"))
 
 # number of treated/controls per trial
-controls_per_trial <- table(data_matched$trial_day, data_matched$treated)
+controls_per_trial <- with(data_matchstatus %>% filter(matched==1), table(trial_time, treated))
 logoutput_table(controls_per_trial)
 
 # max trial date
-max_trial_day <- max(data_matched$trial_day, na.rm=TRUE)
-logoutput("max trial day is ", max_trial_day)
+max_trial_time <- max(data_matchstatus %>% filter(matched==1) %>% pull(trial_time), na.rm=TRUE)
+logoutput("max trial day is ", max_trial_time)
 
 
+
+## combine all data together as at recruitment date ----
+
+status_recode <- c(`Treated, ineligible` = "ineligible", `Treated, eligible, unmatched`= "unmatched", `Treated, eligible, matched` = "matched", `Control` = "control")
 
 ## create variables-at-time-zero dataset - one row per trial per arm per patient ----
 data_merged <-
-  # add time-varying info as at recruitment date (= tte_trial)
-  data_matched %>%
-  left_join(
-    data_timevarying %>% select(-any_of(matching_variables)),
-    by = c("patient_id")
+  data_matchstatus %>%
+  mutate(
+    status = fct_case_when(
+      treated & !eligible ~ "ineligible",
+      treated & eligible & !matched ~ "unmatched",
+      treated & eligible & matched ~ "matched",
+      control==1L ~ "control",
+      TRUE ~ NA_character_
+    )
   ) %>%
+  #filter(treated==1L, matched==1L) %>%
+  # add time-varying info as at recruitment date (= tte_trial)
+  left_join(data_timevarying, by = c("patient_id")) %>%
   filter(
-    tte_recruitment < tstop,
-    tte_recruitment >= tstart
+    trial_time < tstop,
+    trial_time >= tstart
+  ) %>%
+  left_join(data_nontimevarying %>% select(patient_id, treated_within_recruitment_period), by="patient_id") %>%
+  mutate(
+    treated_within_recruitment_period = if_else(control %in% 1L, NA, treated_within_recruitment_period)
   ) %>%
   # add time-non-varying info
-  left_join(
-    data_baseline %>% select(-any_of(matching_variables)),
-    by=c("patient_id")
-  ) %>%
+  left_join(data_baseline, by=c("patient_id")) %>%
   # remaining variables that combine both
   mutate(
+    prior_covid_infection = prior_covid_infection0 | !is.na(mostrecent_anycovid),
     dayssince_anycovid = tstart - mostrecent_anycovid,
   )
 
 logoutput_datasize(data_merged)
 
 write_rds(data_merged, fs::path(output_dir, "match_data_merged.rds"))
-
-if(removeobjects) rm(data_matched)
-if(removeobjects) rm(data_timevarying)
-
-# matching coverage per trial / day of follow up
-
-
-status_recode <- c(`Treated, ineligible` = "ineligible", `Treated, eligible, unmatched`= "unmatched", `Treated, eligible, matched` = "matched")
-
-data_coverage <-
-  data_summary %>%
-  filter(treated==1L) %>%
-  #left_join(data_tte %>% transmute(patient_id, vax3_date=treatment_date), by="patient_id") %>%
-  left_join(data_nontimevarying %>% select(patient_id, all_of(rolling_variables), vax3_date), by="patient_id") %>%
-  group_by(across(all_of(rolling_variables)), vax3_date) %>%
-  summarise(
-    n_treated=sum(treated, na.rm=TRUE),
-    n_eligible=sum(eligible, na.rm=TRUE),
-    n_matched=sum(matched, na.rm=TRUE)
-  ) %>%
-  mutate(
-    n_unmatched = n_eligible - n_matched,
-    n_ineligible = n_treated - n_eligible,
-  ) %>%
-  pivot_longer(
-    cols = c(n_ineligible, n_unmatched, n_matched),
-    names_to = "status",
-    names_prefix = "n_",
-    values_to = "n"
-  ) %>%
-  arrange(jcvi_group, vax12_type, vax3_date, status) %>%
-  group_by(jcvi_group, vax12_type, vax3_date, status) %>%
-  summarise(
-    n = sum(n),
-  ) %>%
-  group_by(jcvi_group, vax12_type, status) %>%
-  complete(
-    vax3_date = full_seq(.$vax3_date, 1), # go X days before to
-    fill = list(n=0)
-  ) %>%
-  mutate(
-    cumuln = cumsum(n),
-    status = fct_case_when(
-      status=="ineligible" ~ "Treated, ineligible",
-      status=="unmatched" ~ "Treated, eligible, unmatched",
-      status=="matched" ~ "Treated, eligible, matched",
-      TRUE ~ NA_character_
-    )
-  )
-
-write_csv(data_coverage, fs::path(output_dir, "match_data_coverage.csv"))
-
-# report matching info ----
-
-day1_date <- study_dates$studystart_date
-
-## candidate matching summary ----
-
-## matching summary ----
-
-candidate_summary_trial <-
-  data_summary %>%
-  group_by(trial_time) %>%
-  summarise(
-    n_treated=sum(treated, na.rm=TRUE),
-    n_eligible=sum(eligible, na.rm=TRUE),
-    n_matched=sum(matched, na.rm=TRUE),
-    n_unmatched=n_eligible-n_matched,
-  ) %>%
-  mutate(trial_day=trial_time+1) %>%
-  ungroup()
-
-match_summary_trial <-
-  data_merged %>%
-  group_by(trial_day, treated) %>%
-  summarise(
-    n=n(),
-    fup_sum = sum(fup),
-    fup_years = sum(fup)/365.25,
-    fup_mean = mean(fup)
-  ) %>%
-  arrange(
-    trial_day, treated
-  ) %>%
-  pivot_wider(
-    id_cols = c(trial_day),
-    names_from = treated,
-    values_from = c(n, fup_sum, fup_years, fup_mean)
-  ) %>%
-  left_join(candidate_summary_trial, by="trial_day") %>%
-  mutate(
-    prop_matched_treated = n_1/n_treated,
-    prop_matched_eligible = n_1/n_eligible,
-    prop_eligible_treated = n_eligible/n_treated
-  )
-
-write_csv(match_summary_trial, fs::path(output_dir, "match_summary_trial.csv"))
-
-
-match_summary_treated <-
-  data_merged %>%
-  group_by(treated) %>%
-  summarise(
-    n=n(),
-    firstrecruitdate = min(tte_recruitment) + day1_date,
-    lastrecruitdate = max(tte_recruitment) + day1_date,
-    fup_sum = sum(fup),
-    fup_years = sum(fup)/365.25,
-    fup_mean = mean(fup)
-  )
-
-write_csv(match_summary_treated, fs::path(output_dir, "match_summary_treated.csv"))
-
-
-
-candidate_summary <-
-  data_summary %>%
-  summarise(
-    n_treated=sum(treated, na.rm=TRUE),
-    n_eligible=sum(eligible, na.rm=TRUE),
-    n_matched=sum(matched, na.rm=TRUE),
-    n_unmatched=n_eligible-n_matched,
-  )
-
-match_summary <-
-  data_merged %>%
-  summarise(
-    n=n(),
-    firstrecruitdate = min(tte_recruitment) + day1_date,
-    lastrecruitdate = max(tte_recruitment) + day1_date,
-    fup_sum = sum(fup),
-    fup_years = sum(fup)/365.25,
-    fup_mean = mean(fup)
-  ) %>%
-  bind_cols(candidate_summary) %>%
-  mutate(
-    prop_matched_treated = n_matched/n_treated,
-    prop_matched_eligible = n_matched/n_eligible,
-    prop_eligible_treated = n_eligible/n_treated
-  )
-
-write_csv(match_summary, fs::path(output_dir, "match_summary.csv"))
-
-## matching coverage ----
-
-xmin <- min(data_coverage$vax3_date )
-xmax <- max(data_coverage$vax3_date )+1
-
-plot_coverage_n <-
-  data_coverage %>%
-  ggplot()+
-  geom_col(
-    aes(
-      x=vax3_date+0.5,
-      y=n,
-      group=status,
-      fill=status,
-      colour=NULL
-    ),
-    position=position_stack(),
-    alpha=0.8,
-    width=1
-  )+
-  geom_rect(xmin=xmin, xmax= xmax+1, ymin=0, ymax=6, fill="grey", colour="transparent")+
-  facet_grid(rows = vars(jcvi_group), cols = vars(vax12_type))+
-  scale_x_date(
-    breaks = unique(lubridate::ceiling_date(data_coverage$vax3_date, "1 month")),
-    limits = c(lubridate::floor_date((xmin), "1 month"), NA),
-    labels = scales::label_date("%d/%m"),
-    expand = expansion(add=1),
-  )+
-  scale_y_continuous(
-    labels = scales::label_number(accuracy = 1, big.mark=","),
-    expand = expansion(c(0, NA))
-  )+
-  scale_fill_brewer(type="qual", palette="Set2")+
-  scale_colour_brewer(type="qual", palette="Set2")+
-  labs(
-    x="Date",
-    y="Booster vaccines per day",
-    colour=NULL,
-    fill=NULL,
-    alpha=NULL
-  ) +
-  theme_minimal()+
-  theme(
-    axis.line.x.bottom = element_line(),
-    axis.text.x.top=element_text(hjust=0),
-    strip.text.y.right = element_text(angle = 0),
-    axis.ticks.x=element_line(),
-    legend.position = "bottom"
-  )+
-  NULL
-
-plot_coverage_n
-
-#ggsave(plot_coverage_n, filename="match_coverage_count.svg", path=output_dir)
-ggsave(plot_coverage_n, filename="match_coverage_count.png", path=output_dir)
-ggsave(plot_coverage_n, filename="match_coverage_count.pdf", path=output_dir)
-
-
-plot_coverage_cumuln <-
-  data_coverage %>%
-  ggplot()+
-  geom_col(
-    aes(
-      x=vax3_date+0.5,
-      y=cumuln,
-      group=status,
-      fill=status,
-      colour=NULL
-    ),
-    position=position_stack(),
-    alpha=0.8,
-    width=1
-  )+
-  geom_rect(xmin=xmin, xmax= xmax+1, ymin=0, ymax=6, fill="grey", colour="transparent")+
-  facet_grid(rows = vars(jcvi_group), cols = vars(vax12_type))+
-  scale_x_date(
-    breaks = unique(lubridate::ceiling_date(data_coverage$vax3_date, "1 month")),
-    limits = c(lubridate::floor_date((xmin), "1 month"), NA),
-    labels = scales::label_date("%d/%m"),
-    expand = expansion(add=1),
-  )+
-  scale_y_continuous(
-    labels = scales::label_number(accuracy = 1, big.mark=","),
-    expand = expansion(c(0, NA))
-  )+
-  scale_fill_brewer(type="qual", palette="Set2")+
-  scale_colour_brewer(type="qual", palette="Set2")+
-  labs(
-    x="Date",
-    y="Cumulative booster vaccines",
-    colour=NULL,
-    fill=NULL,
-    alpha=NULL
-  ) +
-  theme_minimal()+
-  theme(
-    axis.line.x.bottom = element_line(),
-    axis.text.x.top=element_text(hjust=0),
-    strip.text.y.right = element_text(angle = 0),
-    axis.ticks.x=element_line(),
-    legend.position = "bottom"
-  )+
-  NULL
-
-plot_coverage_cumuln
-
-#ggsave(plot_coverage_cumuln, filename="match_coverage_stack.svg", path=output_dir)
-ggsave(plot_coverage_cumuln, filename="match_coverage_stack.png", path=output_dir)
-ggsave(plot_coverage_cumuln, filename="match_coverage_stack.pdf", path=output_dir)
-
-
-
-
-# table 1 style baseline characteristics ----
-
-library('gt')
-library('gtsummary')
-
-var_labels <- list(
-  N  ~ "Total N",
-  treated_descr ~ "Trial arm",
-  fup ~ "Follow-up (days)",
-  vax12_type_descr ~ "Primary vaccination course (doses 1 and 2)",
-  jcvi_group_descr  ~ "JCVI group",
-  #age ~ "Age",
-  ageband ~ "Age",
-  sex ~ "Sex",
-  ethnicity_combined ~ "Ethnicity",
-  imd_Q5 ~ "IMD",
-  region ~ "Region",
-  #rural_urban_group ~ "Rural/urban category",
-  cev ~ "Clinically extremely vulnerable",
-
-  sev_obesity ~ "Body Mass Index > 40 kg/m^2",
-
-  chronic_heart_disease ~ "Chronic heart disease",
-  chronic_kidney_disease ~ "Chronic kidney disease",
-  diabetes ~ "Diabetes",
-  chronic_liver_disease ~ "Chronic liver disease",
-  chronic_resp_disease ~ "Chronic respiratory disease",
-  chronic_neuro_disease ~ "Chronic neurological disease",
-
-  multimorb ~ "Morbidity count",
-  immunosuppressed ~ "Immunosuppressed",
-  asplenia ~ "Asplenia or poor spleen function",
-  learndis ~ "Learning disabilities",
-  sev_mental ~ "Serious mental illness",
-
-  prior_tests_cat ~ "Number of SARS-CoV-2 tests prior to start date",
-
-  prior_covid_infection ~ "Prior infection",
-  status_hospplanned ~ "In hospital (planned admission)"
-) %>%
-  set_names(., map_chr(., all.vars))
-
-
-tab_summary_baseline <-
-  data_merged %>%
-  mutate(
-    N = 1L,
-    treated_descr = if_else(treated==1L, "Boosted", "Unboosted"),
-  ) %>%
-  select(
-    treated_descr,
-    all_of(names(var_labels)),
-  ) %>%
-  tbl_summary(
-    by = treated_descr,
-    label = unname(var_labels[names(.)]),
-    statistic = list(N = "{N}")
-  ) %>%
-  modify_footnote(starts_with("stat_") ~ NA) %>%
-  modify_header(stat_by = "**{level}**") %>%
-  bold_labels()
-
-tab_summary_baseline_redacted <- redact_tblsummary(tab_summary_baseline, 5, "[REDACTED]")
-
-raw_stats <- tab_summary_baseline_redacted$meta_data %>%
-  select(var_label, df_stats) %>%
-  unnest(df_stats)
-
-write_csv(tab_summary_baseline_redacted$table_body, fs::path(output_dir, "match_table1.csv"))
-write_csv(tab_summary_baseline_redacted$df_by, fs::path(output_dir, "match_table1by.csv"))
-gtsave(as_gt(tab_summary_baseline_redacted), fs::path(output_dir, "match_table1.html"))
-
-
