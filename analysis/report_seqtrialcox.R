@@ -201,6 +201,7 @@ incidence_rate_redacted <- local({
       rr = rate_1 / rate_0,
       rrE = scales::label_number(accuracy=0.01, trim=FALSE)(rr),
       rrCI = rrCI_exact(events_1, yearsatrisk_1, events_0, yearsatrisk_0, 0.01),
+      rrECI = paste0(rrE, " ", rrCI)
     )
 
   redacted <-
@@ -215,6 +216,7 @@ incidence_rate_redacted <- local({
       rr = redactor2(pmin(events_1, events_0), 5, rr),
       rrE = redactor2(pmin(events_1, events_0), 5, rrE),
       rrCI = redactor2(pmin(events_1, events_0), 5, rrCI),
+      rrECI = redactor2(pmin(events_1, events_0), 5, rrECI),
 
       events_0 = redactor2(events_0, 5),
       events_1 = redactor2(events_1, 5),
