@@ -27,7 +27,7 @@ fs::dir_create(here("lib", "design"))
 study_dates <- lst(
   studystart_date = "2021-09-16", #start of follow-up thursday 16 sepetember first booster jabs administered in england
   studyend_date = "2021-12-15", # end of follow-up (no hosp dates after this)
-  lastvax2_date = "2021-08-01", # don't recruit anyone with second vaccination after this date
+  lastvax2_date = "2021-10-01", # don't recruit anyone with second vaccination after this date
   lastvax3_date = "2021-12-01", # end of recruitment
   firstpfizer_date = "2020-12-08", # first pfizer vaccination in national roll-out
   firstaz_date = "2021-01-04", # first az vaccination in national roll-out
@@ -88,20 +88,22 @@ exact_variables <- c(
 
   "jcvi_group",
   "vax12_type",
-  #"vax2_week",
+  "vax2_week",
   "region",
-  "sex",
+  #"sex",
   "cev",
   "multimorb",
   "prior_covid_infection",
   "immunosuppressed",
-  "status_hospplanned"
+  #"status_hospplanned"
+  NULL
 )
 write_rds(exact_variables, here("lib", "design", "exact_variables.rds"))
 
 caliper_variables <- c(
   age = 3,
-  vax2_day = 7
+  #vax2_day = 7,
+  NULL
 )
 write_rds(caliper_variables, here("lib", "design", "caliper_variables.rds"))
 
