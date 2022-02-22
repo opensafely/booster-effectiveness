@@ -118,3 +118,15 @@ table1by <-
 
 write_csv(table1by, fs::path(output_dir, "table1by.csv"))
 
+
+
+
+matchflowchart <-
+  match_metaparams %>%
+  mutate(
+    flowchart = map(treatment, ~read_csv(here("output", "models", "seqtrialcox", .x, glue("match_data_flowchart.csv"))))
+  ) %>%
+  unnest(flowchart)
+
+write_csv(matchflowchart, fs::path(output_dir, "flowchart.csv"))
+
