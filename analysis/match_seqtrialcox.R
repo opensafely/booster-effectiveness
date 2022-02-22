@@ -271,7 +271,7 @@ local({
       transmute(
         patient_id,
         treated=1L,
-        trial_time=tte_treatment
+        trial_time=trial_time,
       )
 
     # set of people boosted on trial day, + their candidate controls
@@ -308,7 +308,7 @@ local({
       transmute(
         patient_id,
         eligible=1L,
-        trial_time=tte_treatment
+        trial_time=trial_time,
       )
 
 
@@ -349,6 +349,7 @@ local({
         patient_id = matching_candidates_i$patient_id,
         weight = matching_i$weights,
         trial_day = trial,
+        trial_time = trial_time,
       ) %>%
 
       # filter treated and controls to ensure exact 1:1 matching
@@ -397,35 +398,47 @@ local({
     data_matched <- bind_rows(data_matched, data_matched_i)
   }
 
+  trial_time <- NULL
+
+  data_matched <-
+    data_matched %>%
+    transmute(patient_id, match_id, matched=1L, control=1L-treated, trial_time, tte_recruitment, tte_controlistreated, tte_stop)
+
   data_summary <<-
     data_treated %>%
     left_join(data_eligible, by=c("patient_id", "trial_time")) %>%
-    left_join(data_matched %>% filter(treated==1L) %>% transmute(patient_id, matched=1L, trial_time=tte_treatment), by=c("patient_id", "trial_time")) %>%
+    left_join(data_matched %>% filter(control==0L), by=c("patient_id", "trial_time")) %>%
     mutate(
-      eligible=replace_na(eligible, 0L),
-      matched=replace_na(matched, 0L)
-    )
-
-  data_matched <<-
-    data_matched %>%
-    select(-subclass) %>%
+      eligible = replace_na(eligible, 0L),
+      matched = replace_na(matched, 0L),
+      control = if_else(matched==1L, 0L, NA_integer_)
+    ) %>%
+    bind_rows(
+      data_matched %>% filter(control==1L)
+    ) %>%
     mutate(
-      treated_patient_id = paste0(treated, "_", patient_id),
-      fup = pmin(tte_stop - tte_recruitment, last(postbaselinecuts))
+      trial_day=trial_time+1,
+      status = fct_case_when(
+        treated & !eligible ~ "ineligible",
+        treated & eligible & !matched ~ "unmatched",
+        treated & eligible & matched ~ "matched",
+        control==1L ~ "control",
+        TRUE ~ NA_character_
+      )
     )
 
 })
 
-
-write_rds(data_matched, fs::path(output_dir, "match_data_matched.rds"))
+write_rds(data_summary, fs::path(output_dir, "match_data_summary.rds"))
 
 # number of treated/controls per trial
-controls_per_trial <- table(data_matched$trial_day, data_matched$treated)
+controls_per_trial <- with(data_summary %>% filter(matched==1), table(trial_time, treated))
 logoutput_table(controls_per_trial)
 
 # max trial date
-max_trial_day <- max(data_matched$trial_day, na.rm=TRUE)
-logoutput("max trial day is ", max_trial_day)
+max_trial_time <- max(data_summary %>% filter(matched==1) %>% pull(trial_time), na.rm=TRUE)
+logoutput("max trial day is ", max_trial_time)
+
 
 
 # combine matching dataset with all other variables required for modelling ----
@@ -442,6 +455,7 @@ data_baseline <-
     ethnicity_combined,
     imd_Q5,
     region,
+    jcvi_group,
     jcvi_group_descr,
     rural_urban_group,
     prior_tests_cat,
@@ -456,6 +470,7 @@ data_baseline <-
     chronic_liver_disease,
     chronic_resp_disease,
     chronic_neuro_disease,
+    prior_covid_infection0,
     immunosuppressed,
     asplenia,
     immuno,
@@ -475,43 +490,46 @@ if(removeobjects) rm(data_cohort)
 
 
 ## create variables-at-time-zero dataset - one row per trial per arm per patient ----
-data_merged <-
+data_merged_all <-
+  data_summary %>%
+  #filter(treated==1L, matched==1L) %>%
   # add time-varying info as at recruitment date (= tte_trial)
-  data_matched %>%
-  left_join(
-    data_timevarying %>% select(-any_of(matching_variables)),
-    by = c("patient_id")
-  ) %>%
+  left_join(data_timevarying, by = c("patient_id")) %>%
   filter(
-    tte_recruitment < tstop,
-    tte_recruitment >= tstart
+    trial_time < tstop,
+    trial_time >= tstart
   ) %>%
   # add time-non-varying info
-  left_join(
-    data_baseline %>% select(-any_of(matching_variables)),
-    by=c("patient_id")
-  ) %>%
+  left_join(data_baseline,  by=c("patient_id")) %>%
   # remaining variables that combine both
   mutate(
+    prior_covid_infection = prior_covid_infection0 | !is.na(mostrecent_anycovid),
     dayssince_anycovid = tstart - mostrecent_anycovid,
+  )
+
+# same but trial participants only
+data_merged_matched <-
+  data_merged_all %>%
+  filter(matched==1L) %>%
+  mutate(
+    treated_patient_id = paste0(treated, "_", patient_id),
+    fup = pmin(tte_stop - tte_recruitment, last(postbaselinecuts))
   )
 
 logoutput_datasize(data_merged)
 
 write_rds(data_merged, fs::path(output_dir, "match_data_merged.rds"))
 
-if(removeobjects) rm(data_matched)
 
 # matching coverage per trial / day of follow up
 
 
-status_recode <- c(`Treated, ineligible` = "ineligible", `Treated, eligible, unmatched`= "unmatched", `Treated, eligible, matched` = "matched")
+status_recode <- c(`Treated, ineligible` = "ineligible", `Treated, eligible, unmatched`= "unmatched", `Treated, eligible, matched` = "matched", `Control` = "control")
 
+# matching coverage for boosted people
 data_coverage <-
-  data_summary %>%
+  data_merged_all %>%
   filter(treated==1L) %>%
-  #left_join(data_tte %>% transmute(patient_id, vax3_date=treatment_date), by="patient_id") %>%
-  left_join(data_nontimevarying %>% select(patient_id, all_of(rolling_variables), vax3_date), by="patient_id") %>%
   group_by(across(all_of(rolling_variables)), vax3_date) %>%
   summarise(
     n_treated=sum(treated, na.rm=TRUE),
@@ -542,14 +560,10 @@ data_coverage <-
     vax3_date = full_seq(.$vax3_date, 1), # go X days before to
     fill = list(n=0)
   ) %>%
+  ungroup() %>%
   mutate(
     cumuln = cumsum(n),
-    status = fct_case_when(
-      status=="ineligible" ~ "Treated, ineligible",
-      status=="unmatched" ~ "Treated, eligible, unmatched",
-      status=="matched" ~ "Treated, eligible, matched",
-      TRUE ~ NA_character_
-    )
+    status_descr = fct_recode(status, !!!status_recode[1:3])
   )
 
 write_csv(data_coverage, fs::path(output_dir, "match_data_coverage.csv"))
@@ -563,20 +577,23 @@ day1_date <- study_dates$studystart_date
 
 ## matching summary ----
 
+# summary of matching, by treatment day
 candidate_summary_trial <-
   data_summary %>%
-  group_by(trial_time) %>%
+  filter(treated==1L) %>%
+  group_by(trial_time, trial_day) %>%
   summarise(
     n_treated=sum(treated, na.rm=TRUE),
     n_eligible=sum(eligible, na.rm=TRUE),
     n_matched=sum(matched, na.rm=TRUE),
     n_unmatched=n_eligible-n_matched,
   ) %>%
-  mutate(trial_day=trial_time+1) %>%
   ungroup()
 
+
+# summary of trial participants, by trial and treatment group
 match_summary_trial <-
-  data_merged %>%
+  data_merged_matched %>%
   group_by(trial_day, treated) %>%
   summarise(
     n=n(),
@@ -601,9 +618,9 @@ match_summary_trial <-
 
 write_csv(match_summary_trial, fs::path(output_dir, "match_summary_trial.csv"))
 
-
+# summary of trial participants, by treatment group
 match_summary_treated <-
-  data_merged %>%
+  data_merged_matched %>%
   group_by(treated) %>%
   summarise(
     n=n(),
@@ -617,9 +634,10 @@ match_summary_treated <-
 write_csv(match_summary_treated, fs::path(output_dir, "match_summary_treated.csv"))
 
 
-
+# summary of boosted people
 candidate_summary <-
   data_summary %>%
+  filter(treated==1L) %>%
   summarise(
     n_treated=sum(treated, na.rm=TRUE),
     n_eligible=sum(eligible, na.rm=TRUE),
@@ -627,8 +645,9 @@ candidate_summary <-
     n_unmatched=n_eligible-n_matched,
   )
 
+# summary of matching, overall
 match_summary <-
-  data_merged %>%
+  data_merged_matched %>%
   summarise(
     n=n(),
     firstrecruitdate = min(tte_recruitment) + day1_date,
@@ -645,6 +664,8 @@ match_summary <-
   )
 
 write_csv(match_summary, fs::path(output_dir, "match_summary.csv"))
+
+
 
 ## matching coverage ----
 
@@ -766,10 +787,8 @@ library('gtsummary')
 
 var_labels <- list(
   N  ~ "Total N",
-  treated_descr ~ "Trial arm",
-  fup ~ "Follow-up (days)",
+  status_descr ~ "Recruitment status",
   vax12_type_descr ~ "Primary vaccination course (doses 1 and 2)",
-  jcvi_group_descr  ~ "JCVI group",
   #age ~ "Age",
   ageband ~ "Age",
   sex ~ "Sex",
@@ -786,9 +805,10 @@ var_labels <- list(
   diabetes ~ "Diabetes",
   chronic_liver_disease ~ "Chronic liver disease",
   chronic_resp_disease ~ "Chronic respiratory disease",
+  asthma ~ "Asthma",
   chronic_neuro_disease ~ "Chronic neurological disease",
 
-  multimorb ~ "Morbidity count",
+  #multimorb ~ "Morbidity count",
   immunosuppressed ~ "Immunosuppressed",
   asplenia ~ "Asplenia or poor spleen function",
   learndis ~ "Learning disabilities",
@@ -796,24 +816,24 @@ var_labels <- list(
 
   prior_tests_cat ~ "Number of SARS-CoV-2 tests prior to start date",
 
-  prior_covid_infection ~ "Prior infection",
+  prior_covid_infection ~ "Prior documented SARS-CoV-2 infection",
   status_hospplanned ~ "In hospital (planned admission)"
 ) %>%
   set_names(., map_chr(., all.vars))
 
 
 tab_summary_baseline <-
-  data_merged %>%
+  data_merged_all %>%
   mutate(
     N = 1L,
-    treated_descr = if_else(treated==1L, "Boosted", "Unboosted"),
+    status_descr = fct_recode(status, !!!status_recode),
   ) %>%
   select(
-    treated_descr,
+    status_descr,
     all_of(names(var_labels)),
   ) %>%
   tbl_summary(
-    by = treated_descr,
+    by = status_descr,
     label = unname(var_labels[names(.)]),
     statistic = list(N = "{N}")
   ) %>%
@@ -831,4 +851,7 @@ write_csv(tab_summary_baseline_redacted$table_body, fs::path(output_dir, "match_
 write_csv(tab_summary_baseline_redacted$df_by, fs::path(output_dir, "match_table1by.csv"))
 gtsave(as_gt(tab_summary_baseline_redacted), fs::path(output_dir, "match_table1.html"))
 
+
+
+# flowchart ----
 
