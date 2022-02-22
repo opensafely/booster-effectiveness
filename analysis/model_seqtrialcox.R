@@ -451,7 +451,7 @@ cox_model <- function(number, formula_cox){
 
 summary0 <- cox_model(0, formula0_pw)
 summary1 <- cox_model(1, formula1_pw)
-#summary2 <- cox_model(2, formula2_pw)
+summary2 <- cox_model(2, formula2_pw)
 summary3 <- cox_model(3, formula3_pw)
 
 # combine results
@@ -459,7 +459,7 @@ model_glance <-
   bind_rows(
     summary0$glance,
     summary1$glance,
-    #summary2$glance,
+    summary2$glance,
     summary3$glance,
   ) %>%
   mutate(
@@ -471,7 +471,7 @@ model_tidy <-
   bind_rows(
     summary0$tidy,
     summary1$tidy,
-    #summary2$tidy,
+    summary2$tidy,
     summary3$tidy,
   ) %>%
   mutate(
