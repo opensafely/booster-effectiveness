@@ -114,8 +114,8 @@ data_processed <- data_extract %>%
 
     ageband = cut(
       age,
-      breaks=c(-Inf, 18, 30, 40, 50, 60, 65, Inf),
-      labels=c("under 18", "18-30", "30s", "40s", "50s", "60-64", "65+"),
+      breaks=c(-Inf, 18, 40, 50, 60, 70, 80, 90, Inf),
+      labels=c("under 18", "18-39", "40-49", "50-59", "60-69", "70-79", "80-89", "90+"),
       right=FALSE
     ),
 
