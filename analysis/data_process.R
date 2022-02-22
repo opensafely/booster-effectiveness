@@ -56,6 +56,7 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
       admitted_covid_ccdays_2 = as.numeric(as.character(admitted_covid_ccdays_2)),
       admitted_covid_ccdays_3 = as.numeric(as.character(admitted_covid_ccdays_3)),
       admitted_covid_ccdays_4 = as.numeric(as.character(admitted_covid_ccdays_4)),
+      msoa = sample(factor(c("1", "2")), size=n(), replace=TRUE) # override msoa so matching success more likely
     )
 
 
@@ -396,7 +397,7 @@ data_processed <- data_processed %>%
       TRUE ~ NA_character_
     ),
 
-    vx12_type_descr = paste0(vax1_type_descr, "-", vax2_type_descr),
+    vax12_type_descr = paste0(vax1_type_descr, "-", vax2_type_descr),
 
     vax1_date = covid_vax_1_date,
     vax2_date = covid_vax_2_date,

@@ -44,6 +44,8 @@ source(here("lib", "functions", "redaction.R"))
 
 postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 matching_variables <- read_rds(here("lib", "design", "matching_variables.rds"))
+exact_variables <- read_rds(here("lib", "design", "exact_variables.rds"))
+caliper_variables <- read_rds(here("lib", "design", "caliper_variables.rds"))
 
 if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
   recruitment_period_cutoff <- 0.1
@@ -148,6 +150,45 @@ data_rollingstrata_vaxcount <-
   filter(vax3_time>=0)
 
 
+## baseline variables ----
+
+data_baseline <-
+  data_cohort %>%
+  transmute(
+    patient_id,
+    age,
+    ageband,
+    sex,
+    ethnicity_combined,
+    imd_Q5,
+    region,
+    jcvi_group,
+    jcvi_group_descr,
+    rural_urban_group,
+    prior_tests_cat,
+    multimorb,
+    learndis,
+    sev_mental,
+    cev,
+    sev_obesity,
+    chronic_heart_disease,
+    chronic_kidney_disease,
+    diabetes,
+    chronic_liver_disease,
+    chronic_resp_disease,
+    chronic_neuro_disease,
+    immunosuppressed,
+    asplenia,
+    immuno,
+
+    vax12_type,
+    vax12_type_descr,
+    vax2_week,
+    vax3_date,
+    vax3_type,
+
+  )
+logoutput_datasize(data_baseline)
 
 data_nontimevarying <-
   data_cohort %>%
@@ -165,6 +206,10 @@ data_nontimevarying <-
     recruit=NULL,
   )
 
+
+
+
+if(removeobjects) rm(data_rollingstrata_vaxcount)
 
 data_timevarying <-
   read_rds(here("output", "data", "data_long_timevarying.rds")) %>%
@@ -222,8 +267,7 @@ write_rds(data_tte, fs::path(output_dir, "match_data_tte.rds"))
 
 logoutput_datasize(data_tte)
 
-
-library("MatchIt")
+if(removeobjects) rm(data_cohort)
 
 local({
 
@@ -250,12 +294,14 @@ local({
   data_matched <- NULL
 
   # matching formula
-  matching_formula <- as.formula(str_c("treated ~ ", paste(matching_variables, collapse=" + ")))
+
+  #matching_formula <- as.formula(str_c("treated ~ ", paste(matching_variables, collapse=" + ")))
+  matching_formula <- treated ~ 1
+
   #trial=1
   for(trial in trials){
 
-    #cat(trial, "\n")
-
+    cat("matching trial ", trial, "\n")
     trial_time <- trial-1
 
     data_timevarying_i <-
@@ -320,19 +366,23 @@ local({
     n_treated_all <- sum(matching_candidates_i$treated_candidate)
 
     safely_matchit <- purrr::safely(matchit)
+    #distance <- rep(1, nrow(matching_candidates_i))
 
     # run matching algorithm
     matching_i <-
       safely_matchit(
         formula = matching_formula,
         data = matching_candidates_i,
-        method = "exact",
+        method = "nearest", distance = "glm", # these two options don't really do anything because we only want exact + caliper matching
         replace = FALSE,
-        estimand = "ATE",
-        #m.order = "data", # data is sorted on (effectively random) patient ID
+        estimand = "ATT",
+        exact = exact_variables,
+        caliper = caliper_variables, std.caliper=FALSE,
+        m.order = "data", # data is sorted on (effectively random) patient ID
         #verbose = TRUE,
-        #ratio = 1L # irritatingly you can't set this for "exact" method, so have to filter later
+        ratio = 1L # irritatingly you can't set this for "exact" method, so have to filter later
       )[[1]]
+
 
     if(is.null(matching_i)) {
       message("Terminating trial sequence at trial ", trial, " - No exact matches found.")
@@ -344,35 +394,19 @@ local({
     data_matched_i <-
       as.data.frame(matching_i$X) %>%
       add_column(
-        subclass = matching_i$subclass,
+        match_id = matching_i$subclass,
         treated = matching_i$treat,
         patient_id = matching_candidates_i$patient_id,
         weight = matching_i$weights,
         trial_day = trial,
       ) %>%
 
-      # filter treated and controls to ensure exact 1:1 matching
-      arrange(subclass, desc(treated), patient_id) %>%
-      group_by(subclass) %>%
-      mutate(
-        n_treated = sum(treated),
-        n_control = sum(1-treated)
-      ) %>%
-      group_by(subclass, treated) %>%
-      filter(
-        row_number() <= pmin(n_treated, n_control), # 1:1 matching only
-        !is.na(subclass) # remove unmatchd people. equivalent to weight != 0
-      ) %>%
-      group_by(treated) %>%
-      mutate(
-        match_id = row_number()
-      ) %>%
-      arrange(subclass, match_id, desc(treated)) %>%
+      filter(!is.na(match_id)) %>% # remove unmatched people. equivalent to weight != 0
+      arrange(match_id, desc(treated)) %>%
       left_join(
         matching_candidates_i %>% select(patient_id, starts_with("tte_")),
         by = "patient_id"
       ) %>%
-      select(-n_treated, -n_control) %>%
       group_by(match_id) %>%
       mutate(
         tte_recruitment = trial_time,
@@ -397,7 +431,7 @@ local({
     data_matched <- bind_rows(data_matched, data_matched_i)
   }
 
-  data_summary <<-
+   data_summary <<-
     data_treated %>%
     left_join(data_eligible, by=c("patient_id", "trial_time")) %>%
     left_join(data_matched %>% filter(treated==1L) %>% transmute(patient_id, matched=1L, trial_time=tte_treatment), by=c("patient_id", "trial_time")) %>%
@@ -408,7 +442,6 @@ local({
 
   data_matched <<-
     data_matched %>%
-    select(-subclass) %>%
     mutate(
       treated_patient_id = paste0(treated, "_", patient_id),
       fup = pmin(tte_stop - tte_recruitment, last(postbaselinecuts))
@@ -426,51 +459,6 @@ logoutput_table(controls_per_trial)
 # max trial date
 max_trial_day <- max(data_matched$trial_day, na.rm=TRUE)
 logoutput("max trial day is ", max_trial_day)
-
-
-# combine matching dataset with all other variables required for modelling ----
-
-## baseline variables ----
-
-data_baseline <-
-  data_cohort %>%
-  transmute(
-    patient_id,
-    age,
-    ageband,
-    sex,
-    ethnicity_combined,
-    imd_Q5,
-    region,
-    jcvi_group_descr,
-    rural_urban_group,
-    prior_tests_cat,
-    multimorb,
-    learndis,
-    sev_mental,
-    cev,
-    sev_obesity,
-    chronic_heart_disease,
-    chronic_kidney_disease,
-    diabetes,
-    chronic_liver_disease,
-    chronic_resp_disease,
-    chronic_neuro_disease,
-    immunosuppressed,
-    asplenia,
-    immuno,
-
-    vax12_type,
-    vax12_type_descr,
-    vax2_week,
-    vax3_date,
-    vax3_type,
-
-  )
-logoutput_datasize(data_baseline)
-
-if(removeobjects) rm(data_cohort)
-
 
 
 
@@ -501,6 +489,7 @@ logoutput_datasize(data_merged)
 write_rds(data_merged, fs::path(output_dir, "match_data_merged.rds"))
 
 if(removeobjects) rm(data_matched)
+if(removeobjects) rm(data_timevarying)
 
 # matching coverage per trial / day of follow up
 
@@ -522,10 +511,6 @@ data_coverage <-
     n_unmatched = n_eligible - n_matched,
     n_ineligible = n_treated - n_eligible,
   ) %>%
-  # left_join(
-  #   .,
-  #   data_rollingstrata_vaxcount
-  # ) %>%
   pivot_longer(
     cols = c(n_ineligible, n_unmatched, n_matched),
     names_to = "status",
@@ -557,7 +542,6 @@ write_csv(data_coverage, fs::path(output_dir, "match_data_coverage.csv"))
 # report matching info ----
 
 day1_date <- study_dates$studystart_date
-
 
 ## candidate matching summary ----
 

@@ -42,6 +42,7 @@ data_criteria <- data_processed %>%
     has_imd = !is.na(imd),
     has_ethnicity = !is.na(ethnicity_combined),
     has_region = !is.na(region),
+    #has_msoa = !is.na(msoa),
     isnot_hscworker = !hscworker,
     isnot_carehomeresident = !care_home_combined,
     isnot_endoflife = !endoflife,
