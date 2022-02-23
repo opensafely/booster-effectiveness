@@ -104,7 +104,7 @@ logoutput_datasize(data_matched)
 # matching coverage per trial / day of follow up
 
 
-status_recode <- c(`Treated, ineligible` = "ineligible", `Treated, eligible, unmatched`= "unmatched", `Treated, eligible, matched` = "matched", `Control` = "control")
+status_recode <- c(`Boosted, ineligible` = "ineligible", `Boosted, eligible, unmatched`= "unmatched", `Boosted, eligible, matched` = "matched", `Control` = "control")
 
 
 # matching coverage for boosted people
@@ -435,7 +435,7 @@ data_smd <- tab_summary_baseline$meta_data %>%
   select(var_label, df_stats) %>%
   unnest(df_stats) %>%
   filter(
-    by %in% c("Treated, eligible, matched", "Control"),
+    by %in% c("Boosted, eligible, matched", "Control"),
     variable != "N"
   ) %>%
   group_by(var_label, variable_levels) %>%

@@ -470,7 +470,7 @@ logoutput("max trial day is ", max_trial_time)
 
 ## combine all data together as at recruitment date ----
 
-status_recode <- c(`Treated, ineligible` = "ineligible", `Treated, eligible, unmatched`= "unmatched", `Treated, eligible, matched` = "matched", `Control` = "control")
+status_recode <- c(`Boosted, ineligible` = "ineligible", `Boosted, eligible, unmatched`= "unmatched", `Boosted, eligible, matched` = "matched", `Control` = "control")
 
 ## create variables-at-time-zero dataset - one row per trial per arm per patient ----
 data_merged <-
