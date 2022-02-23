@@ -140,8 +140,10 @@ data_coverage <-
   ungroup() %>%
   mutate(
     cumuln = cumsum(n),
+    status = factor(status, levels=c("ineligible", "unmatched", "matched")),
     status_descr = fct_recode(status, !!!status_recode[1:3])
-  )
+  ) %>%
+  arrange(status_descr, vax3_date)
 
 write_csv(data_coverage, fs::path(output_dir, "merge_data_coverage.csv"))
 
