@@ -451,4 +451,7 @@ no_longer_housebound = codelist_from_csv(
     column="code"
 )
 
-
+discharged_to_hospital = codelist(
+    ["306706006", "1066331000000109", "1066391000000105"],
+    system="snomed",
+)

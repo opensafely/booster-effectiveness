@@ -10,7 +10,7 @@ remotes::install_github("https://github.com/wjchulme/dd4d")
 library('dd4d')
 
 
-population_size <- 10000
+population_size <- 20000
 
 # get nth largest value from list, from https://stackoverflow.com/a/21005136/4269699
 nthmax <- function(x, n=1){
@@ -211,7 +211,7 @@ sim_list = lst(
     missing_rate = ~0.7
   ),
   covid_test_1_day = bn_node(
-    ~as.integer(runif(n=1, index_day, index_day+300)),
+    ~as.integer(runif(n=1, index_day, index_day+100)),
     missing_rate = ~0.6
   ),
 
@@ -234,7 +234,7 @@ sim_list = lst(
   ),
 
   death_day = bn_node(
-    ~as.integer(runif(n=1, index_day, index_day+300)),
+    ~as.integer(runif(n=1, index_day, index_day+100)),
     missing_rate = ~0.99
   ),
 
@@ -459,7 +459,7 @@ sim_list = lst(
     missing_rate = ~0.99
   ),
   covidemergency_1_day = bn_node(
-    ~as.integer(runif(n=1, index_day, index_day+300)),
+    ~as.integer(runif(n=1, index_day, index_day+100)),
     missing_rate = ~0.95
   ),
   covidemergency_2_day = bn_node(
@@ -477,6 +477,48 @@ sim_list = lst(
     missing_rate = ~0.9,
     needs = "covidemergency_3_day"
   ),
+
+
+  emergencyhosp_1_day = bn_node(
+    ~as.integer(runif(n=1, index_day, index_day+100)),
+    missing_rate = ~0.95
+  ),
+  emergencyhosp_2_day = bn_node(
+    ~as.integer(runif(n=1, emergencyhosp_1_day+1, emergencyhosp_1_day+30)),
+    missing_rate = ~0.9,
+    needs = "emergencyhosp_1_day"
+  ),
+  emergencyhosp_3_day = bn_node(
+    ~as.integer(runif(n=1, emergencyhosp_2_day+1, emergencyhosp_2_day+30)),
+    missing_rate = ~0.9,
+    needs = "emergencyhosp_2_day"
+  ),
+  emergencyhosp_4_day = bn_node(
+    ~as.integer(runif(n=1, emergencyhosp_3_day+1, emergencyhosp_3_day+30)),
+    missing_rate = ~0.9,
+    needs = "emergencyhosp_3_day"
+  ),
+
+  covidemergencyhosp_1_day = bn_node(
+    ~as.integer(runif(n=1, index_day, index_day+100)),
+    missing_rate = ~0.95
+  ),
+  covidemergencyhosp_2_day = bn_node(
+    ~as.integer(runif(n=1, covidemergencyhosp_1_day+1, covidemergencyhosp_1_day+30)),
+    missing_rate = ~0.9,
+    needs = "covidemergencyhosp_1_day"
+  ),
+  covidemergencyhosp_3_day = bn_node(
+    ~as.integer(runif(n=1, covidemergencyhosp_2_day+1, covidemergencyhosp_2_day+30)),
+    missing_rate = ~0.9,
+    needs = "covidemergencyhosp_2_day"
+  ),
+  covidemergencyhosp_4_day = bn_node(
+    ~as.integer(runif(n=1, covidemergencyhosp_3_day+1, covidemergencyhosp_3_day+30)),
+    missing_rate = ~0.9,
+    needs = "covidemergencyhosp_3_day"
+  ),
+
 
 
   admitted_covid_0_day = bn_node(

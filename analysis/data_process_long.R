@@ -85,8 +85,31 @@ data_postest <- data_processed %>%
   arrange(patient_id, date) %>%
   mutate(event="postest") # need to change name to match "outcome" argument
 
+
+data_emergencyhosp <- data_processed %>%
+  select(patient_id, matches("^emergencyhosp\\_\\d+\\_date")) %>%
+  pivot_longer(
+    cols = -patient_id,
+    names_to = c("event", "index"),
+    names_pattern = "^(.*)_(\\d+)_date",
+    values_to = "date",
+    values_drop_na = TRUE
+  ) %>%
+  arrange(patient_id, date)
+
 data_covidemergency <- data_processed %>%
   select(patient_id, matches("^covidemergency\\_\\d+\\_date")) %>%
+  pivot_longer(
+    cols = -patient_id,
+    names_to = c("event", "index"),
+    names_pattern = "^(.*)_(\\d+)_date",
+    values_to = "date",
+    values_drop_na = TRUE
+  ) %>%
+  arrange(patient_id, date)
+
+data_covidemergencyhosp <- data_processed %>%
+  select(patient_id, matches("^covidemergencyhosp\\_\\d+\\_date")) %>%
   pivot_longer(
     cols = -patient_id,
     names_to = c("event", "index"),
@@ -151,7 +174,9 @@ data_allevents <-
     data_admitted_planned,
     data_admitted_unplanned,
     data_postest,
+    data_emergencyhosp,
     data_covidemergency,
+    data_covidemergencyhosp,
     data_covidadmitted,
     data_covidcc,
     data_coviddeath,
@@ -162,7 +187,7 @@ data_allevents <-
     time = as.integer(date - study_dates$studystart_date-1),
   )
 
-write_rds(data_allevents, here("output", "data", "data_long_allevents.rds"), compress="gz")
+
 
 data_timevarying <-
   data_processed %>%
@@ -183,7 +208,9 @@ data_timevarying <-
     id=patient_id,
     #postest = event(time, (event=="positive_test") *1L),
     postest = event(if_else(event=="postest", time, NA_integer_)),
+    emergencyhosp = event(time, (event=="emergencyhosp") *1L),
     covidemergency = event(time, (event=="covidemergency") *1L),
+    covidemergencyhosp = event(time, (event=="covidemergencyhosp") *1L),
     covidadmitted = event(time, (event=="covidadmitted") *1L),
     covidcc = event(time, (event=="covidcc") *1L),
     coviddeath = event(time, (event=="coviddeath") *1L),
@@ -201,9 +228,26 @@ data_timevarying <-
     status_hospunplanned=tdc(time, case_when(event=="admitted_unplanned" ~ 1L, event=="discharged_unplanned" ~ 0L, TRUE ~NA_integer_)),
     options=list(tdcstart=0L)
   ) %>%
-  mutate(id=NULL)
+  mutate(
+    id=NULL,
+    covidadmittedproxy1 = covidemergencyhosp,
+    covidadmittedproxy2 = if_else((mostrecent_anycovid<=tstop) & (mostrecent_anycovid>=tstop-14), emergencyhosp, 0L)
+  )
 
 write_rds(data_timevarying, here("output", "data", "data_long_timevarying.rds"), compress="gz")
+
+
+data_allevents <-
+ data_allevents %>%
+  bind_rows(
+    data_timevarying %>% filter(covidadmittedproxy1==1) %>% transmute(patient_id, event="covidadmittedproxy1", date=tstop+(study_dates$studystart_date-1), time=tstop),
+    data_timevarying %>% filter(covidadmittedproxy2==1) %>% transmute(patient_id, event="covidadmittedproxy2", date=tstop+(study_dates$studystart_date-1), time=tstop)
+  )
+
+
+write_rds(data_allevents, here("output", "data", "data_long_allevents.rds"), compress="gz")
+
+
 
 # write_rds(data_pr_probable_covid, here("output", cohort, "data", "data_long_pr_probable_covid_dates.rds"), compress="gz")
 
