@@ -22,7 +22,7 @@ if(length(args)==0){
   # use for interactive testing
   removeobjects <- FALSE
   treatment <- "pfizer"
-  outcome <- "covidadmitted"
+  outcome <- "covidadmittedproxy1"
   subgroup <- "none"
   #subgroup <- "none"
 } else {
@@ -407,7 +407,8 @@ write_csv(event_counts_strata, fs::path(output_dir, "model_preflight_strata.csv"
 
 opt_control <- coxph.control(iter.max = 30)
 
-cox_model <- function(number, formula_cox){
+cox_model <- function(timesplit, number, formula_cox){
+
   # fit a time-dependent cox model and output summary functions
   coxmod <- coxph(
     formula = formula_cox,
@@ -446,15 +447,15 @@ cox_model <- function(number, formula_cox){
 
   # remove data to save space (it's already saved above)
   coxmod$data <- NULL
-  write_rds(coxmod, fs::path(output_dir, glue("model_obj{number}.rds")), compress="gz")
+  write_rds(coxmod, fs::path(output_dir, glue("model_obj{number}{timesplit}.rds")), compress="gz")
 
   lst(glance, tidy)
 }
 
-summary0 <- cox_model(0, formula0_pw)
-summary1 <- cox_model(1, formula1_pw)
-summary2 <- cox_model(2, formula2_pw)
-summary3 <- cox_model(3, formula3_pw)
+summary0 <- cox_model("", 0, formula0_pw)
+summary1 <- cox_model("", 1, formula1_pw)
+summary2 <- cox_model("", 2, formula2_pw)
+summary3 <- cox_model("", 3, formula3_pw)
 
 # combine results
 model_glance <-
@@ -480,5 +481,46 @@ model_tidy <-
     model_descr = fct_recode(as.character(model), !!!model_descr)
   )
 write_csv(model_tidy, fs::path(output_dir, "model_tidy.csv"))
+
+
+## re-run models, but do not split time period ----
+
+
+formula_vaxonly_overall <- Surv(tstart, tstop, ind_outcome) ~ treated
+formula0_overall <- formula_vaxonly_overall %>% update(formula_remove_matching)
+formula1_overall <- formula_vaxonly_overall %>% update(formula_strata) %>% update(formula_remove_matching)
+formula2_overall <- formula_vaxonly_overall %>% update(formula_strata) %>% update(formula_demog) %>% update(formula_remove_matching)
+formula3_overall <- formula_vaxonly_overall %>% update(formula_strata) %>% update(formula_demog) %>% update(formula_clinical) %>% update(formula_timedependent) %>% update(formula_remove_outcome) %>% update(formula_remove_matching)
+
+
+summary0overall <- cox_model("overall", 0, formula0_overall)
+summary1overall <- cox_model("overall", 1, formula1_overall)
+summary2overall <- cox_model("overall", 2, formula2_overall)
+summary3overall <- cox_model("overall", 3, formula3_overall)
+
+# combine results
+model_overallglance <-
+  bind_rows(
+    summary0overall$glance,
+    summary1overall$glance,
+    summary2overall$glance,
+    summary3overall$glance,
+  ) %>%
+  mutate(
+    model_descr = fct_recode(as.character(model), !!!model_descr)
+  )
+write_csv(model_overallglance, fs::path(output_dir, "model_overallglance.csv"))
+
+model_overalltidy <-
+  bind_rows(
+    summary0overall$tidy,
+    summary1overall$tidy,
+    summary2overall$tidy,
+    summary3overall$tidy,
+  ) %>%
+  mutate(
+    model_descr = fct_recode(as.character(model), !!!model_descr)
+  )
+write_csv(model_overalltidy, fs::path(output_dir, "model_overalltidy.csv"))
 
 

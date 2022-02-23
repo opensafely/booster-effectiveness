@@ -121,6 +121,37 @@ ggsave(filename=fs::path(output_dir, "report_effectsplot.svg"), plot_effects, wi
 ggsave(filename=fs::path(output_dir, "report_effectsplot.png"), plot_effects, width=20, height=15, units="cm")
 
 
+
+## overall effects ----
+
+model_overalltidy <- read_csv(fs::path(output_dir, "model_overalltidy.csv"))
+model_overalleffects <- model_overalltidy %>%
+  filter(str_detect(term, fixed("treated"))) %>%
+  mutate(model_descr = fct_inorder(model_descr))
+
+write_csv(model_overalleffects, path = fs::path(output_dir, "report_overalleffects.csv"))
+
+
+
+## meta analysis of period-specific hazards ----
+
+model_metaeffects <- model_effects %>%
+  group_by(
+    model, model_descr
+  ) %>%
+  summarise(
+    estimate = weighted.mean(estimate, robust.se^-2),
+    std.error = sqrt(1/sum(std.error^-2)),
+    robust.se = sqrt(1/sum(robust.se^-2)),
+    statistic = estimate/robust.se,
+    p.value = 2 * pmin(pnorm(statistic), pnorm(-statistic)),
+    conf.low = estimate + qnorm(0.025)*robust.se,
+    conf.high = estimate + qnorm(0.975)*robust.se,
+  )
+
+write_csv(model_metaeffects, path = fs::path(output_dir, "report_metaeffects.csv"))
+
+
 ## incidence rates ----
 
 ### Event incidence following recruitment
@@ -403,25 +434,4 @@ if(any(data_tidy_surv$n.event==0)){
   ggsave(filename=fs::path(output_dir, "report_cumulriskplot.png"), plot_cumulrisk, width=20, height=15, units="cm")
 
 }
-
-
-## meta analysis of period-specific hazards ----
-
-
-model_metaeffects <- model_effects %>%
-  group_by(
-    model, model_descr
-  ) %>%
-  summarise(
-    estimate = weighted.mean(estimate, robust.se^-2),
-    robust.se = sqrt(1/sum(robust.se^-2)),
-    statistic = estimate/robust.se,
-    p.value = 2 * pmin(pnorm(statistic), pnorm(-statistic)),
-    conf.low = estimate + qnorm(0.025)*robust.se,
-    conf.high = estimate + qnorm(0.975)*robust.se,
-  )
-
-write_csv(model_metaeffects, path = fs::path(output_dir, "report_metaeffects.csv"))
-
-
 
