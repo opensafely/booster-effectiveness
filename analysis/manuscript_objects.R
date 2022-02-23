@@ -162,9 +162,10 @@ fs::file_copy(here("output", "match", "combined", "flowchart.csv"), here("output
 
 for(subgroup_variable in c("none", "vax12_type")){
   fs::dir_create(here("output", "manuscript-objects", subgroup_variable))
-  fs::file_copy(here("output", "models", "seqtrialcox", "combined", "model", subgroup_variable, "incidence.csv"), here("output", "manuscript-objects", subgroup_variable, "incidence.csv"), overwrite = TRUE)
-  fs::file_copy(here("output", "models", "seqtrialcox", "combined", "model", subgroup_variable, "km.csv"), here("output", "manuscript-objects", subgroup_variable, "km.csv"), overwrite = TRUE)
-  fs::file_copy(here("output", "models", "seqtrialcox", "combined", "model", subgroup_variable, "effects.csv"), here("output", "manuscript-objects", subgroup_variable, "effects.csv"), overwrite = TRUE)
+  fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "incidence.csv"), here("output", "manuscript-objects", subgroup_variable, "incidence.csv"), overwrite = TRUE)
+  fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "km.csv"), here("output", "manuscript-objects", subgroup_variable, "km.csv"), overwrite = TRUE)
+  fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "effects.csv"), here("output", "manuscript-objects", subgroup_variable, "effects.csv"), overwrite = TRUE)
+  fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "metaeffects.csv"), here("output", "manuscript-objects", subgroup_variable, "metaeffects.csv"), overwrite = TRUE)
 }
 
 

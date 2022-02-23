@@ -42,7 +42,7 @@ source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "survival.R"))
 source(here("lib", "functions", "redaction.R"))
 
-output_dir_matched <- here("output", "models", "seqtrialcox", treatment, outcome)
+output_dir_matched <- here("output", "match", outcome)
 output_dir <- here("output", "models", "seqtrialcox", treatment, outcome, subgroup)
 
 data_seqtrialcox <- read_rds(fs::path(output_dir, "model_data_seqtrialcox.rds"))
@@ -146,10 +146,6 @@ format_ratio = function(numer,denom, width=7){
     str_pad(replace_na(scales::comma_format(accuracy=1)(denom),"--"), width=width, pad=" ")
   )
 }
-
-
-
-
 
 
 incidence_rate_redacted <- local({
@@ -407,5 +403,25 @@ if(any(data_tidy_surv$n.event==0)){
   ggsave(filename=fs::path(output_dir, "report_cumulriskplot.png"), plot_cumulrisk, width=20, height=15, units="cm")
 
 }
+
+
+## meta analysis of period-specific hazards ----
+
+
+model_metaeffects <- model_effects %>%
+  group_by(
+    model, model_descr
+  ) %>%
+  summarise(
+    estimate = weighted.mean(estimate, robust.se^-2),
+    robust.se = sqrt(1/sum(robust.se^-2)),
+    statistic = estimate/robust.se,
+    p.value = 2 * pmin(pnorm(statistic), pnorm(-statistic)),
+    conf.low = estimate + qnorm(0.025)*robust.se,
+    conf.high = estimate + qnorm(0.975)*robust.se,
+  )
+
+write_csv(model_metaeffects, path = fs::path(output_dir, "report_metaeffects.csv"))
+
 
 

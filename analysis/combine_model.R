@@ -33,7 +33,7 @@ library('gt')
 source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "survival.R"))
 
-output_dir <- here("output", "models", "seqtrialcox", "combined", "model", subgroup_variable)
+output_dir <- here("output", "models", "seqtrialcox", "combined", subgroup_variable)
 fs::dir_create(output_dir)
 
 ## import globally defined study dates and convert to "Date"
@@ -136,9 +136,36 @@ model_effects <-
     hr.ul !=Inf, hr.ul !=0,
   )
 
-
-
 write_csv(model_effects, path = fs::path(output_dir, "effects.csv"))
+
+
+
+model_metaeffects <-
+  model_metaparams %>%
+  mutate(
+    metaeffects = pmap(list(treatment, outcome, subgroup), function(x, y, z) read_csv(here("output", "models", "seqtrialcox", x, y, z, glue("report_metaeffects.csv"))))
+  ) %>%
+  unnest(metaeffects) %>%
+  mutate(
+    model_descr = fct_reorder(model_descr, model),
+    hr = exp(estimate),
+    hr.ll = exp(conf.low),
+    hr.ul = exp(conf.high),
+    ve = 1-hr,
+    ve.ll = 1-hr.ul,
+    ve.ul = 1-hr.ll
+  ) %>%
+  filter(
+    # this filtering is necessary for dummy data,
+    # so that sec.axis doesn't think `1-x` is a non-monotonic function
+    # see - https://github.com/tidyverse/ggplot2/issues/3323#issuecomment-491421372
+    hr !=Inf, hr !=0,
+    hr.ll !=Inf, hr.ll !=0,
+    hr.ul !=Inf, hr.ul !=0,
+  )
+
+write_csv(model_metaeffects, path = fs::path(output_dir, "metaeffects.csv"))
+
 
 formatpercent100 <- function(x,accuracy){
   formatx <- scales::label_percent(accuracy)(x)
