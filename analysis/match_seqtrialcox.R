@@ -337,7 +337,7 @@ local({
       ) %>%
       filter(
         # remove anyone already censored
-        tte_stop >= trial_time,
+        tte_stop > trial_time,
         # remove anyone who has experienced covid within the last 90 days
         !between(mostrecent_anycovid, trial_time-90, trial_time) | is.na(mostrecent_anycovid),
         # remove anyone currently in hospital
