@@ -22,7 +22,7 @@ if(length(args)==0){
   # use for interactive testing
   removeobjects <- FALSE
   treatment <- "pfizer"
-  outcome <- "postest"
+  outcome <- "covidadmitted"
   subgroup <- "none"
   #subgroup <- "none"
 } else {
@@ -97,7 +97,7 @@ events <- read_rds(here("lib", "design", "event-variables.rds"))
 outcome_var <- events$event_var[events$event==outcome]
 
 
-data_merged <-
+data_matched <-
   read_rds(here("output", "match", treatment, "match_data_merged.rds")) %>%
   filter(matched %in% 1L) %>%
   mutate(
@@ -110,7 +110,7 @@ data_merged <-
 
 data_tte <-
   read_rds(here("output", "match", treatment, "match_data_tte.rds")) %>%
-  filter(patient_id %in% data_merged$patient_id)
+  filter(patient_id %in% data_matched$patient_id)
 
 ## create outcome variables ----
 
@@ -160,7 +160,7 @@ data_timevaryingoutcomes <- local({
 data_seqtrialcox <- local({
 
   data_st0 <-
-    data_merged %>%
+    data_matched %>%
     left_join(
       data_timevaryingoutcomes %>% rename(tstart2 = tstart, tstop2 = tstop),
       by = c("patient_id")
@@ -173,7 +173,7 @@ data_seqtrialcox <- local({
 
   # one row per patient per post-recruitment split time
   fup_split <-
-    data_merged %>%
+    data_matched %>%
     uncount(weights = length(postbaselinecuts)-1, .id="period_id") %>%
     mutate(
       fup_time = postbaselinecuts[period_id],
@@ -272,16 +272,18 @@ formula_timedependent <- . ~ . +
   status_hospplanned
 
 
-formula_remove_outcome = . ~ .
+formula_remove_outcome <- . ~ .
 if(outcome=="postest"){
   formula_remove_outcome = . ~ . - postest_status
 }
 
 
-formula0_pw <- formula_vaxonly
-formula1_pw <- formula_vaxonly %>% update(formula_strata)
-formula2_pw <- formula_vaxonly %>% update(formula_strata) %>% update(formula_demog)
-formula3_pw <- formula_vaxonly %>% update(formula_strata) %>% update(formula_demog) %>% update(formula_clinical) %>% update(formula_timedependent) %>% update(formula_remove_outcome)
+formula_remove_matching <- as.formula(paste(". ~ . - ", paste(matching_variables, collapse=" -")))
+
+formula0_pw <- formula_vaxonly %>% update(formula_remove_matching)
+formula1_pw <- formula_vaxonly %>% update(formula_strata) %>% update(formula_remove_matching)
+formula2_pw <- formula_vaxonly %>% update(formula_strata) %>% update(formula_demog) %>% update(formula_remove_matching)
+formula3_pw <- formula_vaxonly %>% update(formula_strata) %>% update(formula_demog) %>% update(formula_clinical) %>% update(formula_timedependent) %>% update(formula_remove_outcome) %>% update(formula_remove_matching)
 
 model_descr = c(
   "Unadjusted" = "0",
