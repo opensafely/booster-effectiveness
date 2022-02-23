@@ -88,11 +88,11 @@ exact_variables <- c(
 
   "jcvi_group",
   "vax12_type",
-  "vax2_week",
+  #"vax2_week",
   "region",
   #"sex",
   "cev",
-  "multimorb",
+  #"multimorb",
   "prior_covid_infection",
   "immunosuppressed",
   #"status_hospplanned"
@@ -102,7 +102,7 @@ write_rds(exact_variables, here("lib", "design", "exact_variables.rds"))
 
 caliper_variables <- c(
   age = 3,
-  #vax2_day = 7,
+  vax2_day = 7,
   NULL
 )
 write_rds(caliper_variables, here("lib", "design", "caliper_variables.rds"))

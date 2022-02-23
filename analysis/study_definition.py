@@ -87,22 +87,23 @@ def covid_test_date_X(name, index_date, n, test_result):
 
 
 def emergency_attendance_date_X(
-  name, index_date, n, with_these_diagnoses=None
+  name, index_date, n, with_these_diagnoses=None, discharged_to=None
 ):
   # emeregency attendance dates
-  def var_signature(name, on_or_after, with_these_diagnoses):
+  def var_signature(name, on_or_after, with_these_diagnoses, discharged_to):
     return {
       name: patients.attended_emergency_care(
         returning="date_arrived",
         on_or_after=on_or_after,
         find_first_match_in_period=True,
         date_format="YYYY-MM-DD",
-        with_these_diagnoses=with_these_diagnoses
+        with_these_diagnoses=with_these_diagnoses,
+        discharged_to=discharged_to
       ),
     }
-  variables = var_signature(f"{name}_1_date", index_date, with_these_diagnoses)
+  variables = var_signature(f"{name}_1_date", index_date, with_these_diagnoses, discharged_to)
   for i in range(2, n+1):
-      variables.update(var_signature(f"{name}_{i}_date", f"{name}_{i-1}_date + 1 day", with_these_diagnoses))
+      variables.update(var_signature(f"{name}_{i}_date", f"{name}_{i-1}_date + 1 day", with_these_diagnoses, discharged_to))
   return variables
 
 
@@ -564,6 +565,22 @@ study = StudyDefinition(
     n = 4,
     index_date = "index_date",
     with_these_diagnoses = codelists.covid_emergency
+  ),
+  
+  **emergency_attendance_date_X(
+    name = "emergencyhosp",
+    n = 4,
+    index_date = "index_date",
+    with_these_diagnoses = codelists.covid_emergency,
+    discharged_to = codelists.discharged_to_hospital
+  ),
+  
+  **emergency_attendance_date_X(
+    name = "covidemergencyhosp",
+    n = 4,
+    index_date = "index_date",
+    with_these_diagnoses = codelists.covid_emergency,
+    discharged_to = codelists.discharged_to_hospital
   ),
     
     

@@ -79,10 +79,7 @@ action_match <- function(treatment){
       name = glue("merge_seqtrialcox_{treatment}"),
       run = glue("r:latest analysis/merge_seqtrialcox.R"),
       arguments = c(treatment),
-      needs = list("data_selection", "data_process_long", glue("match_seqtrialcox_{treatment}")),
-      highly_sensitive = lst(
-        rds = glue("output/match/{treatment}/merge_*.rds")
-      ),
+      needs = list("data_process", "data_process_long", "data_selection",  glue("match_seqtrialcox_{treatment}")),
       moderately_sensitive = lst(
         txt = glue("output/match/{treatment}/merge_*.txt"),
         csv = glue("output/match/{treatment}/merge_*.csv"),
@@ -356,52 +353,6 @@ actions_list <- splice(
   action_match("pfizer"),
   action_match("moderna"),
 
-  comment("# # # # # # # # # # # # # # # # # # #", "Models", "# # # # # # # # # # # # # # # # # # #"),
-
-
-  comment("###  Positive SARS-CoV-2 Test"),
-  action_model("pfizer", "postest", "none"),
-  action_model("pfizer", "postest", "vax12_type-az-az"),
-  action_model("pfizer", "postest", "vax12_type-pfizer-pfizer"),
-  action_model("moderna", "postest", "none"),
-  action_model("moderna", "postest", "vax12_type-az-az"),
-  action_model("moderna", "postest", "vax12_type-pfizer-pfizer"),
-
-  comment("###  COVID-19 emergency attendance"),
-  action_model("pfizer", "covidemergency", "none"),
-  action_model("pfizer", "covidemergency", "vax12_type-az-az"),
-  action_model("pfizer", "covidemergency", "vax12_type-pfizer-pfizer"),
-  action_model("moderna", "covidemergency", "none"),
-  action_model("moderna", "covidemergency", "vax12_type-az-az"),
-  action_model("moderna", "covidemergency", "vax12_type-pfizer-pfizer"),
-
-
-  comment("###  COVID-19 unplanned admission"),
-  action_model("pfizer", "covidadmitted", "none"),
-  action_model("pfizer", "covidadmitted", "vax12_type-az-az"),
-  action_model("pfizer", "covidadmitted", "vax12_type-pfizer-pfizer"),
-  action_model("moderna", "covidadmitted", "none"),
-  action_model("moderna", "covidadmitted", "vax12_type-az-az"),
-  action_model("moderna", "covidadmitted", "vax12_type-pfizer-pfizer"),
-
-  comment("###  COVID-19 ICU/Critical care admission"),
-  action_model("pfizer", "covidcc", "none"),
-  action_model("pfizer", "covidcc", "vax12_type-az-az"),
-  action_model("pfizer", "covidcc", "vax12_type-pfizer-pfizer"),
-  action_model("moderna", "covidcc", "none"),
-  action_model("moderna", "covidcc", "vax12_type-az-az"),
-  action_model("moderna", "covidcc", "vax12_type-pfizer-pfizer"),
-
-  comment("###  COVID-19 death"),
-  action_model("pfizer", "coviddeath", "none"),
-  action_model("pfizer", "coviddeath", "vax12_type-az-az"),
-  action_model("pfizer", "coviddeath", "vax12_type-pfizer-pfizer"),
-  action_model("moderna", "coviddeath", "none"),
-  action_model("moderna", "coviddeath", "vax12_type-az-az"),
-  action_model("moderna", "coviddeath", "vax12_type-pfizer-pfizer"),
-
-
-
   action(
     name = "combine_match",
     run = "r:latest analysis/combine_match.R",
@@ -423,6 +374,74 @@ actions_list <- splice(
       # svg = "output/match/combined/*.svg"
     )
   ),
+
+
+  comment("# # # # # # # # # # # # # # # # # # #", "Pfizer models", "# # # # # # # # # # # # # # # # # # #"),
+
+
+  comment("###  Positive SARS-CoV-2 Test"),
+  action_model("pfizer", "postest", "none"),
+  action_model("pfizer", "postest", "vax12_type-az-az"),
+  action_model("pfizer", "postest", "vax12_type-pfizer-pfizer"),
+
+  comment("###  COVID-19 emergency attendance"),
+  action_model("pfizer", "covidemergency", "none"),
+  action_model("pfizer", "covidemergency", "vax12_type-az-az"),
+  action_model("pfizer", "covidemergency", "vax12_type-pfizer-pfizer"),
+
+  comment("###  COVID-19 admission (A&E proxy)"),
+  action_model("pfizer", "covidadmittedproxy1", "none"),
+  action_model("pfizer", "covidadmittedproxy1", "vax12_type-az-az"),
+  action_model("pfizer", "covidadmittedproxy1", "vax12_type-pfizer-pfizer"),
+
+  comment("###  COVID-19 admission"),
+  action_model("pfizer", "covidadmitted", "none"),
+  action_model("pfizer", "covidadmitted", "vax12_type-az-az"),
+  action_model("pfizer", "covidadmitted", "vax12_type-pfizer-pfizer"),
+
+  comment("###  COVID-19 ICU/Critical care admission"),
+  action_model("pfizer", "covidcc", "none"),
+  action_model("pfizer", "covidcc", "vax12_type-az-az"),
+  action_model("pfizer", "covidcc", "vax12_type-pfizer-pfizer"),
+
+  comment("###  COVID-19 death"),
+  action_model("pfizer", "coviddeath", "none"),
+  action_model("pfizer", "coviddeath", "vax12_type-az-az"),
+  action_model("pfizer", "coviddeath", "vax12_type-pfizer-pfizer"),
+
+
+  comment("# # # # # # # # # # # # # # # # # # #", "Moderna models", "# # # # # # # # # # # # # # # # # # #"),
+
+  comment("###  Positive SARS-CoV-2 Test"),
+  action_model("moderna", "postest", "none"),
+  action_model("moderna", "postest", "vax12_type-az-az"),
+  action_model("moderna", "postest", "vax12_type-pfizer-pfizer"),
+
+  comment("###  COVID-19 emergency attendance"),
+  action_model("moderna", "covidemergency", "none"),
+  action_model("moderna", "covidemergency", "vax12_type-az-az"),
+  action_model("moderna", "covidemergency", "vax12_type-pfizer-pfizer"),
+
+  comment("###  COVID-19 admission (A&E proxy)"),
+  action_model("moderna", "covidadmittedproxy1", "none"),
+  action_model("moderna", "covidadmittedproxy1", "vax12_type-az-az"),
+  action_model("moderna", "covidadmittedproxy1", "vax12_type-pfizer-pfizer"),
+
+  comment("###  COVID-19 admission"),
+  action_model("moderna", "covidadmitted", "none"),
+  action_model("moderna", "covidadmitted", "vax12_type-az-az"),
+  action_model("moderna", "covidadmitted", "vax12_type-pfizer-pfizer"),
+
+  comment("###  COVID-19 ICU/Critical care admission"),
+  action_model("moderna", "covidcc", "none"),
+  action_model("moderna", "covidcc", "vax12_type-az-az"),
+  action_model("moderna", "covidcc", "vax12_type-pfizer-pfizer"),
+
+  comment("###  COVID-19 death"),
+  action_model("moderna", "coviddeath", "none"),
+  action_model("moderna", "coviddeath", "vax12_type-az-az"),
+  action_model("moderna", "coviddeath", "vax12_type-pfizer-pfizer"),
+
 
   action(
     name = "combine_model",
