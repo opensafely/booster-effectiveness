@@ -133,12 +133,11 @@ actions:
   merge_seqtrialcox_pfizer:
     run: r:latest analysis/merge_seqtrialcox.R pfizer
     needs:
-    - data_selection
+    - data_process
     - data_process_long
+    - data_selection
     - match_seqtrialcox_pfizer
     outputs:
-      highly_sensitive:
-        rds: output/match/pfizer/merge_*.rds
       moderately_sensitive:
         txt: output/match/pfizer/merge_*.txt
         csv: output/match/pfizer/merge_*.csv
@@ -160,12 +159,11 @@ actions:
   merge_seqtrialcox_moderna:
     run: r:latest analysis/merge_seqtrialcox.R moderna
     needs:
-    - data_selection
+    - data_process
     - data_process_long
+    - data_selection
     - match_seqtrialcox_moderna
     outputs:
-      highly_sensitive:
-        rds: output/match/moderna/merge_*.rds
       moderately_sensitive:
         txt: output/match/moderna/merge_*.txt
         csv: output/match/moderna/merge_*.csv

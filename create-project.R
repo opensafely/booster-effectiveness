@@ -79,10 +79,7 @@ action_match <- function(treatment){
       name = glue("merge_seqtrialcox_{treatment}"),
       run = glue("r:latest analysis/merge_seqtrialcox.R"),
       arguments = c(treatment),
-      needs = list("data_selection", "data_process_long", glue("match_seqtrialcox_{treatment}")),
-      highly_sensitive = lst(
-        rds = glue("output/match/{treatment}/merge_*.rds")
-      ),
+      needs = list("data_process", "data_process_long", "data_selection",  glue("match_seqtrialcox_{treatment}")),
       moderately_sensitive = lst(
         txt = glue("output/match/{treatment}/merge_*.txt"),
         csv = glue("output/match/{treatment}/merge_*.csv"),
