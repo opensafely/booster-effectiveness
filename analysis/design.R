@@ -92,9 +92,10 @@ exact_variables <- c(
   "region",
   #"sex",
   "cev",
+  "cv",
   #"multimorb",
   "prior_covid_infection",
-  "immunosuppressed",
+  #"immunosuppressed",
   #"status_hospplanned"
   NULL
 )
