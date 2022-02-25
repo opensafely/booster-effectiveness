@@ -277,8 +277,8 @@ if(outcome=="postest"){
   formula_remove_outcome = . ~ . - postest_status
 }
 
-
-formula_remove_matching <- as.formula(paste(". ~ . - ", paste(matching_variables, collapse=" -")))
+# remove matching variables from formulae, as treatment groups are already balanced
+formula_remove_matching <- as.formula(paste(". ~ . - ", paste(matching_variables, collapse=" -"), "- poly(age, degree=2, raw=TRUE)"))
 
 formula0_pw <- formula_vaxonly %>% update(formula_remove_matching)
 formula1_pw <- formula_vaxonly %>% update(formula_strata) %>% update(formula_remove_matching)
@@ -300,8 +300,8 @@ model_descr = c(
 
 tbltab0 <-
   data_seqtrialcox %>%
-  select(ind_outcome, treated, fup_period, all_of(all.vars(formula3_pw)), all_of(matching_variables), -starts_with("treated_period")) %>%
-  select(-age, -vax2_week, -tstart, -tstop) %>%
+  select(ind_outcome, treated, fup_period, all_of(all.vars(formula3_pw)), -starts_with("treated_period")) %>%
+  select( -tstart, -tstop) %>%
   mutate(
     across(
       where(is.numeric),
@@ -482,6 +482,8 @@ model_tidy <-
   )
 write_csv(model_tidy, fs::path(output_dir, "model_tidy.csv"))
 
+
+if(removeobjects){rm(summary0, summary1, summary2, summary3)}
 
 ## re-run models, but do not split time period ----
 
