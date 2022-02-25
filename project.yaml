@@ -1154,8 +1154,8 @@ actions:
     - model_seqtrialcox_pfizer_postest_vax12_type-az-az
     - model_seqtrialcox_pfizer_covidemergency_vax12_type-pfizer-pfizer
     - model_seqtrialcox_pfizer_covidemergency_vax12_type-az-az
-    - model_seqtrialcox_pfizer_covidadmittedproy1_vax12_type-pfizer-pfizer
-    - model_seqtrialcox_pfizer_covidadmittedproy1_vax12_type-az-az
+    - model_seqtrialcox_pfizer_covidadmittedproxy1_vax12_type-pfizer-pfizer
+    - model_seqtrialcox_pfizer_covidadmittedproxy1_vax12_type-az-az
     - model_seqtrialcox_pfizer_covidadmitted_vax12_type-pfizer-pfizer
     - model_seqtrialcox_pfizer_covidadmitted_vax12_type-az-az
     - model_seqtrialcox_pfizer_coviddeath_vax12_type-pfizer-pfizer
@@ -1164,8 +1164,8 @@ actions:
     - model_seqtrialcox_moderna_postest_vax12_type-az-az
     - model_seqtrialcox_moderna_covidemergency_vax12_type-pfizer-pfizer
     - model_seqtrialcox_moderna_covidemergency_vax12_type-az-az
-    - model_seqtrialcox_moderna_covidadmittedproy1_vax12_type-pfizer-pfizer
-    - model_seqtrialcox_moderna_covidadmittedproy1_vax12_type-az-az
+    - model_seqtrialcox_moderna_covidadmittedproxy1_vax12_type-pfizer-pfizer
+    - model_seqtrialcox_moderna_covidadmittedproxy1_vax12_type-az-az
     - model_seqtrialcox_moderna_covidadmitted_vax12_type-pfizer-pfizer
     - model_seqtrialcox_moderna_covidadmitted_vax12_type-az-az
     - model_seqtrialcox_moderna_coviddeath_vax12_type-pfizer-pfizer
@@ -1174,8 +1174,8 @@ actions:
     - report_seqtrialcox_pfizer_postest_vax12_type-az-az
     - report_seqtrialcox_pfizer_covidemergency_vax12_type-pfizer-pfizer
     - report_seqtrialcox_pfizer_covidemergency_vax12_type-az-az
-    - report_seqtrialcox_pfizer_covidadmittedproy1_vax12_type-pfizer-pfizer
-    - report_seqtrialcox_pfizer_covidadmittedproy1_vax12_type-az-az
+    - report_seqtrialcox_pfizer_covidadmittedproxy1_vax12_type-pfizer-pfizer
+    - report_seqtrialcox_pfizer_covidadmittedproxy1_vax12_type-az-az
     - report_seqtrialcox_pfizer_covidadmitted_vax12_type-pfizer-pfizer
     - report_seqtrialcox_pfizer_covidadmitted_vax12_type-az-az
     - report_seqtrialcox_pfizer_coviddeath_vax12_type-pfizer-pfizer
@@ -1184,8 +1184,8 @@ actions:
     - report_seqtrialcox_moderna_postest_vax12_type-az-az
     - report_seqtrialcox_moderna_covidemergency_vax12_type-pfizer-pfizer
     - report_seqtrialcox_moderna_covidemergency_vax12_type-az-az
-    - report_seqtrialcox_moderna_covidadmittedproy1_vax12_type-pfizer-pfizer
-    - report_seqtrialcox_moderna_covidadmittedproy1_vax12_type-az-az
+    - report_seqtrialcox_moderna_covidadmittedproxy1_vax12_type-pfizer-pfizer
+    - report_seqtrialcox_moderna_covidadmittedproxy1_vax12_type-az-az
     - report_seqtrialcox_moderna_covidadmitted_vax12_type-pfizer-pfizer
     - report_seqtrialcox_moderna_covidadmitted_vax12_type-az-az
     - report_seqtrialcox_moderna_coviddeath_vax12_type-pfizer-pfizer
