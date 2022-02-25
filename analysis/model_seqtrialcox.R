@@ -22,7 +22,7 @@ if(length(args)==0){
   # use for interactive testing
   removeobjects <- FALSE
   treatment <- "pfizer"
-  outcome <- "covidadmittedproxy1"
+  outcome <- "postest"
   subgroup <- "none"
   #subgroup <- "none"
 } else {
