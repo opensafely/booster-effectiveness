@@ -470,11 +470,11 @@ actions_list <- splice(
       )
     ),
     moderately_sensitive = lst(
-      csv = "output/models/seqtrialcox/combined/model/none/*.csv",
-      png = "output/models/seqtrialcox/combined/model/none/*.png",
-      pdf = "output/models/seqtrialcox/combined/model/none/*.pdf",
-      svg = "output/models/seqtrialcox/combined/model/none/*.svg",
-      html = "output/models/seqtrialcox/combined/model/none/*.html",
+      csv = "output/models/seqtrialcox/combined/none/*.csv",
+      png = "output/models/seqtrialcox/combined/none/*.png",
+      pdf = "output/models/seqtrialcox/combined/none/*.pdf",
+      svg = "output/models/seqtrialcox/combined/none/*.svg",
+      html = "output/models/seqtrialcox/combined/none/*.html",
     )
   ),
 
@@ -506,11 +506,11 @@ actions_list <- splice(
       )
     ),
     moderately_sensitive = lst(
-      csv = "output/models/seqtrialcox/combined/model/vax12_type/*.csv",
-      png = "output/models/seqtrialcox/combined/model/vax12_type/*.png",
-      pdf = "output/models/seqtrialcox/combined/model/vax12_type/*.pdf",
-      svg = "output/models/seqtrialcox/combined/model/vax12_type/*.svg",
-      html = "output/models/seqtrialcox/combined/model/vax12_type/*.html",
+      csv = "output/models/seqtrialcox/combined/vax12_type/*.csv",
+      png = "output/models/seqtrialcox/combined/vax12_type/*.png",
+      pdf = "output/models/seqtrialcox/combined/vax12_type/*.pdf",
+      svg = "output/models/seqtrialcox/combined/vax12_type/*.svg",
+      html = "output/models/seqtrialcox/combined/vax12_type/*.html",
     )
   ),
 
