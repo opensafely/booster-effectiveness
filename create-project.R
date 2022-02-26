@@ -138,8 +138,46 @@ action_model <- function(
   )
 }
 
+## model action function ----
+action_combine_model <- function(
+    subgroup, subgroup_levels
+){
+  dash <- if(paste0(subgroup_levels, collapse="")=="") "" else "-"
+  action(
+    name = glue("combine_model_{subgroup}"),
+    run = glue("r:latest analysis/combine_model.R"),
+    arguments = c(subgroup),
+    needs = splice(
+      as.list(
+        glue_data(
+          .x=expand_grid(
+            treatment=c("pfizer", "moderna")
+          ),
+          "match_seqtrialcox_{treatment}"
+        )
+      ),
+      as.list(
+        glue_data(
+          .x=expand_grid(
+            subgroups = paste0(subgroup,dash,subgroup_levels),
+            treatment=c("pfizer", "moderna"),
+            outcome=c("postest", "covidemergency", "covidadmittedproxy1", "covidadmitted",  "coviddeath"),
+            script=c("model", "report"),
 
-
+          ),
+          "{script}_seqtrialcox_{treatment}_{outcome}_{subgroups}"
+        )
+      )
+    ),
+    moderately_sensitive = lst(
+      csv = glue("output/models/seqtrialcox/combined/{subgroup}/*.csv"),
+      png = glue("output/models/seqtrialcox/combined/{subgroup}/*.png"),
+      pdf = glue("output/models/seqtrialcox/combined/{subgroup}/*.pdf"),
+      svg = glue("output/models/seqtrialcox/combined/{subgroup}/*.svg"),
+      html = glue("output/models/seqtrialcox/combined/{subgroup}/*.html"),
+    )
+  )
+}
 
 # specify project ----
 
@@ -379,140 +417,130 @@ actions_list <- splice(
   comment("# # # # # # # # # # # # # # # # # # #", "Pfizer models", "# # # # # # # # # # # # # # # # # # #"),
 
 
-  comment("###  Positive SARS-CoV-2 Test"),
+  comment("### Overall models ('none')"),
+
   action_model("pfizer", "postest", "none"),
-  action_model("pfizer", "postest", "vax12_type-az-az"),
-  action_model("pfizer", "postest", "vax12_type-pfizer-pfizer"),
-
-  comment("###  COVID-19 emergency attendance"),
   action_model("pfizer", "covidemergency", "none"),
-  action_model("pfizer", "covidemergency", "vax12_type-az-az"),
-  action_model("pfizer", "covidemergency", "vax12_type-pfizer-pfizer"),
-
-  comment("###  COVID-19 admission (A&E proxy)"),
   action_model("pfizer", "covidadmittedproxy1", "none"),
-  action_model("pfizer", "covidadmittedproxy1", "vax12_type-az-az"),
-  action_model("pfizer", "covidadmittedproxy1", "vax12_type-pfizer-pfizer"),
-
-  comment("###  COVID-19 admission"),
   action_model("pfizer", "covidadmitted", "none"),
-  action_model("pfizer", "covidadmitted", "vax12_type-az-az"),
-  action_model("pfizer", "covidadmitted", "vax12_type-pfizer-pfizer"),
-
-  comment("###  COVID-19 ICU/Critical care admission"),
   action_model("pfizer", "covidcc", "none"),
-  action_model("pfizer", "covidcc", "vax12_type-az-az"),
-  action_model("pfizer", "covidcc", "vax12_type-pfizer-pfizer"),
-
-  comment("###  COVID-19 death"),
   action_model("pfizer", "coviddeath", "none"),
+
+  comment("### Models by primary course ('vax12_type')"),
+
+  action_model("pfizer", "postest", "vax12_type-az-az"),
+  action_model("pfizer", "covidemergency", "vax12_type-az-az"),
+  action_model("pfizer", "covidadmittedproxy1", "vax12_type-az-az"),
+  action_model("pfizer", "covidadmitted", "vax12_type-az-az"),
+  action_model("pfizer", "covidcc", "vax12_type-az-az"),
   action_model("pfizer", "coviddeath", "vax12_type-az-az"),
+
+  action_model("pfizer", "postest", "vax12_type-pfizer-pfizer"),
+  action_model("pfizer", "covidemergency", "vax12_type-pfizer-pfizer"),
+  action_model("pfizer", "covidadmittedproxy1", "vax12_type-pfizer-pfizer"),
+  action_model("pfizer", "covidadmitted", "vax12_type-pfizer-pfizer"),
+  action_model("pfizer", "covidcc", "vax12_type-pfizer-pfizer"),
   action_model("pfizer", "coviddeath", "vax12_type-pfizer-pfizer"),
 
 
+  comment("### Models by clinical extremely vulnerable ('cev')"),
+
+  action_model("pfizer", "postest", "cev-FALSE"),
+  action_model("pfizer", "covidemergency", "cev-FALSE"),
+  action_model("pfizer", "covidadmittedproxy1", "cev-FALSE"),
+  action_model("pfizer", "covidadmitted", "cev-FALSE"),
+  action_model("pfizer", "covidcc", "cev-FALSE"),
+  action_model("pfizer", "coviddeath", "cev-FALSE"),
+
+  action_model("pfizer", "postest", "cev-TRUE"),
+  action_model("pfizer", "covidemergency", "cev-TRUE"),
+  action_model("pfizer", "covidadmittedproxy1", "cev-TRUE"),
+  action_model("pfizer", "covidadmitted", "cev-TRUE"),
+  action_model("pfizer", "covidcc", "cev-TRUE"),
+  action_model("pfizer", "coviddeath", "cev-TRUE"),
+
+  comment("### Models by age ('age65plus')"),
+
+  action_model("pfizer", "postest", "age65plus-FALSE"),
+  action_model("pfizer", "covidemergency", "age65plus-FALSE"),
+  action_model("pfizer", "covidadmittedproxy1", "age65plus-FALSE"),
+  action_model("pfizer", "covidadmitted", "age65plus-FALSE"),
+  action_model("pfizer", "covidcc", "age65plus-FALSE"),
+  action_model("pfizer", "coviddeath", "age65plus-FALSE"),
+
+  action_model("pfizer", "postest", "age65plus-TRUE"),
+  action_model("pfizer", "covidemergency", "age65plus-TRUE"),
+  action_model("pfizer", "covidadmittedproxy1", "age65plus-TRUE"),
+  action_model("pfizer", "covidadmitted", "age65plus-TRUE"),
+  action_model("pfizer", "covidcc", "age65plus-TRUE"),
+  action_model("pfizer", "coviddeath", "age65plus-TRUE"),
+
   comment("# # # # # # # # # # # # # # # # # # #", "Moderna models", "# # # # # # # # # # # # # # # # # # #"),
 
-  comment("###  Positive SARS-CoV-2 Test"),
+  comment("### Overall models ('none')"),
+
   action_model("moderna", "postest", "none"),
-  action_model("moderna", "postest", "vax12_type-az-az"),
-  action_model("moderna", "postest", "vax12_type-pfizer-pfizer"),
-
-  comment("###  COVID-19 emergency attendance"),
   action_model("moderna", "covidemergency", "none"),
-  action_model("moderna", "covidemergency", "vax12_type-az-az"),
-  action_model("moderna", "covidemergency", "vax12_type-pfizer-pfizer"),
-
-  comment("###  COVID-19 admission (A&E proxy)"),
   action_model("moderna", "covidadmittedproxy1", "none"),
-  action_model("moderna", "covidadmittedproxy1", "vax12_type-az-az"),
-  action_model("moderna", "covidadmittedproxy1", "vax12_type-pfizer-pfizer"),
-
-  comment("###  COVID-19 admission"),
   action_model("moderna", "covidadmitted", "none"),
-  action_model("moderna", "covidadmitted", "vax12_type-az-az"),
-  action_model("moderna", "covidadmitted", "vax12_type-pfizer-pfizer"),
-
-  comment("###  COVID-19 ICU/Critical care admission"),
   action_model("moderna", "covidcc", "none"),
-  action_model("moderna", "covidcc", "vax12_type-az-az"),
-  action_model("moderna", "covidcc", "vax12_type-pfizer-pfizer"),
-
-  comment("###  COVID-19 death"),
   action_model("moderna", "coviddeath", "none"),
+
+  comment("### Models by primary course ('vax12_type')"),
+
+  action_model("moderna", "postest", "vax12_type-az-az"),
+  action_model("moderna", "covidemergency", "vax12_type-az-az"),
+  action_model("moderna", "covidadmittedproxy1", "vax12_type-az-az"),
+  action_model("moderna", "covidadmitted", "vax12_type-az-az"),
+  action_model("moderna", "covidcc", "vax12_type-az-az"),
   action_model("moderna", "coviddeath", "vax12_type-az-az"),
-  action_model("moderna", "coviddeath", "vax12_type-pfizer-pfizer"),
+
+  action_model("moderna", "postest", "vax12_type-moderna-moderna"),
+  action_model("moderna", "covidemergency", "vax12_type-moderna-moderna"),
+  action_model("moderna", "covidadmittedproxy1", "vax12_type-moderna-moderna"),
+  action_model("moderna", "covidadmitted", "vax12_type-moderna-moderna"),
+  action_model("moderna", "covidcc", "vax12_type-moderna-moderna"),
+  action_model("moderna", "coviddeath", "vax12_type-moderna-moderna"),
 
 
-  action(
-    name = "combine_model",
-    run = "r:latest analysis/combine_model.R",
-    arguments = c("none"),
-    needs = splice(
-      as.list(
-        glue_data(
-          .x=expand_grid(
-            treatment=c("pfizer", "moderna")
-          ),
-          "match_seqtrialcox_{treatment}"
-        )
-      ),
-      as.list(
-        glue_data(
-          .x=expand_grid(
-            script=c("model", "report"),
-            treatment=c("pfizer", "moderna"),
-            outcome=c("postest", "covidemergency", "covidadmittedproxy1", "covidadmitted", "coviddeath"),
-            #outcome=c("postest", "covidadmitted"),
-            subgroup_variable = c("none")
-          ),
-          "{script}_seqtrialcox_{treatment}_{outcome}_{subgroup_variable}"
-        )
-      )
-    ),
-    moderately_sensitive = lst(
-      csv = "output/models/seqtrialcox/combined/none/*.csv",
-      png = "output/models/seqtrialcox/combined/none/*.png",
-      pdf = "output/models/seqtrialcox/combined/none/*.pdf",
-      svg = "output/models/seqtrialcox/combined/none/*.svg",
-      html = "output/models/seqtrialcox/combined/none/*.html",
-    )
-  ),
+  comment("### Models by clinical extremely vulnerable ('cev')"),
 
+  action_model("moderna", "postest", "cev-FALSE"),
+  action_model("moderna", "covidemergency", "cev-FALSE"),
+  action_model("moderna", "covidadmittedproxy1", "cev-FALSE"),
+  action_model("moderna", "covidadmitted", "cev-FALSE"),
+  action_model("moderna", "covidcc", "cev-FALSE"),
+  action_model("moderna", "coviddeath", "cev-FALSE"),
 
-  action(
-    name = "combine_model_vax12_type",
-    run = "r:latest analysis/combine_model.R",
-    arguments = c("vax12_type"),
-    needs = splice(
-      as.list(
-        glue_data(
-          .x=expand_grid(
-            treatment=c("pfizer", "moderna")
-          ),
-          "match_seqtrialcox_{treatment}"
-        )
-      ),
-      as.list(
-        glue_data(
-          .x=expand_grid(
-            script=c("model", "report"),
-            treatment=c("pfizer", "moderna"),
-            outcome=c("postest", "covidemergency", "covidadmittedproxy1", "covidadmitted",  "coviddeath"),
-            #outcome=c("postest", "covidadmitted"),
-            subgroup = paste0("vax12_type-",c("pfizer-pfizer", "az-az"))
-          ),
-          "{script}_seqtrialcox_{treatment}_{outcome}_{subgroup}"
-        )
-      )
-    ),
-    moderately_sensitive = lst(
-      csv = "output/models/seqtrialcox/combined/vax12_type/*.csv",
-      png = "output/models/seqtrialcox/combined/vax12_type/*.png",
-      pdf = "output/models/seqtrialcox/combined/vax12_type/*.pdf",
-      svg = "output/models/seqtrialcox/combined/vax12_type/*.svg",
-      html = "output/models/seqtrialcox/combined/vax12_type/*.html",
-    )
-  ),
+  action_model("moderna", "postest", "cev-TRUE"),
+  action_model("moderna", "covidemergency", "cev-TRUE"),
+  action_model("moderna", "covidadmittedproxy1", "cev-TRUE"),
+  action_model("moderna", "covidadmitted", "cev-TRUE"),
+  action_model("moderna", "covidcc", "cev-TRUE"),
+  action_model("moderna", "coviddeath", "cev-TRUE"),
+
+  comment("### Models by age ('age65plus')"),
+
+  action_model("moderna", "postest", "age65plus-FALSE"),
+  action_model("moderna", "covidemergency", "age65plus-FALSE"),
+  action_model("moderna", "covidadmittedproxy1", "age65plus-FALSE"),
+  action_model("moderna", "covidadmitted", "age65plus-FALSE"),
+  action_model("moderna", "covidcc", "age65plus-FALSE"),
+  action_model("moderna", "coviddeath", "age65plus-FALSE"),
+
+  action_model("moderna", "postest", "age65plus-TRUE"),
+  action_model("moderna", "covidemergency", "age65plus-TRUE"),
+  action_model("moderna", "covidadmittedproxy1", "age65plus-TRUE"),
+  action_model("moderna", "covidadmitted", "age65plus-TRUE"),
+  action_model("moderna", "covidcc", "age65plus-TRUE"),
+  action_model("moderna", "coviddeath", "age65plus-TRUE"),
+
+  comment("# # # # # # # # # # # # # # # # # # #", "Combine models across treatments and outcomes", "# # # # # # # # # # # # # # # # # # #"),
+
+  action_combine_model("none", ""),
+  action_combine_model("vax12_type", c("pfizer-pfizer", "az-az")),
+  action_combine_model("cev", c("FALSE", "TRUE")),
+  action_combine_model("age65plus", c("FALSE", "TRUE")),
 
   comment("# # # # # # # # # # # # # # # # # # #", "Manuscript", "# # # # # # # # # # # # # # # # # # #"),
 

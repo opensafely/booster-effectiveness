@@ -23,8 +23,9 @@ if(length(args)==0){
   removeobjects <- FALSE
   treatment <- "pfizer"
   outcome <- "postest"
-  subgroup <- "none"
   #subgroup <- "none"
+  #subgroup <- "vax12_type-pfizer-pfizer"
+  subgroup <- "cev-TRUE"
 } else {
   removeobjects <- TRUE
   treatment <- args[[1]]
@@ -100,6 +101,7 @@ data_matched <-
   filter(matched %in% 1L) %>%
   mutate(
     none="",
+    age65plus=age>=65,
     treated_patient_id = paste0(treated, "_", patient_id),
     fup = pmin(tte_stop - tte_recruitment, last(postbaselinecuts)),
   ) %>%

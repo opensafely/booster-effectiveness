@@ -71,6 +71,29 @@ if(subgroup_variable=="vax12_type"){
   )
 }
 
+if(subgroup_variable=="cev"){
+  recode_subgroup <- c(
+    `Not Clinically Extremely Vulnerable` = "cev-FALSE",
+    `Clinically Extremely Vulnerable` = "cev-TRUE"
+  )
+  recode_subgroup_variable <- c(`Clinically extremely vulnerable` = "cev")
+  recode_subgroup_level <- c(
+    `Not Clinically Extremely Vulnerable` = "FALSE",
+    `Clinically Extremely Vulnerable` = "TRUE"
+  )
+}
+
+if(subgroup_variable=="age65plus"){
+  recode_subgroup <- c(
+    `Aged 18-64` = "age65plus-FALSE",
+    `Aged 65 and over` = "age65plus-TRUE"
+  )
+  recode_subgroup_variable <- c(`Age` = "age65plus")
+  recode_subgroup_level <- c(
+    `Aged 18-64` = "FALSE",
+    `Aged 65 and over` = "TRUE"
+  )
+}
 
 
 if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
