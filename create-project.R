@@ -542,15 +542,17 @@ actions_list <- splice(
   action(
     name = "manuscript_objects",
     run = "r:latest analysis/manuscript_objects.R",
-    needs = list(
+    needs = lst(
       "data_selection",
       "descriptive_table1",
       "descriptive_vaxdate",
       "match_seqtrialcox_pfizer",
       "match_seqtrialcox_moderna",
       "combine_match",
-      "combine_model",
-      "combine_model_vax12_type"
+      "combine_model_none",
+      "combine_model_vax12_type",
+      "combine_model_cev",
+      "combine_model_age65plus",
     ),
     moderately_sensitive = lst(
       csv = "output/manuscript-objects/*.csv",
