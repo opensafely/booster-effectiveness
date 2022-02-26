@@ -131,9 +131,9 @@ model_effects <-
     # this filtering is necessary for dummy data,
     # so that sec.axis doesn't think `1-x` is a non-monotonic function
     # see - https://github.com/tidyverse/ggplot2/issues/3323#issuecomment-491421372
-    hr !=Inf, hr !=0,
-    hr.ll !=Inf, hr.ll !=0,
-    hr.ul !=Inf, hr.ul !=0,
+    #hr !=Inf, hr !=0,
+    #hr.ll !=Inf, hr.ll !=0,
+    #hr.ul !=Inf, hr.ul !=0,
   )
 
 write_csv(model_effects, path = fs::path(output_dir, "effects.csv"))
@@ -158,9 +158,9 @@ model_overalleffects <-
     # this filtering is necessary for dummy data,
     # so that sec.axis doesn't think `1-x` is a non-monotonic function
     # see - https://github.com/tidyverse/ggplot2/issues/3323#issuecomment-491421372
-    hr !=Inf, hr !=0,
-    hr.ll !=Inf, hr.ll !=0,
-    hr.ul !=Inf, hr.ul !=0,
+    #hr !=Inf, hr !=0,
+    #hr.ll !=Inf, hr.ll !=0,
+    #hr.ul !=Inf, hr.ul !=0,
   )
 
 write_csv(model_overalleffects, path = fs::path(output_dir, "overalleffects.csv"))
@@ -185,9 +185,9 @@ model_metaeffects <-
     # this filtering is necessary for dummy data,
     # so that sec.axis doesn't think `1-x` is a non-monotonic function
     # see - https://github.com/tidyverse/ggplot2/issues/3323#issuecomment-491421372
-    hr !=Inf, hr !=0,
-    hr.ll !=Inf, hr.ll !=0,
-    hr.ul !=Inf, hr.ul !=0,
+    #hr !=Inf, hr !=0,
+    #hr.ll !=Inf, hr.ll !=0,
+    #hr.ul !=Inf, hr.ul !=0,
   )
 
 write_csv(model_metaeffects, path = fs::path(output_dir, "metaeffects.csv"))
@@ -236,12 +236,12 @@ plot_effects <-
     breaks=y_breaks,
     limits = c(0.005, 2),
     oob = scales::oob_keep,
-    sec.axis = sec_axis(
-      ~(1-.),
-      name="Effectiveness",
-      breaks = 1-(y_breaks),
-      labels = function(x){formatpercent100(x, 1)}
-     )
+    # sec.axis = sec_axis(
+    #   ~(1-.),
+    #   name="Effectiveness",
+    #   breaks = 1-(y_breaks),
+    #   labels = function(x){formatpercent100(x, 1)}
+    #  )
   )+
   scale_x_continuous(breaks=postbaselinecuts, limits=c(min(postbaselinecuts), max(postbaselinecuts)+1), expand = c(0, 0))+
   scale_colour_brewer(type="qual", palette="Set2", guide=guide_legend(ncol=1))+
