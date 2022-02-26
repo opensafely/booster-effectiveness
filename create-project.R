@@ -271,16 +271,6 @@ actions_list <- splice(
     )
   ),
 
-  # action(
-  #   name = "data_properties",
-  #   run = "r:latest analysis/process/data_properties.R",
-  #   arguments = c("output/data/data_processed.rds", "output/data_properties"),
-  #   needs = list("data_process"),
-  #   moderately_sensitive = lst(
-  #     cohort = "output/data_properties/data_processed*.txt"
-  #   )
-  # ),
-
   action(
     name = "data_selection",
     run = "r:latest analysis/data_selection.R",
@@ -322,42 +312,11 @@ actions_list <- splice(
     name = "descriptive_table1",
     run = "r:latest analysis/table1.R",
     needs = list("data_selection"),
-    # highly_sensitive = lst(
-    #   rds = "output/descriptive/tables/table1*.rds"
-    # ),
     moderately_sensitive = lst(
       html = "output/descriptive/table1/*.html",
       csv = "output/descriptive/table1/*.csv"
     )
   ),
-  #
-  # action(
-  #   name = "descr_irr",
-  #   run = "r:latest analysis/descriptive/table_irr.R",
-  #   arguments = c("output/data/data_processed.rds", "output/data_properties"),
-  #   needs = list("data_selection"),
-  #   highly_sensitive = lst(
-  #     rds = "output/descriptive/tables/table_irr*.rds"
-  #   ),
-  #   moderately_sensitive = lst(
-  #     html = "output/descriptive/tables/table_irr*.html",
-  #     csv = "output/descriptive/tables/table_irr*.csv"
-  #   )
-  # ),
-  #
-  # action(
-  #   name = "descr_km",
-  #   run = "r:latest analysis/descriptive/km.R",
-  #   arguments = c("output/data/data_processed.rds", "output/data_properties"),
-  #   needs = list("data_selection"),
-  #   highly_sensitive = lst(
-  #     rds = "output/descriptive/km/plot_survival*.rds"
-  #   ),
-  #   moderately_sensitive = lst(
-  #     png = "output/descriptive/km/plot_survival*.png",
-  #     svg = "output/descriptive/km/plot_survival*.svg"
-  #   )
-  # ),
 
   action(
     name = "descriptive_vaxdate",
@@ -369,21 +328,6 @@ actions_list <- splice(
       svg = "output/descriptive/vaxdate/*.svg"
     )
   ),
-
-  # action(
-  #   name = "descr_eventdate",
-  #   run = "r:latest analysis/descriptive/event_date.R",
-  #   needs = list("data_selection"),
-  #   highly_sensitive = lst(
-  #     rds = "output/descriptive/eventdate/*.rds"
-  #   ),
-  #   moderately_sensitive = lst(
-  #     png = "output/descriptive/eventdate/*.png",
-  #     pdf = "output/descriptive/eventdate/*.pdf",
-  #     svg = "output/descriptive/eventdate/*.svg",
-  #   )
-  # ),
-
 
 
   comment("# # # # # # # # # # # # # # # # # # #", "Matching", "# # # # # # # # # # # # # # # # # # #"),
@@ -542,7 +486,7 @@ actions_list <- splice(
   action(
     name = "manuscript_objects",
     run = "r:latest analysis/manuscript_objects.R",
-    needs = lst(
+    needs = list(
       "data_selection",
       "descriptive_table1",
       "descriptive_vaxdate",
@@ -552,7 +496,7 @@ actions_list <- splice(
       "combine_model_none",
       "combine_model_vax12_type",
       "combine_model_cev",
-      "combine_model_age65plus",
+      "combine_model_age65plus"
     ),
     moderately_sensitive = lst(
       csv = "output/manuscript-objects/*.csv",

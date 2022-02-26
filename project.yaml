@@ -2507,16 +2507,16 @@ actions:
   manuscript_objects:
     run: r:latest analysis/manuscript_objects.R
     needs:
-      '"data_selection"': data_selection
-      '"descriptive_table1"': descriptive_table1
-      '"descriptive_vaxdate"': descriptive_vaxdate
-      '"match_seqtrialcox_pfizer"': match_seqtrialcox_pfizer
-      '"match_seqtrialcox_moderna"': match_seqtrialcox_moderna
-      '"combine_match"': combine_match
-      '"combine_model_none"': combine_model_none
-      '"combine_model_vax12_type"': combine_model_vax12_type
-      '"combine_model_cev"': combine_model_cev
-      '"combine_model_age65plus"': combine_model_age65plus
+    - data_selection
+    - descriptive_table1
+    - descriptive_vaxdate
+    - match_seqtrialcox_pfizer
+    - match_seqtrialcox_moderna
+    - combine_match
+    - combine_model_none
+    - combine_model_vax12_type
+    - combine_model_cev
+    - combine_model_age65plus
     outputs:
       moderately_sensitive:
         csv: output/manuscript-objects/*.csv
