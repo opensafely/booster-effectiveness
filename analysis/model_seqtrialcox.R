@@ -94,8 +94,6 @@ study_dates <-
 
 ## import metadata ----
 events <- read_rds(here("lib", "design", "event-variables.rds"))
-outcome_var <- events$event_var[events$event==outcome]
-
 
 data_matched <-
   read_rds(here("output", "match", treatment, "match_data_merged.rds")) %>%
