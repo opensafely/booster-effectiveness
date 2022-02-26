@@ -486,17 +486,17 @@ actions_list <- splice(
   comment("### Models by primary course ('vax12_type')"),
 
   action_model("moderna", "postest", "vax12_type-az-az"),
-  action_model("moderna", "postest", "vax12_type-moderna-moderna"),
+  action_model("moderna", "postest", "vax12_type-pfizer-pfizer"),
   action_model("moderna", "covidemergency", "vax12_type-az-az"),
-  action_model("moderna", "covidemergency", "vax12_type-moderna-moderna"),
+  action_model("moderna", "covidemergency", "vax12_type-pfizer-pfizer"),
   action_model("moderna", "covidadmittedproxy1", "vax12_type-az-az"),
-  action_model("moderna", "covidadmittedproxy1", "vax12_type-moderna-moderna"),
+  action_model("moderna", "covidadmittedproxy1", "vax12_type-pfizer-pfizer"),
   action_model("moderna", "covidadmitted", "vax12_type-az-az"),
-  action_model("moderna", "covidadmitted", "vax12_type-moderna-moderna"),
+  action_model("moderna", "covidadmitted", "vax12_type-pfizer-pfizer"),
   action_model("moderna", "covidcc", "vax12_type-az-az"),
-  action_model("moderna", "covidcc", "vax12_type-moderna-moderna"),
+  action_model("moderna", "covidcc", "vax12_type-pfizer-pfizer"),
   action_model("moderna", "coviddeath", "vax12_type-az-az"),
-  action_model("moderna", "coviddeath", "vax12_type-moderna-moderna"),
+  action_model("moderna", "coviddeath", "vax12_type-pfizer-pfizer"),
 
 
   comment("### Models by clinical extremely vulnerable ('cev')"),
