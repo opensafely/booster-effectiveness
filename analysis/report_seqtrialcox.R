@@ -152,6 +152,34 @@ model_metaeffects <- model_effects %>%
 write_csv(model_metaeffects, path = fs::path(output_dir, "report_metaeffects.csv"))
 
 
+
+## meta analysis of period-specific hazards ----
+
+model_meta2effects <- model_effects %>%
+  mutate(
+    period = (term_right>28) + 1,
+  ) %>%
+  group_by(
+    period, model, model_descr,
+  ) %>%
+  summarise(
+    term_left = min(term_left),
+    term_right = max(term_right),
+    estimate = weighted.mean(estimate, robust.se^-2),
+    std.error = sqrt(1/sum(std.error^-2)),
+    robust.se = sqrt(1/sum(robust.se^-2)),
+    statistic = estimate/robust.se,
+    p.value = 2 * pmin(pnorm(statistic), pnorm(-statistic)),
+    conf.low = estimate + qnorm(0.025)*robust.se,
+    conf.high = estimate + qnorm(0.975)*robust.se,
+  ) %>%
+  mutate(
+    term_midpoint = (term_left+term_right)/2,
+  )
+
+write_csv(model_metaeffects, path = fs::path(output_dir, "report_meta2effects.csv"))
+
+
 ## incidence rates ----
 
 ### Event incidence following recruitment

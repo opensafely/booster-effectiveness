@@ -216,6 +216,24 @@ model_metaeffects <-
 write_csv(model_metaeffects, path = fs::path(output_dir, "metaeffects.csv"))
 
 
+model_meta2effects <-
+  model_metaparams %>%
+  mutate(
+    meta2effects = pmap(list(treatment, outcome, subgroup), function(x, y, z) read_csv(here("output", "models", "seqtrialcox", x, y, z, glue("report_meta2effects.csv"))))
+  ) %>%
+  unnest(meta2effects) %>%
+  mutate(
+    model_descr = fct_reorder(model_descr, model),
+    hr = exp(estimate),
+    hr.ll = exp(conf.low),
+    hr.ul = exp(conf.high),
+    ve = 1-hr,
+    ve.ll = 1-hr.ul,
+    ve.ul = 1-hr.ll
+  )
+
+write_csv(model_meta2effects, path = fs::path(output_dir, "meta2effects.csv"))
+
 
 formatpercent100 <- function(x,accuracy){
   formatx <- scales::label_percent(accuracy)(x)
