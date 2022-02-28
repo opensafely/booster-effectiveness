@@ -136,12 +136,12 @@ fs::file_copy(here("output", "descriptive", "table1", "table1by.csv"), here("out
 #   )
 # write_csv(cumulvax_jcvi_redacted, here("output", "descriptive", "vaxdate_jcvi_redacted.csv"))
 
-fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_count.png"), here("output", "manuscript-objects", "plot_vaxdate_count.png"), overwrite = TRUE)
-fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_step.png"), here("output", "manuscript-objects", "plot_vaxdate_step.png"), overwrite = TRUE)
-fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_stack.png"), here("output", "manuscript-objects", "plot_vaxdate_stack.png"), overwrite = TRUE)
-fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_count_jcvi.png"), here("output", "manuscript-objects", "plot_vaxdate_count_jcvi.png"), overwrite = TRUE)
-fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_step_jcvi.png"), here("output", "manuscript-objects", "plot_vaxdate_step_jcvi.png"), overwrite = TRUE)
-fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_stack_jcvi.png"), here("output", "manuscript-objects", "plot_vaxdate_stack_jcvi.png"), overwrite = TRUE)
+# fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_count.png"), here("output", "manuscript-objects", "plot_vaxdate_count.png"), overwrite = TRUE)
+# fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_step.png"), here("output", "manuscript-objects", "plot_vaxdate_step.png"), overwrite = TRUE)
+# fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_stack.png"), here("output", "manuscript-objects", "plot_vaxdate_stack.png"), overwrite = TRUE)
+# fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_count_jcvi.png"), here("output", "manuscript-objects", "plot_vaxdate_count_jcvi.png"), overwrite = TRUE)
+# fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_step_jcvi.png"), here("output", "manuscript-objects", "plot_vaxdate_step_jcvi.png"), overwrite = TRUE)
+# fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_stack_jcvi.png"), here("output", "manuscript-objects", "plot_vaxdate_stack_jcvi.png"), overwrite = TRUE)
 
 
 ## matching ----
@@ -160,12 +160,21 @@ fs::file_copy(here("output", "match", "combined", "flowchart.csv"), here("output
 
 ## models ----
 
-for(subgroup_variable in c("none", "vax12_type")){
+for(subgroup_variable in c("none", "vax12_type", "cev", "age65plus")){
   fs::dir_create(here("output", "manuscript-objects", subgroup_variable))
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "incidence.csv"), here("output", "manuscript-objects", subgroup_variable, "incidence.csv"), overwrite = TRUE)
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "km.csv"), here("output", "manuscript-objects", subgroup_variable, "km.csv"), overwrite = TRUE)
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "effects.csv"), here("output", "manuscript-objects", subgroup_variable, "effects.csv"), overwrite = TRUE)
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "metaeffects.csv"), here("output", "manuscript-objects", subgroup_variable, "metaeffects.csv"), overwrite = TRUE)
+  fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "overalleffects.csv"), here("output", "manuscript-objects", subgroup_variable, "overalleffects.csv"), overwrite = TRUE)
 }
 
+
+
+## create text for output review issue ----
+fs::dir_ls(here("output", "manuscript-objects"), type="file", recurse =TRUE) %>%
+  map_chr(~str_remove(., fixed(here()))) %>%
+  map_chr(~paste0("- [ ] ", str_remove(.,fixed("/")))) %>%
+  paste(collapse="\n") %>%
+  writeLines(here("output", "files-for-release.txt"))
 

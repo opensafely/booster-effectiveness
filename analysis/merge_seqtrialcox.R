@@ -137,9 +137,11 @@ data_coverage <-
     vax3_date = full_seq(.$vax3_date, 1), # go X days before to
     fill = list(n=0)
   ) %>%
+  mutate(
+    cumuln = cumsum(n)
+  ) %>%
   ungroup() %>%
   mutate(
-    cumuln = cumsum(n),
     status = factor(status, levels=c("ineligible", "unmatched", "matched")),
     status_descr = fct_recode(status, !!!status_recode[1:3])
   ) %>%

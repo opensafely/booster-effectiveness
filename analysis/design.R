@@ -47,10 +47,12 @@ events_lookup <- tribble(
   "test", "covid_test_date", "SARS-CoV-2 test",
 
   # effectiveness
-  "postest", "positive_test_1_date", "Positive SARS-CoV-2 test",
-  "covidemergency", "covidemergency_1_date", "COVID-19 A&E attendance",
-  "covidadmitted", "admitted_covid_1_date", "COVID-19 hospitalisation",
-  "covidcc", "covidcc_1_date", "COVID-19 critical care",
+  "postest", "positive_test_date", "Positive SARS-CoV-2 test",
+  "covidemergency", "covidemergency_date", "COVID-19 A&E attendance",
+  "covidadmitted", "covidadmitted_date", "COVID-19 hospitalisation",
+  "covidadmittedproxy1", "covidadmittedproxy1_date", "COVID-19 hospitalisation (A&E proxy)",
+  "covidadmittedproxy2", "covidadmittedproxy2_date", "COVID-19 hospitalisation (A&E proxy v2)",
+  "covidcc", "covidcc_date", "COVID-19 critical care",
   "coviddeath", "coviddeath_date", "COVID-19 death",
   "noncoviddeath", "noncoviddeath_date", "Non-COVID-19 death",
   "death", "death_date", "Any death",
@@ -92,9 +94,10 @@ exact_variables <- c(
   "region",
   #"sex",
   "cev",
+  "cv",
   #"multimorb",
   "prior_covid_infection",
-  "immunosuppressed",
+  #"immunosuppressed",
   #"status_hospplanned"
   NULL
 )

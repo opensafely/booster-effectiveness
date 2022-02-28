@@ -246,6 +246,7 @@ data_baseline <-
     learndis,
     sev_mental,
     cev,
+    cv,
     sev_obesity,
     chronic_heart_disease,
     chronic_kidney_disease,
@@ -262,6 +263,7 @@ data_baseline <-
     vax12_type,
     vax12_type_descr,
     vax2_week,
+    vax2_day,
     vax3_date,
     vax3_type,
 

@@ -71,6 +71,29 @@ if(subgroup_variable=="vax12_type"){
   )
 }
 
+if(subgroup_variable=="cev"){
+  recode_subgroup <- c(
+    `Not Clinically Extremely Vulnerable` = "cev-FALSE",
+    `Clinically Extremely Vulnerable` = "cev-TRUE"
+  )
+  recode_subgroup_variable <- c(`Clinically extremely vulnerable` = "cev")
+  recode_subgroup_level <- c(
+    `Not Clinically Extremely Vulnerable` = "FALSE",
+    `Clinically Extremely Vulnerable` = "TRUE"
+  )
+}
+
+if(subgroup_variable=="age65plus"){
+  recode_subgroup <- c(
+    `Aged 18-64` = "age65plus-FALSE",
+    `Aged 65 and over` = "age65plus-TRUE"
+  )
+  recode_subgroup_variable <- c(`Age` = "age65plus")
+  recode_subgroup_level <- c(
+    `Aged 18-64` = "FALSE",
+    `Aged 65 and over` = "TRUE"
+  )
+}
 
 
 if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
@@ -93,7 +116,7 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
   model_metaparams <-
     expand_grid(
       treatment = factor(c("pfizer", "moderna")),
-      outcome = factor(c("postest", "covidemergency", "covidadmitted", "coviddeath")),
+      outcome = factor(c("postest", "covidemergency", "covidadmittedproxy1", "covidadmitted", "coviddeath")),
       #outcome = factor(c("postest", "covidadmission")),
       subgroup = factor(recode_subgroup),
       subgroup_variable = factor(subgroup_variable),
@@ -131,9 +154,9 @@ model_effects <-
     # this filtering is necessary for dummy data,
     # so that sec.axis doesn't think `1-x` is a non-monotonic function
     # see - https://github.com/tidyverse/ggplot2/issues/3323#issuecomment-491421372
-    hr !=Inf, hr !=0,
-    hr.ll !=Inf, hr.ll !=0,
-    hr.ul !=Inf, hr.ul !=0,
+    #hr !=Inf, hr !=0,
+    #hr.ll !=Inf, hr.ll !=0,
+    #hr.ul !=Inf, hr.ul !=0,
   )
 
 write_csv(model_effects, path = fs::path(output_dir, "effects.csv"))
@@ -158,9 +181,9 @@ model_overalleffects <-
     # this filtering is necessary for dummy data,
     # so that sec.axis doesn't think `1-x` is a non-monotonic function
     # see - https://github.com/tidyverse/ggplot2/issues/3323#issuecomment-491421372
-    hr !=Inf, hr !=0,
-    hr.ll !=Inf, hr.ll !=0,
-    hr.ul !=Inf, hr.ul !=0,
+    #hr !=Inf, hr !=0,
+    #hr.ll !=Inf, hr.ll !=0,
+    #hr.ul !=Inf, hr.ul !=0,
   )
 
 write_csv(model_overalleffects, path = fs::path(output_dir, "overalleffects.csv"))
@@ -185,9 +208,9 @@ model_metaeffects <-
     # this filtering is necessary for dummy data,
     # so that sec.axis doesn't think `1-x` is a non-monotonic function
     # see - https://github.com/tidyverse/ggplot2/issues/3323#issuecomment-491421372
-    hr !=Inf, hr !=0,
-    hr.ll !=Inf, hr.ll !=0,
-    hr.ul !=Inf, hr.ul !=0,
+    #hr !=Inf, hr !=0,
+    #hr.ll !=Inf, hr.ll !=0,
+    #hr.ul !=Inf, hr.ul !=0,
   )
 
 write_csv(model_metaeffects, path = fs::path(output_dir, "metaeffects.csv"))
@@ -236,12 +259,12 @@ plot_effects <-
     breaks=y_breaks,
     limits = c(0.005, 2),
     oob = scales::oob_keep,
-    sec.axis = sec_axis(
-      ~(1-.),
-      name="Effectiveness",
-      breaks = 1-(y_breaks),
-      labels = function(x){formatpercent100(x, 1)}
-     )
+    # sec.axis = sec_axis(
+    #   ~(1-.),
+    #   name="Effectiveness",
+    #   breaks = 1-(y_breaks),
+    #   labels = function(x){formatpercent100(x, 1)}
+    #  )
   )+
   scale_x_continuous(breaks=postbaselinecuts, limits=c(min(postbaselinecuts), max(postbaselinecuts)+1), expand = c(0, 0))+
   scale_colour_brewer(type="qual", palette="Set2", guide=guide_legend(ncol=1))+

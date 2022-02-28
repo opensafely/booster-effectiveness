@@ -22,9 +22,10 @@ if(length(args)==0){
   # use for interactive testing
   removeobjects <- FALSE
   treatment <- "pfizer"
-  outcome <- "covidadmittedproxy1"
-  subgroup <- "none"
+  outcome <- "postest"
   #subgroup <- "none"
+  #subgroup <- "vax12_type-pfizer-pfizer"
+  subgroup <- "cev-TRUE"
 } else {
   removeobjects <- TRUE
   treatment <- args[[1]]
@@ -94,14 +95,13 @@ study_dates <-
 
 ## import metadata ----
 events <- read_rds(here("lib", "design", "event-variables.rds"))
-outcome_var <- events$event_var[events$event==outcome]
-
 
 data_matched <-
   read_rds(here("output", "match", treatment, "match_data_merged.rds")) %>%
   filter(matched %in% 1L) %>%
   mutate(
     none="",
+    age65plus=age>=65,
     treated_patient_id = paste0(treated, "_", patient_id),
     fup = pmin(tte_stop - tte_recruitment, last(postbaselinecuts)),
   ) %>%
@@ -277,8 +277,8 @@ if(outcome=="postest"){
   formula_remove_outcome = . ~ . - postest_status
 }
 
-
-formula_remove_matching <- as.formula(paste(". ~ . - ", paste(matching_variables, collapse=" -")))
+# remove matching variables from formulae, as treatment groups are already balanced
+formula_remove_matching <- as.formula(paste(". ~ . - ", paste(matching_variables, collapse=" -"), "- poly(age, degree=2, raw=TRUE)"))
 
 formula0_pw <- formula_vaxonly %>% update(formula_remove_matching)
 formula1_pw <- formula_vaxonly %>% update(formula_strata) %>% update(formula_remove_matching)
@@ -300,8 +300,8 @@ model_descr = c(
 
 tbltab0 <-
   data_seqtrialcox %>%
-  select(ind_outcome, treated, fup_period, all_of(all.vars(formula3_pw)), all_of(matching_variables), -starts_with("treated_period")) %>%
-  select(-age, -vax2_week, -tstart, -tstop) %>%
+  select(ind_outcome, treated, fup_period, all_of(all.vars(formula3_pw)), -starts_with("treated_period")) %>%
+  select( -tstart, -tstop) %>%
   mutate(
     across(
       where(is.numeric),
@@ -482,6 +482,8 @@ model_tidy <-
   )
 write_csv(model_tidy, fs::path(output_dir, "model_tidy.csv"))
 
+
+if(removeobjects){rm(summary0, summary1, summary2, summary3)}
 
 ## re-run models, but do not split time period ----
 
