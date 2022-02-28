@@ -263,7 +263,7 @@ data_baseline <-
     vax12_type,
     vax12_type_descr,
     vax2_week,
-    va2_day,
+    vax2_day,
     vax3_date,
     vax3_type,
 
