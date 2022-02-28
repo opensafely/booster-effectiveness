@@ -500,7 +500,8 @@ actions_list <- splice(
     ),
     moderately_sensitive = lst(
       csv = "output/manuscript-objects/*.csv",
-      png = "output/manuscript-objects/*.png",
+      #png = "output/manuscript-objects/*.png",
+      txt = "output/files-for-release.txt",
       csvsubgroup = "output/manuscript-objects/*/*.csv",
     )
   )
