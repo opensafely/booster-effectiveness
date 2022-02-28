@@ -337,6 +337,31 @@ actions:
         svg: output/models/seqtrialcox/pfizer/coviddeath/none/report_*.svg
         png: output/models/seqtrialcox/pfizer/coviddeath/none/report_*.png
 
+  model_seqtrialcox_pfizer_noncoviddeath_none:
+    run: r:latest analysis/model_seqtrialcox.R pfizer noncoviddeath none
+    needs:
+    - match_seqtrialcox_pfizer
+    - data_selection
+    - data_process_long
+    outputs:
+      highly_sensitive:
+        rds: output/models/seqtrialcox/pfizer/noncoviddeath/none/model_*.rds
+      moderately_sensitive:
+        txt: output/models/seqtrialcox/pfizer/noncoviddeath/none/model_*.txt
+        csv: output/models/seqtrialcox/pfizer/noncoviddeath/none/model_*.csv
+
+  report_seqtrialcox_pfizer_noncoviddeath_none:
+    run: r:latest analysis/report_seqtrialcox.R pfizer noncoviddeath none
+    needs:
+    - data_selection
+    - model_seqtrialcox_pfizer_noncoviddeath_none
+    - match_seqtrialcox_pfizer
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/pfizer/noncoviddeath/none/report_*.csv
+        svg: output/models/seqtrialcox/pfizer/noncoviddeath/none/report_*.svg
+        png: output/models/seqtrialcox/pfizer/noncoviddeath/none/report_*.png
+
   ## ### Models by primary course (''vax12_type'') 
 
   model_seqtrialcox_pfizer_postest_vax12_type-az-az:
@@ -638,6 +663,56 @@ actions:
         csv: output/models/seqtrialcox/pfizer/coviddeath/vax12_type-pfizer-pfizer/report_*.csv
         svg: output/models/seqtrialcox/pfizer/coviddeath/vax12_type-pfizer-pfizer/report_*.svg
         png: output/models/seqtrialcox/pfizer/coviddeath/vax12_type-pfizer-pfizer/report_*.png
+
+  model_seqtrialcox_pfizer_noncoviddeath_vax12_type-az-az:
+    run: r:latest analysis/model_seqtrialcox.R pfizer noncoviddeath vax12_type-az-az
+    needs:
+    - match_seqtrialcox_pfizer
+    - data_selection
+    - data_process_long
+    outputs:
+      highly_sensitive:
+        rds: output/models/seqtrialcox/pfizer/noncoviddeath/vax12_type-az-az/model_*.rds
+      moderately_sensitive:
+        txt: output/models/seqtrialcox/pfizer/noncoviddeath/vax12_type-az-az/model_*.txt
+        csv: output/models/seqtrialcox/pfizer/noncoviddeath/vax12_type-az-az/model_*.csv
+
+  report_seqtrialcox_pfizer_noncoviddeath_vax12_type-az-az:
+    run: r:latest analysis/report_seqtrialcox.R pfizer noncoviddeath vax12_type-az-az
+    needs:
+    - data_selection
+    - model_seqtrialcox_pfizer_noncoviddeath_vax12_type-az-az
+    - match_seqtrialcox_pfizer
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/pfizer/noncoviddeath/vax12_type-az-az/report_*.csv
+        svg: output/models/seqtrialcox/pfizer/noncoviddeath/vax12_type-az-az/report_*.svg
+        png: output/models/seqtrialcox/pfizer/noncoviddeath/vax12_type-az-az/report_*.png
+
+  model_seqtrialcox_pfizer_noncoviddeath_vax12_type-pfizer-pfizer:
+    run: r:latest analysis/model_seqtrialcox.R pfizer noncoviddeath vax12_type-pfizer-pfizer
+    needs:
+    - match_seqtrialcox_pfizer
+    - data_selection
+    - data_process_long
+    outputs:
+      highly_sensitive:
+        rds: output/models/seqtrialcox/pfizer/noncoviddeath/vax12_type-pfizer-pfizer/model_*.rds
+      moderately_sensitive:
+        txt: output/models/seqtrialcox/pfizer/noncoviddeath/vax12_type-pfizer-pfizer/model_*.txt
+        csv: output/models/seqtrialcox/pfizer/noncoviddeath/vax12_type-pfizer-pfizer/model_*.csv
+
+  report_seqtrialcox_pfizer_noncoviddeath_vax12_type-pfizer-pfizer:
+    run: r:latest analysis/report_seqtrialcox.R pfizer noncoviddeath vax12_type-pfizer-pfizer
+    needs:
+    - data_selection
+    - model_seqtrialcox_pfizer_noncoviddeath_vax12_type-pfizer-pfizer
+    - match_seqtrialcox_pfizer
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/pfizer/noncoviddeath/vax12_type-pfizer-pfizer/report_*.csv
+        svg: output/models/seqtrialcox/pfizer/noncoviddeath/vax12_type-pfizer-pfizer/report_*.svg
+        png: output/models/seqtrialcox/pfizer/noncoviddeath/vax12_type-pfizer-pfizer/report_*.png
 
   ## ### Models by clinical extremely vulnerable (''cev'') 
 
@@ -941,6 +1016,56 @@ actions:
         svg: output/models/seqtrialcox/pfizer/coviddeath/cev-TRUE/report_*.svg
         png: output/models/seqtrialcox/pfizer/coviddeath/cev-TRUE/report_*.png
 
+  model_seqtrialcox_pfizer_noncoviddeath_cev-FALSE:
+    run: r:latest analysis/model_seqtrialcox.R pfizer noncoviddeath cev-FALSE
+    needs:
+    - match_seqtrialcox_pfizer
+    - data_selection
+    - data_process_long
+    outputs:
+      highly_sensitive:
+        rds: output/models/seqtrialcox/pfizer/noncoviddeath/cev-FALSE/model_*.rds
+      moderately_sensitive:
+        txt: output/models/seqtrialcox/pfizer/noncoviddeath/cev-FALSE/model_*.txt
+        csv: output/models/seqtrialcox/pfizer/noncoviddeath/cev-FALSE/model_*.csv
+
+  report_seqtrialcox_pfizer_noncoviddeath_cev-FALSE:
+    run: r:latest analysis/report_seqtrialcox.R pfizer noncoviddeath cev-FALSE
+    needs:
+    - data_selection
+    - model_seqtrialcox_pfizer_noncoviddeath_cev-FALSE
+    - match_seqtrialcox_pfizer
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/pfizer/noncoviddeath/cev-FALSE/report_*.csv
+        svg: output/models/seqtrialcox/pfizer/noncoviddeath/cev-FALSE/report_*.svg
+        png: output/models/seqtrialcox/pfizer/noncoviddeath/cev-FALSE/report_*.png
+
+  model_seqtrialcox_pfizer_noncoviddeath_cev-TRUE:
+    run: r:latest analysis/model_seqtrialcox.R pfizer noncoviddeath cev-TRUE
+    needs:
+    - match_seqtrialcox_pfizer
+    - data_selection
+    - data_process_long
+    outputs:
+      highly_sensitive:
+        rds: output/models/seqtrialcox/pfizer/noncoviddeath/cev-TRUE/model_*.rds
+      moderately_sensitive:
+        txt: output/models/seqtrialcox/pfizer/noncoviddeath/cev-TRUE/model_*.txt
+        csv: output/models/seqtrialcox/pfizer/noncoviddeath/cev-TRUE/model_*.csv
+
+  report_seqtrialcox_pfizer_noncoviddeath_cev-TRUE:
+    run: r:latest analysis/report_seqtrialcox.R pfizer noncoviddeath cev-TRUE
+    needs:
+    - data_selection
+    - model_seqtrialcox_pfizer_noncoviddeath_cev-TRUE
+    - match_seqtrialcox_pfizer
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/pfizer/noncoviddeath/cev-TRUE/report_*.csv
+        svg: output/models/seqtrialcox/pfizer/noncoviddeath/cev-TRUE/report_*.svg
+        png: output/models/seqtrialcox/pfizer/noncoviddeath/cev-TRUE/report_*.png
+
   ## ### Models by age (''age65plus'') 
 
   model_seqtrialcox_pfizer_postest_age65plus-FALSE:
@@ -1243,6 +1368,56 @@ actions:
         svg: output/models/seqtrialcox/pfizer/coviddeath/age65plus-TRUE/report_*.svg
         png: output/models/seqtrialcox/pfizer/coviddeath/age65plus-TRUE/report_*.png
 
+  model_seqtrialcox_pfizer_noncoviddeath_age65plus-FALSE:
+    run: r:latest analysis/model_seqtrialcox.R pfizer noncoviddeath age65plus-FALSE
+    needs:
+    - match_seqtrialcox_pfizer
+    - data_selection
+    - data_process_long
+    outputs:
+      highly_sensitive:
+        rds: output/models/seqtrialcox/pfizer/noncoviddeath/age65plus-FALSE/model_*.rds
+      moderately_sensitive:
+        txt: output/models/seqtrialcox/pfizer/noncoviddeath/age65plus-FALSE/model_*.txt
+        csv: output/models/seqtrialcox/pfizer/noncoviddeath/age65plus-FALSE/model_*.csv
+
+  report_seqtrialcox_pfizer_noncoviddeath_age65plus-FALSE:
+    run: r:latest analysis/report_seqtrialcox.R pfizer noncoviddeath age65plus-FALSE
+    needs:
+    - data_selection
+    - model_seqtrialcox_pfizer_noncoviddeath_age65plus-FALSE
+    - match_seqtrialcox_pfizer
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/pfizer/noncoviddeath/age65plus-FALSE/report_*.csv
+        svg: output/models/seqtrialcox/pfizer/noncoviddeath/age65plus-FALSE/report_*.svg
+        png: output/models/seqtrialcox/pfizer/noncoviddeath/age65plus-FALSE/report_*.png
+
+  model_seqtrialcox_pfizer_noncoviddeath_age65plus-TRUE:
+    run: r:latest analysis/model_seqtrialcox.R pfizer noncoviddeath age65plus-TRUE
+    needs:
+    - match_seqtrialcox_pfizer
+    - data_selection
+    - data_process_long
+    outputs:
+      highly_sensitive:
+        rds: output/models/seqtrialcox/pfizer/noncoviddeath/age65plus-TRUE/model_*.rds
+      moderately_sensitive:
+        txt: output/models/seqtrialcox/pfizer/noncoviddeath/age65plus-TRUE/model_*.txt
+        csv: output/models/seqtrialcox/pfizer/noncoviddeath/age65plus-TRUE/model_*.csv
+
+  report_seqtrialcox_pfizer_noncoviddeath_age65plus-TRUE:
+    run: r:latest analysis/report_seqtrialcox.R pfizer noncoviddeath age65plus-TRUE
+    needs:
+    - data_selection
+    - model_seqtrialcox_pfizer_noncoviddeath_age65plus-TRUE
+    - match_seqtrialcox_pfizer
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/pfizer/noncoviddeath/age65plus-TRUE/report_*.csv
+        svg: output/models/seqtrialcox/pfizer/noncoviddeath/age65plus-TRUE/report_*.svg
+        png: output/models/seqtrialcox/pfizer/noncoviddeath/age65plus-TRUE/report_*.png
+
   ## # # # # # # # # # # # # # # # # # # # 
   ## Moderna models 
   ## # # # # # # # # # # # # # # # # # # # 
@@ -1397,6 +1572,31 @@ actions:
         csv: output/models/seqtrialcox/moderna/coviddeath/none/report_*.csv
         svg: output/models/seqtrialcox/moderna/coviddeath/none/report_*.svg
         png: output/models/seqtrialcox/moderna/coviddeath/none/report_*.png
+
+  model_seqtrialcox_moderna_noncoviddeath_none:
+    run: r:latest analysis/model_seqtrialcox.R moderna noncoviddeath none
+    needs:
+    - match_seqtrialcox_moderna
+    - data_selection
+    - data_process_long
+    outputs:
+      highly_sensitive:
+        rds: output/models/seqtrialcox/moderna/noncoviddeath/none/model_*.rds
+      moderately_sensitive:
+        txt: output/models/seqtrialcox/moderna/noncoviddeath/none/model_*.txt
+        csv: output/models/seqtrialcox/moderna/noncoviddeath/none/model_*.csv
+
+  report_seqtrialcox_moderna_noncoviddeath_none:
+    run: r:latest analysis/report_seqtrialcox.R moderna noncoviddeath none
+    needs:
+    - data_selection
+    - model_seqtrialcox_moderna_noncoviddeath_none
+    - match_seqtrialcox_moderna
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/moderna/noncoviddeath/none/report_*.csv
+        svg: output/models/seqtrialcox/moderna/noncoviddeath/none/report_*.svg
+        png: output/models/seqtrialcox/moderna/noncoviddeath/none/report_*.png
 
   ## ### Models by primary course (''vax12_type'') 
 
@@ -1700,6 +1900,56 @@ actions:
         svg: output/models/seqtrialcox/moderna/coviddeath/vax12_type-pfizer-pfizer/report_*.svg
         png: output/models/seqtrialcox/moderna/coviddeath/vax12_type-pfizer-pfizer/report_*.png
 
+  model_seqtrialcox_moderna_noncoviddeath_vax12_type-az-az:
+    run: r:latest analysis/model_seqtrialcox.R moderna noncoviddeath vax12_type-az-az
+    needs:
+    - match_seqtrialcox_moderna
+    - data_selection
+    - data_process_long
+    outputs:
+      highly_sensitive:
+        rds: output/models/seqtrialcox/moderna/noncoviddeath/vax12_type-az-az/model_*.rds
+      moderately_sensitive:
+        txt: output/models/seqtrialcox/moderna/noncoviddeath/vax12_type-az-az/model_*.txt
+        csv: output/models/seqtrialcox/moderna/noncoviddeath/vax12_type-az-az/model_*.csv
+
+  report_seqtrialcox_moderna_noncoviddeath_vax12_type-az-az:
+    run: r:latest analysis/report_seqtrialcox.R moderna noncoviddeath vax12_type-az-az
+    needs:
+    - data_selection
+    - model_seqtrialcox_moderna_noncoviddeath_vax12_type-az-az
+    - match_seqtrialcox_moderna
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/moderna/noncoviddeath/vax12_type-az-az/report_*.csv
+        svg: output/models/seqtrialcox/moderna/noncoviddeath/vax12_type-az-az/report_*.svg
+        png: output/models/seqtrialcox/moderna/noncoviddeath/vax12_type-az-az/report_*.png
+
+  model_seqtrialcox_moderna_noncoviddeath_vax12_type-pfizer-pfizer:
+    run: r:latest analysis/model_seqtrialcox.R moderna noncoviddeath vax12_type-pfizer-pfizer
+    needs:
+    - match_seqtrialcox_moderna
+    - data_selection
+    - data_process_long
+    outputs:
+      highly_sensitive:
+        rds: output/models/seqtrialcox/moderna/noncoviddeath/vax12_type-pfizer-pfizer/model_*.rds
+      moderately_sensitive:
+        txt: output/models/seqtrialcox/moderna/noncoviddeath/vax12_type-pfizer-pfizer/model_*.txt
+        csv: output/models/seqtrialcox/moderna/noncoviddeath/vax12_type-pfizer-pfizer/model_*.csv
+
+  report_seqtrialcox_moderna_noncoviddeath_vax12_type-pfizer-pfizer:
+    run: r:latest analysis/report_seqtrialcox.R moderna noncoviddeath vax12_type-pfizer-pfizer
+    needs:
+    - data_selection
+    - model_seqtrialcox_moderna_noncoviddeath_vax12_type-pfizer-pfizer
+    - match_seqtrialcox_moderna
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/moderna/noncoviddeath/vax12_type-pfizer-pfizer/report_*.csv
+        svg: output/models/seqtrialcox/moderna/noncoviddeath/vax12_type-pfizer-pfizer/report_*.svg
+        png: output/models/seqtrialcox/moderna/noncoviddeath/vax12_type-pfizer-pfizer/report_*.png
+
   ## ### Models by clinical extremely vulnerable (''cev'') 
 
   model_seqtrialcox_moderna_postest_cev-FALSE:
@@ -2001,6 +2251,56 @@ actions:
         csv: output/models/seqtrialcox/moderna/coviddeath/cev-TRUE/report_*.csv
         svg: output/models/seqtrialcox/moderna/coviddeath/cev-TRUE/report_*.svg
         png: output/models/seqtrialcox/moderna/coviddeath/cev-TRUE/report_*.png
+
+  model_seqtrialcox_moderna_noncoviddeath_cev-FALSE:
+    run: r:latest analysis/model_seqtrialcox.R moderna noncoviddeath cev-FALSE
+    needs:
+    - match_seqtrialcox_moderna
+    - data_selection
+    - data_process_long
+    outputs:
+      highly_sensitive:
+        rds: output/models/seqtrialcox/moderna/noncoviddeath/cev-FALSE/model_*.rds
+      moderately_sensitive:
+        txt: output/models/seqtrialcox/moderna/noncoviddeath/cev-FALSE/model_*.txt
+        csv: output/models/seqtrialcox/moderna/noncoviddeath/cev-FALSE/model_*.csv
+
+  report_seqtrialcox_moderna_noncoviddeath_cev-FALSE:
+    run: r:latest analysis/report_seqtrialcox.R moderna noncoviddeath cev-FALSE
+    needs:
+    - data_selection
+    - model_seqtrialcox_moderna_noncoviddeath_cev-FALSE
+    - match_seqtrialcox_moderna
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/moderna/noncoviddeath/cev-FALSE/report_*.csv
+        svg: output/models/seqtrialcox/moderna/noncoviddeath/cev-FALSE/report_*.svg
+        png: output/models/seqtrialcox/moderna/noncoviddeath/cev-FALSE/report_*.png
+
+  model_seqtrialcox_moderna_noncoviddeath_cev-TRUE:
+    run: r:latest analysis/model_seqtrialcox.R moderna noncoviddeath cev-TRUE
+    needs:
+    - match_seqtrialcox_moderna
+    - data_selection
+    - data_process_long
+    outputs:
+      highly_sensitive:
+        rds: output/models/seqtrialcox/moderna/noncoviddeath/cev-TRUE/model_*.rds
+      moderately_sensitive:
+        txt: output/models/seqtrialcox/moderna/noncoviddeath/cev-TRUE/model_*.txt
+        csv: output/models/seqtrialcox/moderna/noncoviddeath/cev-TRUE/model_*.csv
+
+  report_seqtrialcox_moderna_noncoviddeath_cev-TRUE:
+    run: r:latest analysis/report_seqtrialcox.R moderna noncoviddeath cev-TRUE
+    needs:
+    - data_selection
+    - model_seqtrialcox_moderna_noncoviddeath_cev-TRUE
+    - match_seqtrialcox_moderna
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/moderna/noncoviddeath/cev-TRUE/report_*.csv
+        svg: output/models/seqtrialcox/moderna/noncoviddeath/cev-TRUE/report_*.svg
+        png: output/models/seqtrialcox/moderna/noncoviddeath/cev-TRUE/report_*.png
 
   ## ### Models by age (''age65plus'') 
 
@@ -2304,6 +2604,56 @@ actions:
         svg: output/models/seqtrialcox/moderna/coviddeath/age65plus-TRUE/report_*.svg
         png: output/models/seqtrialcox/moderna/coviddeath/age65plus-TRUE/report_*.png
 
+  model_seqtrialcox_moderna_noncoviddeath_age65plus-FALSE:
+    run: r:latest analysis/model_seqtrialcox.R moderna noncoviddeath age65plus-FALSE
+    needs:
+    - match_seqtrialcox_moderna
+    - data_selection
+    - data_process_long
+    outputs:
+      highly_sensitive:
+        rds: output/models/seqtrialcox/moderna/noncoviddeath/age65plus-FALSE/model_*.rds
+      moderately_sensitive:
+        txt: output/models/seqtrialcox/moderna/noncoviddeath/age65plus-FALSE/model_*.txt
+        csv: output/models/seqtrialcox/moderna/noncoviddeath/age65plus-FALSE/model_*.csv
+
+  report_seqtrialcox_moderna_noncoviddeath_age65plus-FALSE:
+    run: r:latest analysis/report_seqtrialcox.R moderna noncoviddeath age65plus-FALSE
+    needs:
+    - data_selection
+    - model_seqtrialcox_moderna_noncoviddeath_age65plus-FALSE
+    - match_seqtrialcox_moderna
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/moderna/noncoviddeath/age65plus-FALSE/report_*.csv
+        svg: output/models/seqtrialcox/moderna/noncoviddeath/age65plus-FALSE/report_*.svg
+        png: output/models/seqtrialcox/moderna/noncoviddeath/age65plus-FALSE/report_*.png
+
+  model_seqtrialcox_moderna_noncoviddeath_age65plus-TRUE:
+    run: r:latest analysis/model_seqtrialcox.R moderna noncoviddeath age65plus-TRUE
+    needs:
+    - match_seqtrialcox_moderna
+    - data_selection
+    - data_process_long
+    outputs:
+      highly_sensitive:
+        rds: output/models/seqtrialcox/moderna/noncoviddeath/age65plus-TRUE/model_*.rds
+      moderately_sensitive:
+        txt: output/models/seqtrialcox/moderna/noncoviddeath/age65plus-TRUE/model_*.txt
+        csv: output/models/seqtrialcox/moderna/noncoviddeath/age65plus-TRUE/model_*.csv
+
+  report_seqtrialcox_moderna_noncoviddeath_age65plus-TRUE:
+    run: r:latest analysis/report_seqtrialcox.R moderna noncoviddeath age65plus-TRUE
+    needs:
+    - data_selection
+    - model_seqtrialcox_moderna_noncoviddeath_age65plus-TRUE
+    - match_seqtrialcox_moderna
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/moderna/noncoviddeath/age65plus-TRUE/report_*.csv
+        svg: output/models/seqtrialcox/moderna/noncoviddeath/age65plus-TRUE/report_*.svg
+        png: output/models/seqtrialcox/moderna/noncoviddeath/age65plus-TRUE/report_*.png
+
   ## # # # # # # # # # # # # # # # # # # # 
   ## Combine models across treatments and outcomes 
   ## # # # # # # # # # # # # # # # # # # # 
@@ -2520,7 +2870,6 @@ actions:
     outputs:
       moderately_sensitive:
         csv: output/manuscript-objects/*.csv
-        png: output/manuscript-objects/*.png
         txt: output/files-for-release.txt
         csvsubgroup: output/manuscript-objects/*/*.csv
 

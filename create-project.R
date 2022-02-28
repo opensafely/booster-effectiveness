@@ -369,6 +369,7 @@ actions_list <- splice(
   action_model("pfizer", "covidadmitted", "none"),
   action_model("pfizer", "covidcc", "none"),
   action_model("pfizer", "coviddeath", "none"),
+  action_model("pfizer", "noncoviddeath", "none"),
 
   comment("### Models by primary course ('vax12_type')"),
 
@@ -384,6 +385,8 @@ actions_list <- splice(
   action_model("pfizer", "covidcc", "vax12_type-pfizer-pfizer"),
   action_model("pfizer", "coviddeath", "vax12_type-az-az"),
   action_model("pfizer", "coviddeath", "vax12_type-pfizer-pfizer"),
+  action_model("pfizer", "noncoviddeath", "vax12_type-az-az"),
+  action_model("pfizer", "noncoviddeath", "vax12_type-pfizer-pfizer"),
 
 
   comment("### Models by clinical extremely vulnerable ('cev')"),
@@ -400,6 +403,8 @@ actions_list <- splice(
   action_model("pfizer", "covidcc", "cev-TRUE"),
   action_model("pfizer", "coviddeath", "cev-FALSE"),
   action_model("pfizer", "coviddeath", "cev-TRUE"),
+  action_model("pfizer", "noncoviddeath", "cev-FALSE"),
+  action_model("pfizer", "noncoviddeath", "cev-TRUE"),
 
   comment("### Models by age ('age65plus')"),
 
@@ -415,6 +420,8 @@ actions_list <- splice(
   action_model("pfizer", "covidcc", "age65plus-TRUE"),
   action_model("pfizer", "coviddeath", "age65plus-FALSE"),
   action_model("pfizer", "coviddeath", "age65plus-TRUE"),
+  action_model("pfizer", "noncoviddeath", "age65plus-FALSE"),
+  action_model("pfizer", "noncoviddeath", "age65plus-TRUE"),
 
   comment("# # # # # # # # # # # # # # # # # # #", "Moderna models", "# # # # # # # # # # # # # # # # # # #"),
 
@@ -426,6 +433,7 @@ actions_list <- splice(
   action_model("moderna", "covidadmitted", "none"),
   action_model("moderna", "covidcc", "none"),
   action_model("moderna", "coviddeath", "none"),
+  action_model("moderna", "noncoviddeath", "none"),
 
   comment("### Models by primary course ('vax12_type')"),
 
@@ -441,6 +449,8 @@ actions_list <- splice(
   action_model("moderna", "covidcc", "vax12_type-pfizer-pfizer"),
   action_model("moderna", "coviddeath", "vax12_type-az-az"),
   action_model("moderna", "coviddeath", "vax12_type-pfizer-pfizer"),
+  action_model("moderna", "noncoviddeath", "vax12_type-az-az"),
+  action_model("moderna", "noncoviddeath", "vax12_type-pfizer-pfizer"),
 
 
   comment("### Models by clinical extremely vulnerable ('cev')"),
@@ -457,6 +467,8 @@ actions_list <- splice(
   action_model("moderna", "covidcc", "cev-TRUE"),
   action_model("moderna", "coviddeath", "cev-FALSE"),
   action_model("moderna", "coviddeath", "cev-TRUE"),
+  action_model("moderna", "noncoviddeath", "cev-FALSE"),
+  action_model("moderna", "noncoviddeath", "cev-TRUE"),
 
   comment("### Models by age ('age65plus')"),
 
@@ -472,6 +484,8 @@ actions_list <- splice(
   action_model("moderna", "covidcc", "age65plus-TRUE"),
   action_model("moderna", "coviddeath", "age65plus-FALSE"),
   action_model("moderna", "coviddeath", "age65plus-TRUE"),
+  action_model("moderna", "noncoviddeath", "age65plus-FALSE"),
+  action_model("moderna", "noncoviddeath", "age65plus-TRUE"),
 
 
   comment("# # # # # # # # # # # # # # # # # # #", "Combine models across treatments and outcomes", "# # # # # # # # # # # # # # # # # # #"),
