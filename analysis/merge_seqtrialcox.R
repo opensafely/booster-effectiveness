@@ -179,7 +179,8 @@ match_summary_trial <-
     n=n(),
     fup_sum = sum(fup),
     fup_years = sum(fup)/365.25,
-    fup_mean = mean(fup)
+    fup_mean = mean(fup),
+    fup_median = median(fup)
   ) %>%
   arrange(
     trial_time, treated
@@ -208,10 +209,24 @@ match_summary_treated <-
     lastrecruitdate = max(tte_recruitment) + day1_date,
     fup_sum = sum(fup),
     fup_years = sum(fup)/365.25,
-    fup_mean = mean(fup)
+    fup_mean = mean(fup),
+    fup_median = median(fup),
+
+    n_12pfizer = sum(vax12_type=="pfizer-pfizer"),
+    prop_12pfizer = n_12pfizer/n,
+    n_12az = sum(vax12_type=="az-az"),
+    prop_12az = n_12az/n,
+    # n_12moderna = sum(vax12_type=="moderna-moderna"),
+    # prop_12moderna = n_12moderna/n,
+
+    age_median = median(age),
+    age_Q1 = quantile(age, 0.25),
+    age_Q3 = quantile(age, 0.75),
+    female = mean(sex=="Female"),
   )
 
 write_csv(match_summary_treated, fs::path(output_dir, "merge_summary_treated.csv"))
+
 
 
 # summary of boosted people
@@ -234,7 +249,21 @@ match_summary <-
     lastrecruitdate = max(tte_recruitment) + day1_date,
     fup_sum = sum(fup),
     fup_years = sum(fup)/365.25,
-    fup_mean = mean(fup)
+    fup_mean = mean(fup),
+    fup_median = median(fup),
+
+    n_12pfizer = sum(vax12_type=="pfizer-pfizer"),
+    prop_12pfizer = n_12pfizer/n,
+    n_12az = sum(vax12_type=="az-az"),
+    prop_12az = n_12az/n,
+    # n_12moderna = sum(vax12_type=="moderna-moderna"),
+    # prop_12moderna = n_12moderna/n,
+
+    age_median = median(age),
+    age_Q1 = quantile(age, 0.25),
+    age_Q3 = quantile(age, 0.75),
+    female = mean(sex=="Female"),
+
   ) %>%
   bind_cols(candidate_summary) %>%
   mutate(
