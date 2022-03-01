@@ -116,8 +116,7 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
   model_metaparams <-
     expand_grid(
       treatment = factor(c("pfizer", "moderna")),
-      outcome = factor(c("postest", "covidemergency", "covidadmittedproxy1", "covidadmitted", "coviddeath", "noncovid")),
-      #outcome = factor(c("postest", "covidadmission")),
+      outcome = factor(c("postest", "covidemergency", "covidadmittedproxy1", "covidadmitted", "coviddeath", "noncoviddeath")),
       subgroup = factor(recode_subgroup),
       subgroup_variable = factor(subgroup_variable),
     ) %>%
