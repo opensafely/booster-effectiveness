@@ -61,7 +61,7 @@ fs::file_copy(here("output", "match", "combined", "flowchart.csv"), here("output
 
 for(subgroup_variable in c("none", "vax12_type", "cev", "age65plus")){
   fs::dir_create(here("output", "manuscript-objects", subgroup_variable))
-  fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "incidence.csv"), here("output", "manuscript-objects", subgroup_variable, "incidence.csv"), overwrite = TRUE)
+  #fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "incidence.csv"), here("output", "manuscript-objects", subgroup_variable, "incidence.csv"), overwrite = TRUE)
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "km.csv"), here("output", "manuscript-objects", subgroup_variable, "km.csv"), overwrite = TRUE)
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "effects.csv"), here("output", "manuscript-objects", subgroup_variable, "effects.csv"), overwrite = TRUE)
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "metaeffects.csv"), here("output", "manuscript-objects", subgroup_variable, "metaeffects.csv"), overwrite = TRUE)
@@ -69,7 +69,7 @@ for(subgroup_variable in c("none", "vax12_type", "cev", "age65plus")){
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "overalleffects.csv"), here("output", "manuscript-objects", subgroup_variable, "overalleffects.csv"), overwrite = TRUE)
 }
 
-
+fs::file_copy(here("output", "models", "seqtrialcox", "combined", "none", "incidence_all.csv"), here("output", "manuscript-objects", "none", "incidence_all.csv"), overwrite = TRUE)
 
 ## create text for output review issue ----
 fs::dir_ls(here("output", "manuscript-objects"), type="file", recurse =TRUE) %>%
