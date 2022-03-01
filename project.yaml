@@ -2673,6 +2673,8 @@ actions:
     - report_seqtrialcox_pfizer_covidadmitted_none
     - model_seqtrialcox_pfizer_coviddeath_none
     - report_seqtrialcox_pfizer_coviddeath_none
+    - model_seqtrialcox_pfizer_noncoviddeath_none
+    - report_seqtrialcox_pfizer_noncoviddeath_none
     - model_seqtrialcox_moderna_postest_none
     - report_seqtrialcox_moderna_postest_none
     - model_seqtrialcox_moderna_covidemergency_none
@@ -2683,6 +2685,8 @@ actions:
     - report_seqtrialcox_moderna_covidadmitted_none
     - model_seqtrialcox_moderna_coviddeath_none
     - report_seqtrialcox_moderna_coviddeath_none
+    - model_seqtrialcox_moderna_noncoviddeath_none
+    - report_seqtrialcox_moderna_noncoviddeath_none
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/combined/none/*.csv
@@ -2706,6 +2710,8 @@ actions:
     - report_seqtrialcox_pfizer_covidadmitted_vax12_type-pfizer-pfizer
     - model_seqtrialcox_pfizer_coviddeath_vax12_type-pfizer-pfizer
     - report_seqtrialcox_pfizer_coviddeath_vax12_type-pfizer-pfizer
+    - model_seqtrialcox_pfizer_noncoviddeath_vax12_type-pfizer-pfizer
+    - report_seqtrialcox_pfizer_noncoviddeath_vax12_type-pfizer-pfizer
     - model_seqtrialcox_moderna_postest_vax12_type-pfizer-pfizer
     - report_seqtrialcox_moderna_postest_vax12_type-pfizer-pfizer
     - model_seqtrialcox_moderna_covidemergency_vax12_type-pfizer-pfizer
@@ -2716,6 +2722,8 @@ actions:
     - report_seqtrialcox_moderna_covidadmitted_vax12_type-pfizer-pfizer
     - model_seqtrialcox_moderna_coviddeath_vax12_type-pfizer-pfizer
     - report_seqtrialcox_moderna_coviddeath_vax12_type-pfizer-pfizer
+    - model_seqtrialcox_moderna_noncoviddeath_vax12_type-pfizer-pfizer
+    - report_seqtrialcox_moderna_noncoviddeath_vax12_type-pfizer-pfizer
     - model_seqtrialcox_pfizer_postest_vax12_type-az-az
     - report_seqtrialcox_pfizer_postest_vax12_type-az-az
     - model_seqtrialcox_pfizer_covidemergency_vax12_type-az-az
@@ -2726,6 +2734,8 @@ actions:
     - report_seqtrialcox_pfizer_covidadmitted_vax12_type-az-az
     - model_seqtrialcox_pfizer_coviddeath_vax12_type-az-az
     - report_seqtrialcox_pfizer_coviddeath_vax12_type-az-az
+    - model_seqtrialcox_pfizer_noncoviddeath_vax12_type-az-az
+    - report_seqtrialcox_pfizer_noncoviddeath_vax12_type-az-az
     - model_seqtrialcox_moderna_postest_vax12_type-az-az
     - report_seqtrialcox_moderna_postest_vax12_type-az-az
     - model_seqtrialcox_moderna_covidemergency_vax12_type-az-az
@@ -2736,6 +2746,8 @@ actions:
     - report_seqtrialcox_moderna_covidadmitted_vax12_type-az-az
     - model_seqtrialcox_moderna_coviddeath_vax12_type-az-az
     - report_seqtrialcox_moderna_coviddeath_vax12_type-az-az
+    - model_seqtrialcox_moderna_noncoviddeath_vax12_type-az-az
+    - report_seqtrialcox_moderna_noncoviddeath_vax12_type-az-az
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/combined/vax12_type/*.csv
@@ -2759,6 +2771,8 @@ actions:
     - report_seqtrialcox_pfizer_covidadmitted_cev-FALSE
     - model_seqtrialcox_pfizer_coviddeath_cev-FALSE
     - report_seqtrialcox_pfizer_coviddeath_cev-FALSE
+    - model_seqtrialcox_pfizer_noncoviddeath_cev-FALSE
+    - report_seqtrialcox_pfizer_noncoviddeath_cev-FALSE
     - model_seqtrialcox_moderna_postest_cev-FALSE
     - report_seqtrialcox_moderna_postest_cev-FALSE
     - model_seqtrialcox_moderna_covidemergency_cev-FALSE
@@ -2769,6 +2783,8 @@ actions:
     - report_seqtrialcox_moderna_covidadmitted_cev-FALSE
     - model_seqtrialcox_moderna_coviddeath_cev-FALSE
     - report_seqtrialcox_moderna_coviddeath_cev-FALSE
+    - model_seqtrialcox_moderna_noncoviddeath_cev-FALSE
+    - report_seqtrialcox_moderna_noncoviddeath_cev-FALSE
     - model_seqtrialcox_pfizer_postest_cev-TRUE
     - report_seqtrialcox_pfizer_postest_cev-TRUE
     - model_seqtrialcox_pfizer_covidemergency_cev-TRUE
@@ -2779,6 +2795,8 @@ actions:
     - report_seqtrialcox_pfizer_covidadmitted_cev-TRUE
     - model_seqtrialcox_pfizer_coviddeath_cev-TRUE
     - report_seqtrialcox_pfizer_coviddeath_cev-TRUE
+    - model_seqtrialcox_pfizer_noncoviddeath_cev-TRUE
+    - report_seqtrialcox_pfizer_noncoviddeath_cev-TRUE
     - model_seqtrialcox_moderna_postest_cev-TRUE
     - report_seqtrialcox_moderna_postest_cev-TRUE
     - model_seqtrialcox_moderna_covidemergency_cev-TRUE
@@ -2789,6 +2807,8 @@ actions:
     - report_seqtrialcox_moderna_covidadmitted_cev-TRUE
     - model_seqtrialcox_moderna_coviddeath_cev-TRUE
     - report_seqtrialcox_moderna_coviddeath_cev-TRUE
+    - model_seqtrialcox_moderna_noncoviddeath_cev-TRUE
+    - report_seqtrialcox_moderna_noncoviddeath_cev-TRUE
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/combined/cev/*.csv
@@ -2812,6 +2832,8 @@ actions:
     - report_seqtrialcox_pfizer_covidadmitted_age65plus-FALSE
     - model_seqtrialcox_pfizer_coviddeath_age65plus-FALSE
     - report_seqtrialcox_pfizer_coviddeath_age65plus-FALSE
+    - model_seqtrialcox_pfizer_noncoviddeath_age65plus-FALSE
+    - report_seqtrialcox_pfizer_noncoviddeath_age65plus-FALSE
     - model_seqtrialcox_moderna_postest_age65plus-FALSE
     - report_seqtrialcox_moderna_postest_age65plus-FALSE
     - model_seqtrialcox_moderna_covidemergency_age65plus-FALSE
@@ -2822,6 +2844,8 @@ actions:
     - report_seqtrialcox_moderna_covidadmitted_age65plus-FALSE
     - model_seqtrialcox_moderna_coviddeath_age65plus-FALSE
     - report_seqtrialcox_moderna_coviddeath_age65plus-FALSE
+    - model_seqtrialcox_moderna_noncoviddeath_age65plus-FALSE
+    - report_seqtrialcox_moderna_noncoviddeath_age65plus-FALSE
     - model_seqtrialcox_pfizer_postest_age65plus-TRUE
     - report_seqtrialcox_pfizer_postest_age65plus-TRUE
     - model_seqtrialcox_pfizer_covidemergency_age65plus-TRUE
@@ -2832,6 +2856,8 @@ actions:
     - report_seqtrialcox_pfizer_covidadmitted_age65plus-TRUE
     - model_seqtrialcox_pfizer_coviddeath_age65plus-TRUE
     - report_seqtrialcox_pfizer_coviddeath_age65plus-TRUE
+    - model_seqtrialcox_pfizer_noncoviddeath_age65plus-TRUE
+    - report_seqtrialcox_pfizer_noncoviddeath_age65plus-TRUE
     - model_seqtrialcox_moderna_postest_age65plus-TRUE
     - report_seqtrialcox_moderna_postest_age65plus-TRUE
     - model_seqtrialcox_moderna_covidemergency_age65plus-TRUE
@@ -2842,6 +2868,8 @@ actions:
     - report_seqtrialcox_moderna_covidadmitted_age65plus-TRUE
     - model_seqtrialcox_moderna_coviddeath_age65plus-TRUE
     - report_seqtrialcox_moderna_coviddeath_age65plus-TRUE
+    - model_seqtrialcox_moderna_noncoviddeath_age65plus-TRUE
+    - report_seqtrialcox_moderna_noncoviddeath_age65plus-TRUE
     outputs:
       moderately_sensitive:
         csv: output/models/seqtrialcox/combined/age65plus/*.csv

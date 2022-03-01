@@ -161,7 +161,7 @@ action_combine_model <- function(
           .x=expand_grid(
             subgroups = paste0(subgroup,dash,subgroup_levels),
             treatment=c("pfizer", "moderna"),
-            outcome=c("postest", "covidemergency", "covidadmittedproxy1", "covidadmitted",  "coviddeath"),
+            outcome=c("postest", "covidemergency", "covidadmittedproxy1", "covidadmitted",  "coviddeath", "noncoviddeath"),
             script=c("model", "report"),
 
           ),
