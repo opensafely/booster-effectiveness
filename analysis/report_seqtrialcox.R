@@ -177,7 +177,7 @@ model_meta2effects <- model_effects %>%
     term_midpoint = (term_left+term_right)/2,
   )
 
-write_csv(model_metaeffects, path = fs::path(output_dir, "report_meta2effects.csv"))
+write_csv(model_meta2effects, path = fs::path(output_dir, "report_meta2effects.csv"))
 
 
 ## incidence rates ----
