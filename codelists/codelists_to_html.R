@@ -26,3 +26,13 @@ codelists_formatted %>%
   ) %>%
   gtsave(here("codelists", "codelists.html"))
 
+
+
+
+## convert codelists to tribble constructor ----
+# paste the output into an r script and build on top
+
+codelists_formatted %>%
+  select(name, id, downloaded_at) %>%
+  deparse::deparsec(as_tribble = TRUE)
+
