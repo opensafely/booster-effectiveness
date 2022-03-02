@@ -1,0 +1,5 @@
+treatment,treatment_descr,by,by_id,by_chr,by_col,n,N,p
+pfizer,BNT162b2,Boosted,1,Boosted,stat_1,4090245,8180490,0.5
+pfizer,BNT162b2,Unboosted,2,Unboosted,stat_2,4090245,8180490,0.5
+moderna,mRNA-1273,Boosted,1,Boosted,stat_1,1266326,2532652,0.5
+moderna,mRNA-1273,Unboosted,2,Unboosted,stat_2,1266326,2532652,0.5
