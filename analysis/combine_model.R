@@ -349,7 +349,7 @@ incidence <-
 
 write_csv(incidence, fs::path(output_dir, "incidence.csv"))
 
-incidence %>% filter(period=="all") %>% write_csv(fs::path(output_dir, "incidence_all.csv"))
+incidence %>% filter(fup_period=="All") %>% write_csv(fs::path(output_dir, "incidence_all.csv"))
 
 gt_incidence <-
   incidence %>%
