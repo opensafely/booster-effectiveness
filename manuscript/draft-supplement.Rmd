@@ -28,8 +28,8 @@ library('scales')
 source(here("lib", "functions", "utility.R"))
 
 # where are the outputs (ie the inputs for this manuscript!) saved?
-output_dir_os <- here("output", "manuscript-objects")
-#output_dir_os <- here("released_outputs", "output", "manuscript-objects")
+#output_dir_os <- here("output", "manuscript-objects")
+output_dir_os <- here("released_output",  "manuscript-objects")
 
 # where should we put the objects created within this rmd script?
 output_dir_rmd <- here("manuscript", "figures")
@@ -48,14 +48,12 @@ study_dates <-
 
 postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 
-flowchart <- read_csv(fs::path(output_dir_os, "flowchart.csv"))
-cohortsummary <- read_csv(fs::path(output_dir_os, "cohortsummary.csv"))
 matchsummary <- read_csv(fs::path(output_dir_os, "matchsummary.csv"))
 matchsummary_treated <- read_csv(fs::path(output_dir_os, "matchsummary_treated.csv")) %>% filter(treated == 1L)
 matchsummary_control <- read_csv(fs::path(output_dir_os, "matchsummary_treated.csv")) %>% filter(treated == 0L)
 matchcoverage <- read_csv(fs::path(output_dir_os, "matchcoverage.csv"))
 matchflowchart <- read_csv(fs::path(output_dir_os, "matchflowchart.csv"))
-incidences <- read_csv(fs::path(output_dir_os, "incidence.csv")) %>% mutate(events=events_1+events_0)
+incidences <- read_csv(fs::path(output_dir_os, "none", "incidence_all.csv")) %>% mutate(events=events_1+events_0)
 smd <- read_csv(fs::path(output_dir_os, "matchsmd.csv")) 
 
 ```
@@ -84,7 +82,8 @@ smd <- read_csv(fs::path(output_dir_os, "matchsmd.csv"))
       #"covidemergency",
       "covidadmitted",
       #"covidcc",
-      "coviddeath"
+      "coviddeath",
+      "noncoviddeath"
     ) %>% 
     set_names(., .)
 
@@ -105,11 +104,14 @@ smd <- read_csv(fs::path(output_dir_os, "matchsmd.csv"))
 #     diff_CI_to = paste0(label_number(0.01, scale=1000)(diff.ll), " to ", label_number(0.01, scale=1000)(diff.ul))
 #   )
   
-  
-km_none <- read_csv(fs::path(output_dir_os, "none", "km.csv"))  
-km_vax12_type <- read_csv(fs::path(output_dir_os, "vax12_type", "km.csv")) 
+
 km <- 
-  bind_rows(km_none, km_vax12_type) %>%
+  bind_rows(
+    read_csv(fs::path(output_dir_os, "none", "km.csv")),
+    read_csv(fs::path(output_dir_os, "vax12_type", "km.csv")) ,
+    #read_csv(fs::path(output_dir_os, "cev", "km.csv")) ,
+    #read_csv(fs::path(output_dir_os, "age65plus", "km.csv")) ,
+  ) %>%
   mutate(
     subgroup_descr = fct_inorder(subgroup_descr),
     subgroup_level = fct_inorder(subgroup_level),
@@ -120,10 +122,13 @@ km <-
     #model_name = fct_inorder(str_wrap(model_name, 15)),
   )
 
-hazards_none <- read_csv(fs::path(output_dir_os, "none", "effects.csv"))
-hazards_vax12_type <- read_csv(fs::path(output_dir_os, "vax12_type", "effects.csv"))
 hazards <- 
-  bind_rows(hazards_none, hazards_vax12_type) %>%
+  bind_rows(
+    read_csv(fs::path(output_dir_os, "none", "effects.csv")),
+    read_csv(fs::path(output_dir_os, "vax12_type", "effects.csv")),
+    #read_csv(fs::path(output_dir_os, "cev", "effects.csv")),
+    #read_csv(fs::path(output_dir_os, "age65plus", "effects.csv")),
+  ) %>%
   mutate(
     
     subgroup_descr = fct_inorder(subgroup_descr),
@@ -179,8 +184,35 @@ fmt_markdown(columns = TRUE)
 See original priority groups here: https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1007737/Greenbook_chapter_14a_30July2021.pdf#page=15
 See revised priority groups here: https://www.england.nhs.uk/coronavirus/wp-content/uploads/sites/52/2021/07/C1327-covid-19-vaccination-autumn-winter-phase-3-planning.pdf
 
-Note that we excluded care home residents and health care workers in our analysis, so group 1 is not included and group 2 includes only those aged 80 and over. The original priority group list has 9 groups, with a 10th group implicitly defined as "everybody else". Here we explicitly define this group, and split into two (10a and 10b) because of the earlier booster eligiblity in the 40-49 group from 15 November 2021 onwards. (https://www.gov.uk/government/news/jcvi-issues-advice-on-covid-19-booster-vaccines-for-those-aged-40-to-49-and-second-doses-for-16-to-17-year-olds)
+Note that we excluded care home residents and health care workers in our analysis, so members of JCVI group 1 are not included and JCVI group 2 includes only those aged 80 and over. The original priority group list has 9 groups, with a 10th group implicitly defined as "everybody else". Here we explicitly define this group, and split into two (10a and 10b) because of the earlier booster eligiblity in the 40-49 group from 15 November 2021 onwards. (https://www.gov.uk/government/news/jcvi-issues-advice-on-covid-19-booster-vaccines-for-those-aged-40-to-49-and-second-doses-for-16-to-17-year-olds)
 
+
+# Variables and codelists
+
+```{r, codelists, echo=FALSE, message=FALSE, warning=FALSE}
+
+variable_table <- readxl::read_xlsx(here("lib", "design", "variable-descriptions.xlsx"))
+
+variable_table %>%
+  gt(groupname_col = "category") %>%
+  cols_label(
+    name = "Variable",
+    source = "Data source",
+    description = "Notes",
+    support = "Values ",
+    codelistID = "Codelist identifier"
+  ) %>%
+   fmt_missing(
+    everything(),
+    missing_text=""
+  )
+  
+
+
+```
+
+
+Codelists can be found at `https://codelists.opensafely.org/codelist/<ID>`, substituting `<ID>` for the codelist identifier in the table above.
 
 ### Table S1: Inclusion criteria
 
@@ -251,7 +283,11 @@ matchflowchart %>%
 ```{r plot_smd, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
 
 plot_smd <-
-  ggplot(data_smd)+
+  smd %>%
+  mutate(
+    level=fct_rev(fct_inorder(level))
+  ) %>%
+  ggplot()+
   geom_point(aes(x=smd, y=level))+
   geom_rect(aes(alpha = variable_card, ymin = rev(cardn)-0.5, ymax =rev(cardn+0.5)), xmin = -Inf, xmax = Inf, fill='grey', colour="transparent") +
   scale_alpha_continuous(range=c(0,0.3), guide=FALSE)+
@@ -281,6 +317,10 @@ plot_smd
 ```{r plot_km, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
 
 plot_km <- km %>%
+  filter(
+    outcome %in% outcomes,
+    treatment=="pfizer"
+  ) %>%
     ggplot()+
     geom_step(aes(x=time, y=(1-surv)*1000, group=treated_descr, colour=treated_descr))+
     geom_rect(aes(xmin=time, xmax=leadtime, ymin=(1-surv.ll)*1000, ymax=(1-surv.ul)*1000, group=treated_descr, fill=treated_descr), alpha=0.1)+
@@ -307,17 +347,17 @@ plot_km <- km %>%
       legend.justification = c(1,0),
       legend.direction = "vertical",
       axis.text.x.top=element_text(hjust=0),
-      
+
       strip.placement = "outside",
       strip.background = element_blank(),
       strip.text.y.left = element_text(angle = 0),
-      
+
       panel.border = element_blank(),
       axis.line.y = element_line(colour = "black"),
       axis.line.x.top = element_line(colour = "black"),
       panel.grid.minor.x = element_blank(),
       panel.grid.minor.y = element_blank(),
-      
+
       panel.spacing = unit(0.8, "lines"),
 
     )+
@@ -358,7 +398,7 @@ formatpercent100 <- function(x,accuracy){
     ) %>%
     ggplot()+
     geom_point(aes(y=hr, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
-    geom_linerange(aes(ymin=hr.ll, ymax=hr.ul, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
+    geom_linerange(aes(ymin=hr.ll, ymax=hr.ul, x=term_midpoint, colour=model_descr), position = position_dodge(width = 4))+
     geom_hline(aes(yintercept=1), colour='grey')+
     facet_grid(rows=vars(outcome_descr_wrap), cols=vars(subgroup_level_descr), switch="y")+
     scale_y_log10(

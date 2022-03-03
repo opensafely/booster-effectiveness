@@ -1,5 +1,5 @@
 ---
-title: "Effectiveness of BNT162b2 booster doses in England: a observational study in OpenSAFELY"
+title: "Effectiveness of BNT162b2 booster doses in England: a observational study in OpenSAFELY-TPP"
 output:
   html_document:
     keep_md: yes
@@ -34,8 +34,8 @@ library('scales')
 source(here("lib", "functions", "utility.R"))
 
 # where are the outputs (ie the inputs for this manuscript!) saved?
-output_dir_os <- here("output", "manuscript-objects")
-#output_dir_os <- here("released_output", "manuscript-objects")
+#output_dir_os <- here("output", "manuscript-objects")
+output_dir_os <- here("released_output", "manuscript-objects")
 
 # where should we put the objects created within this rmd script?
 output_dir_rmd <- here("manuscript", "figures")
@@ -54,14 +54,13 @@ study_dates <-
 
 postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 
-flowchart <- read_csv(fs::path(output_dir_os, "flowchart.csv"))
 cohortsummary <- read_csv(fs::path(output_dir_os, "cohortsummary.csv"))
 matchsummary <- read_csv(fs::path(output_dir_os, "matchsummary.csv"))
 matchsummary_treated <- read_csv(fs::path(output_dir_os, "matchsummary_treated.csv")) %>% filter(treated == 1L)
 matchsummary_control <- read_csv(fs::path(output_dir_os, "matchsummary_treated.csv")) %>% filter(treated == 0L)
 matchflowchart <- read_csv(fs::path(output_dir_os, "matchflowchart.csv"))
 matchcoverage <- read_csv(fs::path(output_dir_os, "matchcoverage.csv"))
-incidences <- read_csv(fs::path(output_dir_os, "none", "incidence.csv")) %>% mutate(events=events_1+events_0)
+incidences <- read_csv(fs::path(output_dir_os, "none", "incidence_all.csv")) %>% mutate(events=events_1+events_0)
 
 
 
@@ -91,23 +90,29 @@ studydurationweeks <- as.numeric(as.duration(study_dates$studyend_date - study_d
       #"covidemergency",
       "covidadmitted",
       #"covidcc",
-      "coviddeath"
+      "coviddeath",
+      "noncoviddeath"
     ) %>% 
     set_names(., .)
 
 
-km_none <- read_csv(fs::path(output_dir_os, "none", "km.csv"))  
-km_vax12_type <- read_csv(fs::path(output_dir_os, "vax12_type", "km.csv")) 
-
 km <- 
-  bind_rows(km_none, km_vax12_type) %>%
+  bind_rows(
+    read_csv(fs::path(output_dir_os, "none", "km.csv")),
+    read_csv(fs::path(output_dir_os, "vax12_type", "km.csv")),
+    read_csv(fs::path(output_dir_os, "cev", "km.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+    read_csv(fs::path(output_dir_os, "age65plus", "km.csv")) %>% mutate(subgroup_level=as.character(subgroup_level))
+  ) %>%
+  filter(
+    outcome %in% outcomes
+  ) %>%
   mutate(
     subgroup_descr = fct_inorder(subgroup_descr),
     subgroup_level = fct_inorder(subgroup_level),
     subgroup_level_descr = fct_inorder(fct_explicit_na(subgroup_level_descr, "All")),
     treatment_descr = fct_inorder(treatment_descr),
     outcome_descr = fct_inorder(outcome_descr),
-    outcome_descr_wrap = fct_relabel(outcome_descr, ~str_wrap(., width=20)),
+    outcome_descr_wrap = fct_relabel(outcome_descr, ~str_wrap(., width=15)),
     #model_name = fct_inorder(str_wrap(model_name, 15)),
   )
 # 
@@ -127,11 +132,17 @@ km <-
 #     diff_CI_to = paste0(label_number(0.01, scale=1000)(diff.ll), " to ", label_number(0.01, scale=1000)(diff.ul))
 #   )
 
-hazards_none <- read_csv(fs::path(output_dir_os, "none", "effects.csv"))
-hazards_vax12_type <- read_csv(fs::path(output_dir_os, "vax12_type", "effects.csv"))
-  
+
 hazards <- 
-  bind_rows(hazards_none, hazards_vax12_type) %>%
+  bind_rows(
+    read_csv(fs::path(output_dir_os, "none", "effects.csv")),
+    read_csv(fs::path(output_dir_os, "vax12_type", "effects.csv")),
+    read_csv(fs::path(output_dir_os, "cev", "effects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+    read_csv(fs::path(output_dir_os, "age65plus", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
+  ) %>%
+  filter(
+    outcome %in% outcomes
+  ) %>%
   mutate(
     
     subgroup_descr = fct_inorder(subgroup_descr),
@@ -145,11 +156,16 @@ hazards <-
     ve_display = paste0(label_percent(accuracy=0.1)(ve), " (", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
   )
 
-metahazards_none <- read_csv(fs::path(output_dir_os, "none", "metaeffects.csv"))
-metahazards_vax12_type <- read_csv(fs::path(output_dir_os, "vax12_type", "metaeffects.csv"))
-  
-metahazards <- 
-  bind_rows(metahazards_none, metahazards_vax12_type) %>%
+overallhazards <- 
+  bind_rows(
+    read_csv(fs::path(output_dir_os, "none", "overalleffects.csv")),
+    read_csv(fs::path(output_dir_os, "vax12_type", "overalleffects.csv")),
+    read_csv(fs::path(output_dir_os, "cev", "overalleffects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+    read_csv(fs::path(output_dir_os, "age65plus", "overalleffects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+  ) %>%
+  filter(
+    outcome %in% outcomes
+  ) %>%
   mutate(
     
     subgroup_descr = fct_inorder(subgroup_descr),
@@ -162,6 +178,76 @@ metahazards <-
     hr_display = paste0(label_number(accuracy=0.01)(hr), " (", label_number(accuracy=0.01)(hr.ll), "-", label_number(accuracy=0.01)(hr.ul), ")"),
     ve_display = paste0(label_percent(accuracy=0.1)(ve), " (", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
   )
+
+
+meta2hazards <- 
+  # derive directly from hazards as meta2effects table needs to be re-run
+  bind_rows(
+    read_csv(fs::path(output_dir_os, "none", "effects.csv")),
+    read_csv(fs::path(output_dir_os, "vax12_type", "effects.csv")),
+    read_csv(fs::path(output_dir_os, "cev", "effects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+    read_csv(fs::path(output_dir_os, "age65plus", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
+  ) %>%
+  filter(
+    outcome %in% outcomes
+  ) %>%
+  mutate(
+    period = (term_right>28) + 1,
+    subgroup_descr = fct_inorder(subgroup_descr),
+    subgroup_level = fct_inorder(subgroup_level),
+    subgroup_level_descr = fct_inorder(fct_explicit_na(subgroup_level_descr, "All")),
+    treatment_descr = fct_inorder(treatment_descr),
+    outcome_descr = fct_inorder(outcome_descr),
+    outcome_descr_wrap = fct_relabel(outcome_descr, ~str_wrap(., width=20)),
+  ) %>%
+  group_by(
+    treatment, treatment_descr, outcome, outcome_descr, outcome_descr_wrap, subgroup, subgroup_variable, subgroup_descr, subgroup_level, subgroup_level_descr, model, model_descr, period, 
+  ) %>%
+  summarise(
+    term_left = min(term_left),
+    term_right = max(term_right),
+    term_midpoint = (term_left+term_right)/2,
+    estimate = weighted.mean(estimate, robust.se^-2),
+    std.error = sqrt(1/sum(std.error^-2)),
+    robust.se = sqrt(1/sum(robust.se^-2)),
+    statistic = estimate/robust.se,
+    p.value = 2 * pmin(pnorm(statistic), pnorm(-statistic)),
+    conf.low = estimate + qnorm(0.025)*robust.se,
+    conf.high = estimate + qnorm(0.975)*robust.se,
+    hr = exp(estimate),
+    hr.ll = exp(conf.low),
+    hr.ul = exp(conf.high),
+    ve = 1-hr,
+    ve.ll = 1-hr.ul,
+    ve.ul = 1-hr.ll
+  ) %>%
+  ungroup() %>%
+  mutate(
+    hr_display = paste0(label_number(accuracy=0.01)(hr), " (", label_number(accuracy=0.01)(hr.ll), "-", label_number(accuracy=0.01)(hr.ul), ")"),
+    ve_display = paste0(label_percent(accuracy=0.1)(ve), " (", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
+  )
+
+# meta2hazards <- 
+#   bind_rows(
+#     read_csv(fs::path(output_dir_os, "none", "meta2effects.csv")),
+#     read_csv(fs::path(output_dir_os, "vax12_type", "meta2effects.csv")),
+#     read_csv(fs::path(output_dir_os, "cev", "meta2effects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+#     read_csv(fs::path(output_dir_os, "age65plus", "meta2effects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+#   ) %>%
+#   filter(
+#     outcome %in% outcomes
+#   ) %>%
+#   mutate(
+#     subgroup_descr = fct_inorder(subgroup_descr),
+#     subgroup_level = fct_inorder(subgroup_level),
+#     subgroup_level_descr = fct_inorder(fct_explicit_na(subgroup_level_descr, "All")),
+#     treatment_descr = fct_inorder(treatment_descr),
+#     outcome_descr = fct_inorder(outcome_descr),
+#     outcome_descr_wrap = fct_relabel(outcome_descr, ~str_wrap(., width=20)),
+#     #model_name = fct_inorder(str_wrap(model_name, 15)),
+#     hr_display = paste0(label_number(accuracy=0.01)(hr), " (", label_number(accuracy=0.01)(hr.ll), "-", label_number(accuracy=0.01)(hr.ul), ")"),
+#     ve_display = paste0(label_percent(accuracy=0.1)(ve), " (", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
+#   )
 
 #cmlinc3 <- cmlinc %>% filter(model==3)
 #riskdiff3 <- riskdiff %>% filter(model==3)
@@ -195,15 +281,15 @@ William J Hulme^1^, Elizabeth J Williamson^2^, Amelia Green^1^, Elsie Horne^3,4^
 
 *Background*
 
-The UK COVID-19 vaccination programme delivered the first "booster" doses in mid September 2021, initially in groups at high risk of severe disease and then across the adult population. The BNT162b2 mRNA Pfizer-BioNTech and the Moderna mRNA-1273 vaccines were used.
+The UK COVID-19 vaccination programme delivered the first "booster" doses in mid September 2021, initially in groups at high risk of severe disease and then across the adult population. The BNT162b2 mRNA Pfizer-BioNTech and the Moderna mRNA-1273 vaccines were used. 
 
 *Methods*
 
-With the approval of NHS England we used the OpenSAFELY-TPP database, covering 40% of GP practices in England and linked to national coronavirus surveillance, hospital episodes, and death registry data, to estimate the effectiveness of a booster dose versus two doses only. On each day of the recruitment period (`r format(as.Date(study_dates$studystart_date), "%d %B %Y")` to `r format(as.Date(study_dates$lastvax3_date), "%d %B %Y")`) each eligible person receiving a BNT162b2 booster dose was matched with an unboosted control who had received two vaccine doses. Primary outcomes were documented SARS-CoV-2 infection, COVID-19-related accident and emergency attendance, COVID-19-related hospital admission, and COVID-19-related death occurring within 10 weeks of recruitment. Hazard ratios were estimated using Cox models adjusting for additional covariates that were not used as matching factors. Follow-up spanned a period in which the Delta variant was predominant.
+With the approval of NHS England we used the OpenSAFELY-TPP database, covering 40% of GP practices in England and linked to national coronavirus surveillance, hospital episodes, and death registry data, to estimate the effectiveness of BNT162b2 boosting in adults eligible for boosting between `r format(as.Date(study_dates$studystart_date), "%d %B %Y")` and `r format(as.Date(study_dates$lastvax3_date), "%d %B %Y")`. Each booster recipient was matched with an unboosted control on factors relating to booster priority status and prior immunisation. Primary outcomes were documented SARS-CoV-2 infection, COVID-19 hospital admission, and COVID-19 death up to 10 weeks after recruitment. Hazard ratios were estimated using Cox models adjusting for additional covariates that were not used as matching factors. Follow-up spanned a period in which the Delta variant was predominant.
 
 *Results*
 
-We matched `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` BNT162b2 booster recipients to unboosted controls. During days 14-20 after the booster, the estimated hazard ratio (95% CI) comparing a BNT162b2 booster dose to two doses only was `r filter(hazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for documented SARS-CoV-2 infection, `r filter(hazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(hazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 death.
+We matched `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` BNT162b2 booster recipients to unboosted controls. During days 15-28 after the booster, the estimated hazard ratio (95% CI) comparing a BNT162b2 booster dose to two doses only was `r filter(hazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` for documented SARS-CoV-2 infection, `r filter(hazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(hazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` for COVID-19 death.
 
 *Conclusion*
 
@@ -217,7 +303,7 @@ We estimated high protection of BNT162b2 boosting against infection, COVID-19 ho
 
 <!-- *Setting* Linked primary care, hospital, and COVID-19 surveillance records available within the OpenSAFELY-TPP research platform. -->
 
-<!-- *Participants* `r label_number(1, big.mark=",")(filter(flowchart, crit=="c4") %>% pull(n))` people with a complete primary COVID-19 vaccine course, registered with a GP practice using the TPP SystmOne clinical information system in England. -->
+<!---# *Participants* `r label_number(1, big.mark=",")(filter(matchflowchart, crit=="c4") %>% pull(n))` people with a complete primary COVID-19 vaccine course, registered with a GP practice using the TPP SystmOne clinical information system in England. --->
 
 <!-- *Interventions* A booster vaccination with either BNT162b2 or mRNA-1273 administered as part of the national COVID-19 booster vaccine roll-out. -->
 
@@ -231,10 +317,6 @@ We estimated high protection of BNT162b2 boosting against infection, COVID-19 ho
 
 <!-- TODO -->
 
-<!-- * full description of booster eligiblity over time -->
-
-<!-- * figure 1 chart with SMD / %-point differences -->
-
 <!-- * check for moderna references and remove if necessary -->
 
 <!-- * check final recruitment day and include in results -->
@@ -245,20 +327,27 @@ We estimated high protection of BNT162b2 boosting against infection, COVID-19 ho
 
 # Introduction
 
-The national COVID-19 vaccination programme in England began a new phase in September 2021 with administration of the first booster COVID-19 vaccine doses in those who had already received their primary vaccination course (a completed first and second dose) (ref <https://www.england.nhs.uk/2021/09/nhs-begins-covid-19-booster-vaccination-campaign/>). Initially offered to those at highest risk of severe disease, eligibility was progressively extended and by 15 December 2021 every adult in England was eligible (<https://www.england.nhs.uk/2021/12/nhs-booster-bookings-open-to-every-eligible-adult/>). Booster doses were initially available no earlier than six months after dose two, but this was reduced to three months on 8 December 2021, following concerns over the surge in cases and the emergence of the Omicron variant (ref: <https://www.england.nhs.uk/2021/12/people-40-and-over-to-get-their-lifesaving-booster-jab-three-months-on-from-second-dose/>). Vaccine prioritisation schedules were largely determined by recommendations from the Joint Committee for Vaccine and Immunisation (JCVI) expert working group.
-
-In most cases, BNT162b2 and mRNA-1273 vaccines were used, and administered regardless of the vaccine brand used for the first and second doses. BNT162b2 was used from 16 September 2021, and mRNA-1273 from 29 October 2021 onwards.
+The national COVID-19 vaccination programme in England began a new phase in September 2021 with administration of the first booster COVID-19 vaccine doses in those who had already received their primary vaccination course (a completed first and second dose) (ref <https://www.england.nhs.uk/2021/09/nhs-begins-covid-19-booster-vaccination-campaign/>). Initially offered to those at highest risk of severe disease, eligibility was progressively extended and by 15 December 2021 every adult in England was eligible (<https://www.england.nhs.uk/2021/12/nhs-booster-bookings-open-to-every-eligible-adult/>). Booster doses were initially available no earlier than six months after dose two, but this was reduced to three months on 8 December 2021, following concerns over the surge in cases and the emergence of the Omicron variant (ref: <https://www.england.nhs.uk/2021/12/people-40-and-over-to-get-their-lifesaving-booster-jab-three-months-on-from-second-dose/>). Vaccine prioritisation schedules were guided by recommendations from the Joint Committee for Vaccine and Immunisation (JCVI) expert working group.
 
 
 <!-- 13 december 30-39 become eligible (https://www.england.nhs.uk/2021/12/nhs-to-roll-out-life-saving-booster-jab-to-people-aged-30-plus/) -->
 
 <!-- 15 december everyone eligible https://www.england.nhs.uk/2021/12/nhs-booster-bookings-open-to-every-eligible-adult/ -->
 
-[context]
+<!-- In most cases, BNT162b2 and half-dose mRNA-1273 vaccines were used for boosting, and administered regardless of the first and second dose brand. BNT162b2 was used from 16 September 2021, and mRNA-1273 from 29 October 2021 onwards. This provides an opportunity to investigate booster effectiveness of two different brands administered in overlapping periods and community contexts, as well as in subgroups defined by prior immunological and other clinical factors.-->
 
-We estimated the effectiveness of booster vaccination with BNT162b2 versus two doses only in adults in England, using the OpenSAFELY-TPP linked primary care database covering around 40% of England's population. The study is conducted in an era where the Delta variant is dominant, with follow-up curtailed shortly after the emergence of Omicron. 
+
+
+
+We set out to emulate a target trial estimating the effectiveness of booster vaccination with BNT162b2 against COVID-19 outcomes in adults who had already received two COVID-19 vaccine doses. We used the OpenSAFELY-TPP linked primary care database covering around 40% of English residents. Recruitment covers an era where the Delta variant is dominant, with follow-up curtailed shortly after the emergence of Omicron. 
 
 # Methods
+
+
+## Study design
+
+We used observational data to emulate a target trial of the effectiveness of booster vaccination @dagan2021 @barda2021, by comparing people who had received a BNT162b2 booster dose with matched people who had not. 
+
 
 ## Data source
 
@@ -266,21 +355,19 @@ The OpenSAFELY-TPP database (<https://opensafely.org>) covers 24 million people 
 
 ## Eligiblity criteria
 
-We used observational data to emulate a target trial @dagan2021 @barda2021 of the effectiveness of booster vaccination in people who had received two COVID-19 vaccine doses and were eligible for booster vaccination between `r format(as.Date(study_dates$studystart_date), "%d %B)` and `r format(as.Date(study_dates$lastvax3_date), "%d %B %Y")` inclusive.
+We recruited adults who were eligible for booster vaccination between `r format(as.Date(study_dates$studystart_date), "%d %B")` and `r format(as.Date(study_dates$lastvax3_date), "%d %B %Y")` inclusive. Eligibility on each day was as follows: adults (18 years and over) who were registered at a GP practice using TPP's SystmOne clinical information system; received either two doses of BNT162b2 doses or two doses of ChAdOx1-S (mixed dosing and Moderna mRNA-1273 doses were not considered due to small numbers); not a health or social care worker, not a resident in a care or nursing home, and not medically housebound or receiving end-of-life care (due to distinct clustering of vaccine uptake and infection risk in these groups that could not be reasonably measured and controlled for); no evidence of SARS-CoV-2 infection or COVID-19 disease within the previous 90 days; not undergoing an unplanned hospital admission; information on sex, ethnicity, deprivation, and NHS region was complete.
 
-Eligibility on each day was as follows: adults (18 years and over) who were registered at a GP practice using TPP's SystmOne clinical information system; received either two doses of BNT162b2 doses or two doses of ChAdOx1-S (mixed dosing and Moderna mRNA-1273 doses were not considered due to small numbers); not a health or social care worker, not a resident in a care or nursing home, and not medically housebound or receiving end-of-life care (due to distinct clustering of vaccine uptake and infection risk in these groups that could not be reasonably measured and controlled for); no evidence of SARS-CoV-2 infection or COVID-19 disease within the previous 90 days; not undergoing an unplanned hospital admission; information on sex, ethnicity, deprivation, and NHS region was complete.
-
-Additionally, if the rolling weekly average count of BNT162b2 booster doses within strata defined by region, JCVI group, and week of second dose was below 50 then recruitment did not occur for that strata on that day. This helped to ensure that recruitment was restricted to those who were boosted in line with national prioritisation schedules and that the matched controls were both eligible and able to receive a booster dose at the time of potential recruitment.
+Additionally, if the rolling weekly average count of BNT162b2 booster doses within strata defined by region, JCVI group, and the week of second dose was below 50 then recruitment did not occur for that strata on that day. This helped to ensure that recruitment was restricted to those who were boosted in line with national prioritisation schedules and that the matched controls were both eligible and able to receive a booster dose at the time of potential recruitment.
 
 The supplementary materials provide further details of the matching process.
 
 
 ## Matching and treatment groups
 
-For each trial, the booster (treatment) group comprised people who received a BNT162b2 booster dose on that day, and the unboosted (control) group comprised the same number of randomly selected unboosted people, matched on the following characteristics: primary course vaccine type (BNT162b2 or ChAdOx1-S); date of the second vaccine dose, within 7 days; NHS region (East of England, Midlands, London, North East and Yorkshire, North West, South East, South West); any evidence of prior SARS-CoV-2 infection (positive SARS-CoV-2 test, "probable" infection documented in primary care, or COVID-19 hospitalisation); Clinical risk group, defined by JCVI (clinically extremely vulnerable, clinically at-risk, neither); age, within 3 years, and by age groups defined by JCVI. Note that the matching and exclusion criteria jointly ensure that treatment groups are also matched within JCVI priority group.
+On each day of recruitment, each eligible person receiving a booster dose on that day was recruited to the treatment group and matched with an unboosted control person who had received only two doses. Pairs were matched on the following characteristics: primary course vaccine brand (2× BNT162b2 or 2× ChAdOx1-S); date of the second vaccine dose, within 7 days; NHS region (East of England, Midlands, London, North East and Yorkshire, North West, South East, South West); any evidence of prior SARS-CoV-2 infection (positive SARS-CoV-2 test, "probable" infection documented in primary care, or COVID-19 hospitalisation); clinical risk groups used for prioritisation (clinically extremely vulnerable, clinically at-risk, neither); age, within 3 years, and by age groups used for prioritisation. The matching and exclusion criteria jointly ensure that treatment groups are also matched within JCVI priority group.
 
 
-People selected as controls were not eligible to be included again as a control in a subsequent trial, but were eligible for selection into the treatment group of a subsequent trial.
+People selected as controls were not eligible to be included again as a control in a subsequent trial, but were eligible for selection into the treatment group of a subsequent trial. Any unmatched boosted people were dropped.
 
 <!-- We excluded matched pairs from days in which fewer than 10% of eligible treated people were successfully. -->
 
@@ -296,25 +383,24 @@ The following three outcomes were considered: documented SARS-CoV-2 infection; C
 
 Each matched pair was followed from the day of recruitment (i.e., time zero) until the earliest of death, GP practice de-registration, booster receipt by the control, 10 weeks, or `r format(as.Date(study_dates$studyend_date), "%d %B %Y")`.
 
+## Additional variables
+
+The following additional variables were included as covariates in the Cox models (see below) or else to describe the treatment groups: sex (male or female); English Index of Multiple Deprivation (IMD, grouped by quintile); ethnicity (Black, Mixed, South Asian, White, Other, as per the UK census); morbidity count (diabetes, BMI > 40kg/m^2^, chronic heart disease, chronic kidney disease, chronic liver disease, chronic respiratory disease or severe asthma, chronic neurological disease); learning disabilities; severe mental illness; the number of SARS-CoV-2 tests in the 6 months prior to the study start date; elective in-hospital episode at the time of recruitment. 
+
+The supplementary materials provide further details of the codelists and data sources used for all variables in the study. 
+
 
 ## Statistical Analysis
 
 For each outcome, we estimated unadjusted cumulative incidence curves using the Kaplan-Meier estimator separately in the boosted and unboosted groups.
 
-We use Cox models, stratified by recruitment day, NHS region, and brand of second vaccine dose, to estimate hazard ratios comparing boosted with unboosted people. We estimated effectveness over all follow-up time (0-70 days), and separately in days 0-6, 7-13, 14-27, 28-41, 42-70. Models were adjusted for additional variables not used as matching factors, as described below. A robust variance estimator was used to account for participant clustering. 
+We use Cox models, stratified by recruitment day, NHS region, and brand of second vaccine dose, to estimate hazard ratios comparing boosted with unboosted people. We estimated effectveness over all follow-up time (1-70 days), and separately in days 1-7, 8-14, 15-28, 29-42, 43-70. Models were adjusted for additional variables not used as matching factors, as described below. A robust variance estimator was used to account for participant clustering. 
 
 <!-- [The primary estimand is the average treatment effect in the recruited population. To estimate this, expected cumulative incidence rates are estimated for each participant assuming treatment was received by everyone in both treatment groups at time zero. These curves are then averaged over all participants to give the marginal cumulative incidence. This is repeated assuming nobody is treated in either group, and their difference taken. Calculating standard errors for these quantities is challenging, whether approached analytically (due to complex variance components) or computationally (via bootstrapping, due to the large sample sizes involved) and are therefore not reported. ] -->
 
-We additionally estimated booster effectiveness in the following subgroups: primary vaccine course (both BNT162b2 or both ChAdOx1-S); age (18-64 versus 65 and over); clinically extremely vulnerable. Analyses were conducted independently in each subgroup.
+We also estimated booster effectiveness in the following subgroups: primary vaccine course (both BNT162b2 or both ChAdOx1-S); age (18-64 or 65 and over); clinically extremely vulnerable. Analyses were conducted separately in each subgroup.
 
-Booster effectiveness is defined as one minus the hazard ratio, and expressed as a percentage. 
-
-
-## Covariates
-
-The following variables were included as covariates: sex (male or female); English Index of Multiple Deprivation (IMD, grouped by quintile); ethnicity (Black, Mixed, South Asian, White, Other, as per the UK census); morbidity count (diabetes, BMI > 40, chronic heart disease, chronic kidney disease, chronic liver disease, chronic respiratory disease or severe asthma, chronic neurological disease); learning disabilities; severe mental illness; the number of SARS-CoV-2 tests in the 6 months prior to the study start date; elective in-hospital episode at the time of recruitment. 
-
-The supplementary materials provide further details of the codelists and data sources used for all variables in the study. 
+Booster effectiveness is defined as one minus the hazard ratio, expressed as a percentage. 
 
 
 ## Missing data
@@ -505,7 +591,7 @@ table1 %>%
 
 #### Table 2: Follow-up and outcomes
 
-Total follow-up and incidence rates for each outcome, by treatment group. Cumulative incidences are provided in Supplementary Figure S2.
+Total follow-up and incidence rates for each outcome, by treatment group. The cumulative incidence of each outcome is provided in Supplementary Figure S2.
 
 ```{r table2, echo=FALSE, warning=FALSE, message=FALSE}
 incidences %>%
@@ -520,9 +606,9 @@ incidences %>%
   ) %>%
   mutate(
     treatment_descr = paste0(
-      treatment_descr, " - ",
-      label_number(1, big.mark=",")(n_eligible), "eligible, ",
-      label_number(1, big.mark=",")(n_1), "matched (",
+      #treatment_descr, " - ",
+      label_number(1, big.mark=",")(n_eligible), " eligible, ",
+      label_number(1, big.mark=",")(n_1), " matched (",
       label_percent(0.1)(prop_matched_eligible), ")."
     )
   ) %>%
@@ -540,7 +626,7 @@ incidences %>%
     rate_0=if_else(rate_0<0.001, "<0.001", label_number(0.001)(rate_0)),
   ) %>%
   gt(
-    groupname_col = c("treatment_descr"),
+   groupname_col = c("treatment_descr"),
   ) %>%
   cols_label(
     #treatment_descr = "Treatment",
@@ -575,26 +661,32 @@ incidences %>%
 
 ## Estimated booster effectiveness
 
+### Main analysis
+
 Participants in the emulated trial experienced `r label_number(1, big.mark=",")(filter(incidences, treatment=="pfizer", outcome=="postest", fup_period=="All") %>% pull(events))` documented infections, `r label_number(1, big.mark=",")(filter(incidences, treatment=="pfizer", outcome=="covidadmitted", fup_period=="All") %>% pull(events))` COVID-19 hospital admissions, and `r label_number(1, big.mark=",")(filter(incidences, treatment=="pfizer", outcome=="coviddeath", fup_period=="All") %>% pull(events))` COVID-19 deaths across `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(fup_years))` person-years of follow-up (Table 2).
 
 
-<!-- `r filter(incidences, treatment=="pfizer", outcome=="covidattendance", fup_period=="all") %>% pull(events)` COVID-19 A&E attendances, `r filter(incidences, treatment=="pfizer", outcome=="covidcc", fup_period=="all") %>% pull(events)` COVID-19 ciritical care admissions, -->
-
-In the 14-20 days period of follow-up, the estimated effectiveness (95% CI) comparing a BNT162b2 booster dose to two doses only, was `r filter(hazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for documented infection, `r filter(hazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(hazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 death (Figure 2).
+The estimated effectiveness (95% CI) comparing a BNT162b2 booster dose to two doses only over all follow-up time was `r filter(overallhazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3) %>% pull(ve_display)` for documented infection, `r filter(overallhazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(overallhazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3) %>% pull(ve_display)` for COVID-19 death. Effectiveness before and after 28 days since boosting is also estimated (Figure 2, Table 3), as well as for narrower periods (Supplementary Table S3).
 
 
-For days 42-70, estimated effectiveness (95% CI) comparing a BNT162b2 booster dose to two doses only, was `r filter(hazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3, term_left==42) %>% pull(ve_display)` for documented infection, `r filter(hazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3, term_left==42) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(hazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3, term_left==42) %>% pull(ve_display)` for COVID-19 death (Figure 2), suggesting a potential waning of booster effectiveness with time. 
-<!-- `r filter(hazards, subgroup=="none", outcome=="covidattendance", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 A&E attendances, `r filter(hazards, subgroup=="none", outcome=="covidcc", treatment=="pfizer", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 critical care admission,  -->
+<!-- In the first 28 days of follow-up the estimated effectiveness (95% CI) comparing a BNT162b2 booster dose to two doses only, was `r filter(meta2hazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` for documented infection, `r filter(meta2hazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(meta2hazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` for COVID-19 death (Figure 2). -->
 
-<!-- For mRNA-1273, the corresponding estimated effectiveness were `r filter(hazards, subgroup=="none", outcome=="postest", treatment=="moderna", model==3, term_left==14) %>% pull(ve_display)`, for COVID-19 A&E attendances was `r filter(hazards, subgroup=="none", outcome=="covidattendance", treatment=="moderna", model==3, term_left==14) %>% pull(ve_display)`, for COVID-19 hospital admission was `r filter(hazards, subgroup=="none", outcome=="covidadmitted", treatment=="moderna", term_left==14) %>% pull(ve_display)`, for COVID-19 critical care admission was `r filter(hazards, subgroup=="none", outcome=="covidcc", treatment=="moderna", model==3, term_left==14) %>% pull(ve_display)`, and for COVID-19 death was `r filter(hazards, subgroup=="none", outcome=="coviddeath", treatment=="moderna", model==3, term_left==14) %>% pull(ve_display)`.  -->
+<!-- For days 28-70, estimated effectiveness (95% CI) comparing a BNT162b2 booster dose to two doses only, was `r filter(meta2hazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3, term_right==70) %>% pull(ve_display)` for documented infection, `r filter(meta2hazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3, term_right==70) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(meta2hazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3, term_right==70) %>% pull(ve_display)` for COVID-19 death (Figure 2), suggesting a potential waning of booster effectiveness with time. -->
 
-For the same period, the estimated effectiveness (95% CI) comparing a BNT162b2 booster dose to two doses only separately for 2× BNT162b2 and 2× ChAdOx1-S primary course recipients respectively were `r filter(hazards, outcome=="postest", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3, term_left==14) %>% pull(ve_display)` and `r filter(hazards, outcome=="postest", treatment=="pfizer", subgroup_level=="az-az", model==3, term_left==14) %>% pull(ve_display)` for documented infection, `r filter(hazards, outcome=="covidadmitted", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3, term_left==14) %>% pull(ve_display)` and `r filter(hazards, outcome=="covidadmitted", treatment=="pfizer", subgroup_level=="az-az", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(hazards, outcome=="coviddeath", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3, term_left==14) %>% pull(ve_display)` and `r filter(hazards, outcome=="coviddeath", treatment=="pfizer", subgroup_level=="az-az", model==3, term_left==14) %>% pull(ve_display)` for COVID-19 death (Figure 2).
+
+
+### Subgroup analyses
+
+The estimated effectiveness (95% CI) for 2× BNT162b2 and 2× ChAdOx1-S primary course recipients respectively were `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3) %>% pull(ve_display)` and `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup_level=="az-az", model==3) %>% pull(ve_display)` for documented infection, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3) %>% pull(ve_display)` and `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup_level=="az-az", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3) %>% pull(ve_display)` and `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup_level=="az-az", model==3) %>% pull(ve_display)` for COVID-19 death (Figure 2). 
+
+
+Period-specific estimates are also provided.
 
 \newpage
 
 #### Figure 2: Estimated booster effectiveness
 
-For each outcome based on the fully adjusted model, the period-specific hazard ratios for boosting with BNT162b2 versus not boosting is shown, stratified by primary course. Models with less extensive confounder adjustment are provided in supplementary materials (Figure S3).
+For each outcome based on the fully adjusted model, the hazard ratios for boosting with BNT162b2 versus not boosting is shown, stratified by primary course and time since boosting. Models with less extensive confounder adjustment are provided in supplementary materials (Figure S3).
 
 ```{r plot_effects, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
 
@@ -608,124 +700,61 @@ formatpercent100 <- function(x,accuracy){
   )
 }
 
-# plot_cmlinc <- cmlinc3 %>%
-#     ggplot()+
-#     geom_step(aes(x=tstop, y=(1-survival)*1000, group=vax1_az_descr, colour=vax1_az_descr))+
-#     geom_rect(aes(xmin=tstop, xmax=lead_tstop, ymin=(1-survival.ll)*1000, ymax=(1-survival.ul)*1000, group=vax1_az_descr, fill=vax1_az_descr), alpha=0.1)+
-#     geom_hline(aes(yintercept=0), colour='black')+
-#     facet_wrap(facets=vars(outcome_descr), nrow=1, scales="free_y")+
-#     scale_x_continuous(
-#       breaks = seq(0,7*52,by=28),
-#       expand = expansion(0)
-#     )+
-#     scale_y_continuous(
-#       expand = expansion(0),
-#       #limits = c(0L,NA)
-#     )+
-#     scale_colour_brewer(type="qual", palette="Set1", na.value="grey")+
-#     scale_fill_brewer(type="qual", palette="Set1", guide="none", na.value="grey")+
-#     labs(
-#       x=NULL,
-#       y="Marginalised\ncumul. incidence\nper 1000",
-#       colour=NULL
-#     )+
-#     theme_minimal(base_size = 9)+
-#     theme(
-#       legend.position=c(0.05,0.1),
-#       legend.justification = c(0,0),
-#       legend.direction = "vertical",
-#       axis.text.x.top=element_text(hjust=0),
-# 
-#       panel.border = element_blank(),
-#       axis.line.y = element_line(colour = "black"),
-#       axis.line.x.top = element_line(colour = "black"),
-# 
-#       panel.grid.minor.x = element_blank(),
-#       panel.grid.minor.y = element_blank(),
-#       strip.background = element_blank(),
-# 
-# 
-#       panel.spacing = unit(0.8, "lines"),
-# 
-#     )+
-#     NULL
-#   
-#   ## difference in cumulative incidence
-#   
-#   plot_riskdiff <-
-#     riskdiff3 %>%
-#     ggplot()+
-#     geom_hline(aes(yintercept=0), colour='black')+
-#     geom_step(aes(x=tstop, y=diff*1000), colour='orchid4')+
-#     geom_rect(aes(xmin=tstop, xmax=lead_tstop, ymin=diff.ll*1000, ymax=diff.ul*1000), alpha=0.1, colour="transparent", fill='orchid4')+
-#     facet_wrap(facets=vars(outcome_descr), nrow=1, scales="free_y")+
-#     scale_x_continuous(
-#       limits = c(0, NA),
-#       breaks = seq(0,7*52,by=28),
-#       expand = expansion(0)
-#     )+
-#     scale_y_continuous(
-#       expand = expansion(0),
-#       sec.axis = dup_axis(name="Higher incidence after \n <- ChAdOx1 / BNT162b2 ->", breaks = NULL)
-#     )+
-#     coord_cartesian(ylim= c(-3, 3))+
-#     scale_colour_brewer(type="qual", palette="Set1", na.value="grey")+
-#     scale_fill_brewer(type="qual", palette="Set1", guide="none", na.value="grey")+
-#     labs(
-#       x=NULL,
-#       y="Difference\nin cumul. incidence\nper 1000",
-#       colour=NULL
-#     )+
-#     theme_minimal(base_size = 9)+
-#     theme(
-#       axis.line.y.left = element_line(colour = "black"),
-# 
-#       panel.grid.minor.x = element_blank(),
-#       panel.grid.minor.y = element_blank(),
-#       strip.background = element_blank(),
-#       strip.text = element_blank(),
-# 
-#       panel.spacing = unit(0.8, "lines"),
-# 
-#       plot.title = element_text(hjust = 0),
-#       plot.title.position = "plot",
-#       plot.caption.position = "plot",
-#       plot.caption = element_text(hjust = 0, face= "italic")
-# 
-#      ) +
-#    NULL
-# 
-#   
-
   ## hazard ratio
 
   y_breaks <- c(0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2)
 
-  plot_hazards <-
-    hazards3 %>%
+  
+  overallhazards_plotdata <- 
+    overallhazards %>%
     filter(
+      model==3, 
       outcome %in% outcomes,
-      treatment %in% c("pfizer")
+      treatment %in% c("pfizer"),
+      subgroup_variable %in% c("none", "vax12_type")
+    )
+  
+  postbaselinecuts28 <- c(0,28,70)
+  
+  plot_hazards <-
+    meta2hazards %>%
+    filter(
+      model==3,
+      outcome %in% outcomes,
+      treatment %in% c("pfizer"),
+      subgroup_variable %in% c("none", "vax12_type")
     ) %>%
     ggplot()+
     geom_point(aes(y=hr, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
     geom_linerange(aes(ymin=hr.ll, ymax=hr.ul, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
-    geom_point(data = filter(metahazards, model==3), mapping = aes(y=hr, x=max(postbaselinecuts+14)), colour="grey") +
-    geom_linerange(data = filter(metahazards, model==3), mapping = aes(ymin=hr.ll, ymax=hr.ul, x=max(postbaselinecuts+14)), colour="grey") +
+    geom_point(data = overallhazards_plotdata, mapping = aes(y=hr, x=max(postbaselinecuts28+14)), colour="darkgrey") +
+    geom_linerange(data = overallhazards_plotdata, mapping = aes(ymin=hr.ll, ymax=hr.ul, x=max(postbaselinecuts28+14)), colour="darkgrey") +
+    geom_rect(data = overallhazards_plotdata, ymin=-Inf, ymax=Inf, xmin=max(postbaselinecuts28), xmax=max(postbaselinecuts28+28), fill="grey95", alpha=0.5, colour="transparent") +
     geom_hline(aes(yintercept=1), colour='grey')+
     facet_grid(rows=vars(outcome_descr_wrap), cols=vars(subgroup_level_descr), switch="y")+
-    scale_y_log10(
-      breaks=y_breaks,
-      limits = c(0.01, 1.5),
+    # scale_y_log10(
+    #   breaks=y_breaks,
+    #   limits = c(0.03, 1.5),
+    #   oob = scales::oob_keep,
+    #   sec.axis = sec_axis(
+    #     ~(1-.),
+    #     name="Effectiveness (%)",
+    #     breaks = 1-(y_breaks),
+    #     labels = function(x){formatpercent100(x, 1)}
+    #   )
+    # )+
+    scale_y_reverse(
+      limits = c(1.1, 0),
+      breaks = c(1, 0.75, 0.50, 0.25, 0),
+      #expand = expansion(c(NA, 0)),
       oob = scales::oob_keep,
       sec.axis = sec_axis(
         ~(1-.),
         name="Effectiveness (%)",
-        breaks = 1-(y_breaks),
-        labels = function(x){formatpercent100(x, 1)}
+        labels= scales::label_percent(1, suffix="")
       )
     )+
-    scale_x_continuous(breaks=c(postbaselinecuts, max(postbaselinecuts+14)), labels=c(postbaselinecuts, "Overall"), limits=c(min(postbaselinecuts), max(postbaselinecuts+14)+1), expand = c(0, 0))+
+    scale_x_continuous(breaks=c(postbaselinecuts28, max(postbaselinecuts28+14)), labels=c(postbaselinecuts28, "All"), limits=c(min(postbaselinecuts28), max(postbaselinecuts28+14)+14), expand = c(0, 0))+
     scale_colour_brewer(type="qual", palette="Set2", guide=guide_legend(ncol=1))+
     labs(
       y="Hazard ratio",
@@ -767,28 +796,72 @@ formatpercent100 <- function(x,accuracy){
 
 \newpage
 
+
+## Table 3: Estimated booster effectiveness
+
+Main and subgroup analyses
+```{r table_effects, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
+
+bind_rows(
+  meta2hazards,
+  overallhazards %>% mutate(term_left = 0, term_right=70)
+) %>%
+  filter(model==3, treatment=="pfizer") %>%
+  mutate(
+    period = fct_inorder(paste(term_left+1, "-", term_right)),
+    ve_display = str_remove(ve_display, fixed("%"))
+  ) %>%
+  arrange(treatment_descr, outcome_descr, subgroup_level_descr, period) %>%
+  group_by(outcome, treatment, subgroup_level_descr, model) %>%
+  mutate(
+    subgroup_level_descr=if_else(row_number()==1, subgroup_level_descr, factor(NA, levels=levels(subgroup_level_descr)))
+  ) %>%
+  ungroup() %>%
+  select(outcome_descr, subgroup_level_descr, period, hr_display, ve_display) %>%
+  gt(
+    groupname_col = c("outcome_descr"),
+  ) %>%
+  cols_label(
+    #treatment_descr = "Treatment",
+    subgroup_level_descr="",
+    outcome_descr = "Outcome",
+
+    period = "Days since booster",
+    hr_display   = "HR (95% CI)",
+    ve_display   = "VE (95% CI)",
+  ) %>%
+  cols_align(
+    align = "right",
+    columns = everything()
+  ) %>%
+  fmt_missing(
+    c("subgroup_level_descr"),
+    missing_text=""
+  )
+
+```
+
+\newpage
+
+
+
 # Discussion
 
-This observational study investigated the effectiveness of a BNT162b2 booster dose in `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` adults, and their matched controls, in England in the Delta era. We found high protection against all studied outcomes. Protection was similar between 2× BNT162b2 primary course recipients and 2× ChAdOx1-S recipients. There were apparent waning effects around 6 weeks after boosting, which is unlikely to be explained by increased transmissibility of the Omicron variant given Omicron was not yet dominant in the UK by the end of the follow-up window @COVID19OmicronDaily, though changing testing behaviours over time between boosted and unboosted people may influence estimates.
+This observational study investigated the effectiveness of a BNT162b2 booster dose in `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` adults, and their matched controls, in England in the Delta era. We found high protection against all studied outcomes. Protection was similar between 2× BNT162b2 primary course recipients and 2× ChAdOx1-S recipients. There were apparent waning effects around 6 weeks after boosting, which is unlikely to be explained by increased transmissibility of the Omicron variant given Omicron was not yet dominant in the UK by the end of the follow-up window @COVID19OmicronDaily, though changing testing behaviours over time between boosted and unboosted people may influence estimates. 
+
+We have considered effectiveness in a population where Delta was the predominant circulating variant @COVID19OmicronDaily. Re-running the analysis against a backdrop of the now globally-dominant Omicron variant will be undertaken where valid concurrent comparisons between boosted and unboosted people can be made. Further, mRNA-1273 boosting begun later than for BNT162b2 so we did not evaluate effectiveness of this vaccine due to insufficient follow-up. An analysis of mRNA-1273 boosting and comparative effectiveness between mRNA-1273 and BNT162b2 is planned. 
 
 ### Strengths and Limitations
 
-We used routinely-collected health records with comprehensive coverage of primary care, hospital admissions, COVID-19 testing and vaccination, and death registrations, and with substantial power to estimate effectiveness of booster doses against severe but rare outcomes such as hospitalisation and death over time.
+We used routinely-collected health records with comprehensive coverage of primary care, hospital admissions, COVID-19 testing and vaccination, and death registrations. This provides substantial power to estimate effectiveness of booster doses against severe but rare outcomes such as hospitalisation and death, including period-specific effects to investigate waning protection.
 
 We carefully matched booster recipients with unboosted controls using characteristics known at baseline to strengthen exchangeability between treatment groups and reduce dependence on modelling assumptions in the estimates of effectiveness. However, despite reasonable balance of important baseline characteristics and additional adjustment for a range of potential confounders, the possibility of unmeasured confounding remains. In particular, the apparent protective effect immediately after boosting is biologically implausible, and will be explained in part by the occurrence of COVID-19 symptoms at baseline that were not recorded in the health record, and so could not be identified and excluded.
 
 The matching approach robust but inefficient; a minority of boosted individuals are not retained after matching, and those who are retained are censored when their matched control is boosted, reducing the follow-up duration and therefore statistical power. Millions of eligible participants may be required to obtain precise estimates, particularly when event rates are low, and so extending the approach to smaller subgroups may not be feasible. For instance, due to small numbers, we did not study booster effectiveness in those who had received the mRNA-1273 vaccine as their primary course or those who had received a heterologous primary course, despite many thousands of such recipients in England.
 
-Documented SARS-CoV-2 infection data likely underestimates the true incidence of infection. The mass availability of lateral flow tests in the UK during the study period, whose results are not routinely recorded in COVID-19 surveillance data, means many infections, including symptomatic infections, may be undocumented, despite encouragement to seek a confirmatory PCR test. Potential differences in testing behaviour between boosted and unboosted people also contributes to the unreliability of testing data as a means to assess effectiveness. SARS-CoV-2 testing was not widely available early in the pandemic so evidence of prior infection is likely to be under-ascertained. We may not have all records of negative tests so counts of number of tests are also incomplete.
+Documented SARS-CoV-2 infection data likely underestimates the true incidence of infection. The mass availability of lateral flow tests in the UK during the study period, whose results are not routinely recorded in COVID-19 surveillance data, means many infections, including symptomatic infections, may be undocumented, despite encouragement to seek a confirmatory PCR test. Potential differences in testing behaviour between boosted and unboosted people also contributes to the unreliability of testing data as a means to assess effectiveness. SARS-CoV-2 testing was not widely available early in the pandemic so evidence of prior infection is likely to be under-ascertained. We may not have all records of negative tests so counts of number of tests are also incomplete. Hospital admission records are only completed after discharge, so some very long hospital stays commencing within the follow-up period may not have been included.
 
-Hospital admission records are only completed after discharge, so some longer hospital stays may not be counted.
-
-We excluded a number of groups, such as health care workers and care home residents, where testing, vaccination, and infection risk characteristics were unusual or had substantial within-group heterogeneity that could not be adequately accounted for.
-
-This study considers effectiveness in a population where Delta was the predominant circulating variant @COVID19OmicronDaily. Re-running the analysis against a backdrop of the now globally-dominant Omicron variant will be undertaken where valid concurrent comparisons between boosted and unboosted people can be made.
-
-
-Finally, mRNA-1273 boosting begun later than for BNT162b2, and so we could not evaluate effectiveness of this vaccine due to insufficient follow-up. An analysis of mRNA-1273 boosting and comparative effectiveness between mRNA-1273 and BNT162b2 is planned. 
+We excluded a number of groups, such as health care workers and care home residents, where testing, vaccination, and infection risk characteristics were unusual or had substantial within-group heterogeneity that could not be adequately accounted for. The generalisability of our results to these excluded groups is unclear. 
 
 ### Findings in context
 
@@ -796,11 +869,11 @@ Finally, mRNA-1273 boosting begun later than for BNT162b2, and so we could not e
 
 A phase III trial assessing BNT162b2 booster efficacy in two-dose BNT162b2 recipients without prior infection reported a relative efficacy of 95.6% (95% CI 89.3-98.6) against Delta infection @PfizerBioNTechAnnounce2021.
 
-Recent studies in the UK have provided observational evidence for increased protection from the booster vaccine against symptomatic COVID-19 infection in comparison to second dose recipients using a test negative design. Andrews et al. reported estimates of relative vaccine effectiveness in the 14 days after a BNT162b2 booster dose in those aged over 50 years of 87.4% (95%CI 84.9-89.4) where the primary course was ChAdOx1-S and 84.4% (95%CI 82.8-85.8) for BNT162b2 @andrews2021. Sheikh et al. reported comparable estimates of relative vaccine effectiveness for S gene positive symptomatic infection (83% (95%CI 81-84) 6-49 years, 88% (95%CI 86-89) ≥50 years) in the 14 days after a BNT162b2 or mRNA-1273 booster dose, but lower estimates for S gene negative symptomatic infection (56% (95%CI 51-60) 6-49 years, 57% (95%CI 52-62) ≥50 years).
+Recent studies in the UK have provided observational evidence for increased protection from the booster vaccine against symptomatic COVID-19 infection in comparison to second dose recipients using a test negative design. Andrews et al. reported estimates of relative vaccine effectiveness against syptomatic disease in the 14 days after a BNT162b2 booster dose in those aged over 50 years of 87.4% (95%CI 84.9-89.4) where the primary course was ChAdOx1-S and 84.4% (95%CI 82.8-85.8) for BNT162b2 @andrews2021. Sheikh et al. reported comparable estimates of relative vaccine effectiveness for S gene positive symptomatic infection (83% (95%CI 81-84) 6-49 years, 88% (95%CI 86-89) ≥50 years) in the 14 days after a BNT162b2 or mRNA-1273 booster dose, but lower estimates for S gene negative symptomatic infection (56% (95%CI 51-60) 6-49 years, 57% (95%CI 52-62) ≥50 years).
 
 <!-- @https://www.research.ed.ac.uk/en/publications/severity-of-omicron-variant-of-concern-and-vaccine-effectiveness- -->
 
-<!-- Elsewhere, studies in Israel found .. -->
+Elsewhere, a study in Israeli health registry data @barda2021 found strong protection against admission (1 – risk ratio (95%CI) = 93% (88-97)), severe disease (92% (82-97)), and death (81% (59-97)), with similar results in specific demographic and clinical subgroups.  but did not consider differences @barda2021 
 
 <!-- @1050236/technical-briefing-34-14-january-2022.pdf -->
 
@@ -830,7 +903,7 @@ For the purpose of Open Access, the author has applied a CC BY public copyright 
 
 ## Information governance and ethical approval
 
-NHS England is the data controller; TPP is the data processor; and the key researchers on OpenSAFELY are acting with the approval of NHS England. This implementation of OpenSAFELY is hosted within the TPP environment which is accredited to the ISO 27001 information security standard and is NHS IG Toolkit compliant @betad @datasec ; Patient data has been pseudonymised for analysis and linkage using industry standard cryptographic hashing techniques; all pseudonymised datasets transmitted for linkage onto OpenSAFELY are encrypted; access to the platform is via a virtual private network (VPN) connection, restricted to a small group of researchers; the researchers hold contracts with NHS England and only access the platform to initiate database queries and statistical models; all database activity is logged; only aggregate statistical outputs leave the platform environment following best practice for anonymisation of results such as statistical disclosure control for low cell counts @isb1523 . The OpenSAFELY research platform adheres to the obligations of the UK General Data Protection Regulation (GDPR) and the Data Protection Act 2018. In March 2020, the Secretary of State for Health and Social Care used powers under the UK Health Service (Control of Patient Information) Regulations 2002 (COPI) to require organisations to process confidential patient information for the purposes of protecting public health, providing healthcare services to the public and monitoring and managing the COVID-19 outbreak and incidents of exposure; this sets aside the requirement for patient consent @coronavi2020 . Taken together, these provide the legal bases to link patient datasets on the OpenSAFELY platform. GP practices, from which the primary care data are obtained, are required to share relevant health information to support the public health response to the pandemic, and have been informed of the OpenSAFELY analytics platform.
+NHS England is the data controller; TPP is the data processor; and the key researchers on OpenSAFELY are acting with the approval of NHS England. This implementation of OpenSAFELY is hosted within the TPP environment which is accredited to the ISO 27001 information security standard and is NHS IG Toolkit compliant @betad @datasec ; Patient data has been pseudonymised for analysis and linkage using industry standard cryptographic hashing techniques; all pseudonymised datasets transmitted for linkage onto OpenSAFELY are encrypted; access to the platform is via a virtual private network (VPN) connection, restricted to a small group of researchers; the researchers hold contracts with NHS England and only access the platform to initiate database queries and statistical models; all database activity is logged; only aggregate statistical outputs leave the platform environment following best practice for anonymisation of results such as statistical disclosure control for low cell counts @isb1523 . The OpenSAFELY research platform adheres to the obligations of the UK General Data Protection Regulation (GDPR) and the Data Protection Act 2018. In March 2020, the Secretary of State for Health and Social Care used powers under the UK Health Service (Control of Patient Information) Regulations 2002 (COPI) to require organisations to process confidential patient information for the purposes of protecting public health, providing healthcare services to the public and monitoring and managing the COVID-19 outbreak and incidents of exposure; this sets aside the requirement for patient consent @coronavi2020 . Taken together, these provide the legal bases to link patient datasets on the OpenSAFELY platform. General Practices, from which the primary care data are obtained, are required to share relevant health information to support the public health response to the pandemic, and have been informed of the OpenSAFELY analytics platform.
 
 This study was approved by the Health Research Authority (REC reference 20/LO/0651) and by the LSHTM Ethics Board (reference 21863).
 
