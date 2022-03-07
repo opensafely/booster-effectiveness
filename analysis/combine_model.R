@@ -454,3 +454,14 @@ ggsave(filename=fs::path(output_dir, "kmplot.png"), plot_km, width=20, height=15
 ggsave(filename=fs::path(output_dir, "kmplot.pdf"), plot_km, width=20, height=15, units="cm")
 
 
+
+## CIF rates ----
+
+cif <- model_metaparams %>%
+  mutate(
+    cif = pmap(list(treatment, outcome, subgroup), function(x, y, z) read_csv(here("output", "models", "seqtrialcox", x, y, z, glue("report_cif.csv"))))
+  ) %>%
+  unnest(cif)
+
+write_csv(cif, fs::path(output_dir, "cif.csv"))
+
