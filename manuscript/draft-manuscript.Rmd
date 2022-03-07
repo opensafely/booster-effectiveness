@@ -255,9 +255,8 @@ hazards3 <- hazards %>% filter(model==3)
 
 ```
 
-William J Hulme^1^, Elizabeth J Williamson^2^, Amelia Green^1^, Elsie Horne^3,4^, Helen Curtis^1^, Linda Nab^1^, Milan Wiedemann^1^, Ruth Keogh^2^, Edward Parker^2^, Venexia Walker^3,4^, Jonathan AC Sterne^3,4^, Miguel A Hernán^6,7^, Ben Goldacre^1^ + OpenSAFELY collaborative.
+William J Hulme^1^, Elizabeth J Williamson^2^, Amelia Green^1^, Linda Nab^1^, Elsie Horne^3,4^, Ruth Keogh^2^, Edward Parker^2^, Venexia Walker^3,4^, Helen Curtis^1^, Milan Wiedemann^1^, Christine Cunningham^1^, Alex J Walker^1^, Krishnan Bhaskaran^2^, Helen I McDonald^2^, Christopher T Rentsch^2^, Anna Schultze^2^, John Tazare^2^, Laurie Tomlinson^2^, Tom Palmer^3,4^, Brian MacKenna^1^, Caroline E Morton^1^, Amir Mehrkar^1^, Louis Fisher^1^, Seb Bacon^1^, Dave Evans^1^, Peter Inglesby^1^, George Hickman^1^, Simon Davy^1^, Tom Ward^1^, Richard Croker^1^, Rosalind M Eggo^2^, Angel YS Wong^2^, Rohini Mathur^2^, Kevin Wing^2^, Harriet Forbes^2^, Daniel Grint^2^, Viyasaan  Mahalingasivam^2^, Bang Zheng^2^, Ian J Douglas^2^, Stephen JW Evans^2^, Liam Smeeth^2^, Chris Bates^5^, Jonathan Cockburn^5^, John Parry^5^, Frank Hester^5^, Sam Harper^5^, Jonathan AC Sterne^3,4^, Miguel A Hernán^6,7^, Ben Goldacre^1^.
 
-<!-- Krishnan Bhaskaran^2^, Helen I McDonald^2^, Christopher T Rentsch^2^, Anna Schultze^2^, John Tazare^2^, Helen J Curtis^1^, Alex J Walker^1^, Laurie Tomlinson^2^, Tom Palmer^3,4^,  Brian MacKenna^1^, Caroline E Morton^1^, Amir Mehrkar^1^, Louis Fisher^1^, Seb Bacon^1^, Dave Evans^1^, Peter Inglesby^1^, George Hickman^1^, Simon Davy^1^, Tom Ward ^1^, Richard Croker^1^, Rosalind M Eggo^2^, Angel YS Wong^2^, Rohini Mathur^2^, Kevin Wing^2^, Harriet Forbes^2^, Daniel Grint^2^, Ian J Douglas^2^, Stephen JW Evans^2^, Liam Smeeth^2^, Chris Bates^5^, Jonathan Cockburn^5^, John Parry^5^, Frank Hester^5^, Sam Harper^5^,  -->
 
 1\. The DataLab, Nuffield Department of Primary Care Health Sciences, University of Oxford, OX26GG, UK
 
@@ -289,7 +288,7 @@ With the approval of NHS England we used the OpenSAFELY-TPP database, covering 4
 
 *Results*
 
-We matched `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` BNT162b2 booster recipients to unboosted controls. During days 15-28 after the booster, the estimated hazard ratio (95% CI) comparing a BNT162b2 booster dose to two doses only was `r filter(hazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` for documented SARS-CoV-2 infection, `r filter(hazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(hazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` for COVID-19 death.
+We matched `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` BNT162b2 booster recipients to unboosted controls. During the first 28 days after the booster, the estimated hazard ratio (95% CI) comparing a BNT162b2 booster dose to two doses only was `r filter(hazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` for documented SARS-CoV-2 infection, `r filter(hazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(hazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` for COVID-19 death.
 
 *Conclusion*
 
@@ -352,7 +351,8 @@ We used observational data to emulate a target trial of the effectiveness of boo
 
 ## Data source
 
-The OpenSAFELY-TPP database (<https://opensafely.org>) covers 24 million people registered at English General Practices that use TPP SystmOne electronic health record software. It includes pseudonymized data such as coded diagnoses, medications and physiological parameters. No free text data are included. This primary care data is linked (via NHS numbers) with A&E attendance and in-patient hospital spell records via NHS Digital's Hospital Episode Statistics (HES), national coronavirus testing records via the Second Generation Surveillance System (SGSS), and national death registry records from the Office for National Statistics (ONS). Vaccination status is available in the GP record directly via the National Immunisation Management System (NIMS). 
+All data were linked, stored and analysed securely within the OpenSAFELY platform: <https://opensafely.org/>. 
+Primary care records managed by the GP software provider TPP were linked, using NHS numbers, to A&E attendance and in-patient hospital spell records via NHS Digital's Hospital Episode Statistics (HES), national coronavirus testing records via the Second Generation Surveillance System (SGSS), and national death registry records from the Office for National Statistics (ONS). Vaccination status is available in the GP record directly via the National Immunisation Management System (NIMS). Data include pseudonymized data such as coded diagnoses, medications and physiological parameters. No free text data are included. 
 
 ## Eligiblity criteria
 
@@ -393,16 +393,15 @@ The supplementary materials provide further details of the codelists and data so
 
 ## Statistical Analysis
 
-For each outcome, we estimated unadjusted cumulative incidence curves using the Kaplan-Meier estimator separately in the boosted and unboosted groups.
+For each outcome, we estimated unadjusted cumulative incidence curves using the Kaplan-Meier estimator separately in the boosted and unboosted groups. Rates of competing events (due to all-cause or cause-specific death, depending on the outcome) were anticipated to be low and so were not accounted for.
 
-We use Cox models, stratified by recruitment day, NHS region, and brand of second vaccine dose, to estimate hazard ratios comparing boosted with unboosted people. We estimated effectveness over all follow-up time (1-70 days), and separately in days 1-7, 8-14, 15-28, 29-42, 43-70. Models were adjusted for additional variables not used as matching factors, as described below. A robust variance estimator was used to account for participant clustering. 
+We use Cox models, stratified by recruitment day, NHS region, and brand of second vaccine dose, to estimate hazard ratios comparing boosted with unboosted people. We estimated effectveness over all follow-up time (up to 70 days), and separately in days 1-28 and 29-70. Models were adjusted for additional variables not used as matching factors, described above. A robust variance estimator was used to account for participant clustering. 
 
 <!-- [The primary estimand is the average treatment effect in the recruited population. To estimate this, expected cumulative incidence rates are estimated for each participant assuming treatment was received by everyone in both treatment groups at time zero. These curves are then averaged over all participants to give the marginal cumulative incidence. This is repeated assuming nobody is treated in either group, and their difference taken. Calculating standard errors for these quantities is challenging, whether approached analytically (due to complex variance components) or computationally (via bootstrapping, due to the large sample sizes involved) and are therefore not reported. ] -->
 
-We also estimated booster effectiveness in the following subgroups: primary vaccine course (both BNT162b2 or both ChAdOx1-S); age (18-64 or 65 and over); clinically extremely vulnerable. Analyses were conducted separately in each subgroup.
+We also estimated booster effectiveness in the following subgroups: primary vaccine course (both BNT162b2 or both ChAdOx1-S); age (18-64 or 65 and over); clinically extremely vulnerable or not. Analyses were conducted separately in each subgroup.
 
 Booster effectiveness is defined as one minus the hazard ratio, expressed as a percentage. 
-
 
 ## Missing data
 
@@ -410,7 +409,7 @@ After exclusions for missing values on demographic variables, there were no miss
 
 ## Software, code, and reproducibility
 
-Data management and analyses were conducted in Python version 3.8.10 and R version 4.0.2. All code is available at <https://github.com/opensafely/booster-effectiveness>, and is shared openly for review and re-use under MIT open license. Codelists are available at <https://www.opencodelists.org/>. No person-level data is shared. Any reported figures based on counts below 6 are redacted or rounded for disclosure control.
+Data management and analyses were conducted in Python version 3.8.10 and R version 4.0.2. All code is shared openly for review and re-sue under MIT open license at <https://github.com/opensafely/booster-effectiveness>. Codelists are available at <https://www.opencodelists.org/>. Detailed pseudonymised patient data is potentially re-identifiable and therefore not shared. Any reported figures based on counts below 6 are redacted or rounded for disclosure control.
 
 This study followed the STROBE-RECORD reporting guidelines.
 
@@ -902,7 +901,7 @@ For the purpose of Open Access, the author has applied a CC BY public copyright 
 
 ## Information governance and ethical approval
 
-NHS England is the data controller; TPP is the data processor; and the key researchers on OpenSAFELY are acting with the approval of NHS England. This implementation of OpenSAFELY is hosted within the TPP environment which is accredited to the ISO 27001 information security standard and is NHS IG Toolkit compliant @betad @datasec ; Patient data has been pseudonymised for analysis and linkage using industry standard cryptographic hashing techniques; all pseudonymised datasets transmitted for linkage onto OpenSAFELY are encrypted; access to the platform is via a virtual private network (VPN) connection, restricted to a small group of researchers; the researchers hold contracts with NHS England and only access the platform to initiate database queries and statistical models; all database activity is logged; only aggregate statistical outputs leave the platform environment following best practice for anonymisation of results such as statistical disclosure control for low cell counts @isb1523 . The OpenSAFELY research platform adheres to the obligations of the UK General Data Protection Regulation (GDPR) and the Data Protection Act 2018. In March 2020, the Secretary of State for Health and Social Care used powers under the UK Health Service (Control of Patient Information) Regulations 2002 (COPI) to require organisations to process confidential patient information for the purposes of protecting public health, providing healthcare services to the public and monitoring and managing the COVID-19 outbreak and incidents of exposure; this sets aside the requirement for patient consent @coronavi2020 . Taken together, these provide the legal bases to link patient datasets on the OpenSAFELY platform. General Practices, from which the primary care data are obtained, are required to share relevant health information to support the public health response to the pandemic, and have been informed of the OpenSAFELY analytics platform.
+NHS England is the data controller for OpenSAFELY-TPP; TPP is the data processor; and study authors using OpenSAFELY have the approval of NHS England. This implementation of OpenSAFELY is hosted within the TPP environment which is accredited to the ISO 27001 information security standard and is NHS IG Toolkit compliant @betad @datasec ; Patient data has been pseudonymised for analysis and linkage using industry standard cryptographic hashing techniques; all pseudonymised datasets transmitted for linkage onto OpenSAFELY are encrypted; access to the platform is via a virtual private network (VPN) connection, restricted to a small group of researchers; the researchers hold contracts with NHS England and only access the platform to initiate database queries and statistical models; all database activity is logged; only aggregate statistical outputs leave the platform environment following best practice for anonymisation of results such as statistical disclosure control for low cell counts @isb1523 . The OpenSAFELY research platform adheres to the obligations of the UK General Data Protection Regulation (GDPR) and the Data Protection Act 2018. In March 2020, the Secretary of State for Health and Social Care used powers under the UK Health Service (Control of Patient Information) Regulations 2002 (COPI) to require organisations to process confidential patient information for the purposes of protecting public health, providing healthcare services to the public and monitoring and managing the COVID-19 outbreak and incidents of exposure; this sets aside the requirement for patient consent @coronavi2020 . Taken together, these provide the legal bases to link patient datasets on the OpenSAFELY platform. General practices, from which the primary care data are obtained, are required to share relevant health information to support the public health response to the pandemic, and have been informed of the OpenSAFELY analytics platform.
 
 This study was approved by the Health Research Authority (REC reference 20/LO/0651) and by the LSHTM Ethics Board (reference 21863).
 
