@@ -36,6 +36,7 @@ library('tidyverse')
 library('here')
 library('glue')
 library('survival')
+library('cmprsk')
 
 ## Import custom user functions
 source(here("lib", "functions", "utility.R"))
@@ -362,9 +363,6 @@ ggsave(filename=fs::path(output_dir, "report_kmplot.svg"), plot_km, width=20, he
 ggsave(filename=fs::path(output_dir, "report_kmplot.png"), plot_km, width=20, height=15, units="cm")
 
 ## Cumulative incidence function (accountign for competing risks ----
-
-library('cmprsk')
-
 
 # TODO once matching script re-run, remove this and import data_tte instead
 data_tte <- read_rds(here("output", "data", "data_cohort.rds")) %>%
