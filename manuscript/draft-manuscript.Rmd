@@ -327,8 +327,10 @@ We estimated high protection of BNT162b2 boosting against infection, COVID-19 ho
 
 # Introduction
 
-The national COVID-19 vaccination programme in England began a new phase in September 2021 with administration of the first booster COVID-19 vaccine doses in those who had already received their primary vaccination course (a completed first and second dose) (ref <https://www.england.nhs.uk/2021/09/nhs-begins-covid-19-booster-vaccination-campaign/>). Initially offered to those at highest risk of severe disease, eligibility was progressively extended and by 15 December 2021 every adult in England was eligible (<https://www.england.nhs.uk/2021/12/nhs-booster-bookings-open-to-every-eligible-adult/>). Booster doses were initially available no earlier than six months after dose two, but this was reduced to three months on 8 December 2021, following concerns over the surge in cases and the emergence of the Omicron variant (ref: <https://www.england.nhs.uk/2021/12/people-40-and-over-to-get-their-lifesaving-booster-jab-three-months-on-from-second-dose/>). Vaccine prioritisation schedules were guided by recommendations from the Joint Committee for Vaccine and Immunisation (JCVI) expert working group.
+The national COVID-19 vaccination programme in England began a new phase in September 2021 with administration of the first booster COVID-19 vaccine doses in those who had already received their primary vaccination course of a first and second dose @NHSEnglandNHS. Initially offered to those at highest risk of severe disease, eligibility was progressively extended and by 15 December 2021 every adult in England was eligible @NHSEnglandNHSb. Booster doses were initially available no earlier than six months after dose two, but this was reduced to three months on 8 December 2021, following concerns over the surge in cases and the emergence of the Omicron variant @NHSEnglandNHSa. Vaccine prioritisation schedules were guided by recommendations from the Joint Committee for Vaccine and Immunisation (JCVI) expert working group.
 
+
+<!-- https://www.england.nhs.uk/2021/09/nhs-begins-covid-19-booster-vaccination-campaign/ -->
 
 <!-- 13 december 30-39 become eligible (https://www.england.nhs.uk/2021/12/nhs-to-roll-out-life-saving-booster-jab-to-people-aged-30-plus/) -->
 
@@ -338,8 +340,7 @@ The national COVID-19 vaccination programme in England began a new phase in Sept
 
 
 
-
-We set out to emulate a target trial estimating the effectiveness of booster vaccination with BNT162b2 against COVID-19 outcomes in adults who had already received two COVID-19 vaccine doses. We used the OpenSAFELY-TPP linked primary care database covering around 40% of English residents. Recruitment covers an era where the Delta variant is dominant, with follow-up curtailed shortly after the emergence of Omicron. 
+We set out to emulate a target trial assessing the effectiveness of booster vaccination with BNT162b2 against COVID-19 outcomes in adults who had already received two COVID-19 vaccine doses. We used the OpenSAFELY-TPP linked primary care database covering around 40% of English residents. Recruitment and follow-up covers an era where the Delta variant is dominant, prior to the dominance of the Omicron variant. 
 
 # Methods
 
@@ -847,7 +848,7 @@ bind_rows(
 
 # Discussion
 
-This observational study investigated the effectiveness of a BNT162b2 booster dose in `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` adults, and their matched controls, in England in the Delta era. We found high protection against all studied outcomes. Protection was similar between 2× BNT162b2 primary course recipients and 2× ChAdOx1-S recipients. There were apparent waning effects around 6 weeks after boosting, which is unlikely to be explained by increased transmissibility of the Omicron variant given Omicron was not yet dominant in the UK by the end of the follow-up window @COVID19OmicronDaily, though changing testing behaviours over time between boosted and unboosted people may influence estimates. 
+This observational study investigated the effectiveness of a BNT162b2 booster dose in `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` adults, and their matched controls, in England in the Delta era. We found high protection against all studied outcomes. Protection was similar between 2× BNT162b2 primary course recipients and 2× ChAdOx1-S recipients. There were apparent waning effects around 6 weeks after boosting, which is unlikely to be explained by increased transmissibility of the Omicron variant given Omicron was not yet dominant in the UK by the end of the follow-up window @COVID19OmicronDaily. Changing testing behaviours over time between boosted and unboosted people may influence estimates. 
 
 We have considered effectiveness in a population where Delta was the predominant circulating variant @COVID19OmicronDaily. Re-running the analysis against a backdrop of the now globally-dominant Omicron variant will be undertaken where valid concurrent comparisons between boosted and unboosted people can be made. Further, mRNA-1273 boosting begun later than for BNT162b2 so we did not evaluate effectiveness of this vaccine due to insufficient follow-up. An analysis of mRNA-1273 boosting and comparative effectiveness between mRNA-1273 and BNT162b2 is planned. 
 
@@ -867,13 +868,11 @@ We excluded a number of groups, such as health care workers and care home reside
 
 <!-- [ cov-boost trial] -->
 
-A phase III trial assessing BNT162b2 booster efficacy in two-dose BNT162b2 recipients without prior infection reported a relative efficacy of 95.6% (95% CI 89.3-98.6) against Delta infection @PfizerBioNTechAnnounce2021.
-
-Recent studies in the UK have provided observational evidence for increased protection from the booster vaccine against symptomatic COVID-19 infection in comparison to second dose recipients using a test negative design. Andrews et al. reported estimates of relative vaccine effectiveness against syptomatic disease in the 14 days after a BNT162b2 booster dose in those aged over 50 years of 87.4% (95%CI 84.9-89.4) where the primary course was ChAdOx1-S and 84.4% (95%CI 82.8-85.8) for BNT162b2 @andrews2021. Sheikh et al. reported comparable estimates of relative vaccine effectiveness for S gene positive symptomatic infection (83% (95%CI 81-84) 6-49 years, 88% (95%CI 86-89) ≥50 years) in the 14 days after a BNT162b2 or mRNA-1273 booster dose, but lower estimates for S gene negative symptomatic infection (56% (95%CI 51-60) 6-49 years, 57% (95%CI 52-62) ≥50 years).
+A phase III trial assessing BNT162b2 booster efficacy in two-dose BNT162b2 recipients without prior infection reported a relative efficacy of 95.6% (95% CI 89.3-98.6) against Delta infection @PfizerBioNTechAnnounce2021. Observational studies in the UK have provided evidence for increased protection from the booster vaccine against symptomatic COVID-19 infection in comparison to second dose recipients using a test negative design. Andrews et al. reported estimates of relative vaccine effectiveness against syptomatic disease in the 14 days after a BNT162b2 booster dose in those aged over 50 years of 87.4% (95%CI 84.9-89.4) where the primary course was ChAdOx1-S and 84.4% (95%CI 82.8-85.8) for BNT162b2 @andrews2021. Sheikh et al. reported comparable estimates of relative vaccine effectiveness for S gene positive symptomatic infection (83% (95%CI 81-84) 6-49 years, 88% (95%CI 86-89) ≥50 years) in the 14 days after a BNT162b2 or mRNA-1273 booster dose, but lower estimates for S gene negative symptomatic infection (56% (95%CI 51-60) 6-49 years, 57% (95%CI 52-62) ≥50 years).
 
 <!-- @https://www.research.ed.ac.uk/en/publications/severity-of-omicron-variant-of-concern-and-vaccine-effectiveness- -->
 
-Elsewhere, a study in Israeli health registry data @barda2021 found strong protection against admission (1 – risk ratio (95%CI) = 93% (88-97)), severe disease (92% (82-97)), and death (81% (59-97)), with similar results in specific demographic and clinical subgroups.  but did not consider differences @barda2021 
+Elsewhere, a study in Israeli health registry data @barda2021 found strong protection against admission (1 – risk ratio (95%CI) = 93% (88-97)), severe disease (92% (82-97)), and death (81% (59-97)), with similar results in specific demographic and clinical subgroups, but did not investigate ossible waning @barda2021.
 
 <!-- @1050236/technical-briefing-34-14-january-2022.pdf -->
 
