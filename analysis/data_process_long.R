@@ -131,6 +131,18 @@ data_covidadmitted <- data_processed %>%
   arrange(patient_id, date) %>%
   mutate(event="covidadmitted") # need to change name to match "outcome" argument
 
+data_noncovidadmitted <-
+  anti_join(
+    data_admitted_unplanned %>% filter(event=="admitted_unplanned"), data_covidadmitted, by=c("patient_id", "date")
+  ) %>%
+  arrange(patient_id, date) %>%
+  group_by(patient_id) %>%
+  mutate(
+    event="noncovidadmitted",
+    index=row_number()
+  ) %>%
+  ungroup()
+
 data_covidcc <- data_processed %>%
   select(patient_id, matches("^covidcc\\_\\d+\\_date")) %>%
   pivot_longer(
@@ -178,6 +190,7 @@ data_allevents <-
     data_covidemergency,
     data_covidemergencyhosp,
     data_covidadmitted,
+    data_noncovidadmitted,
     data_covidcc,
     data_coviddeath,
     data_noncoviddeath,
