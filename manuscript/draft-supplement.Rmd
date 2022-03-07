@@ -148,6 +148,10 @@ hazards <-
 ```
 \newpage
 
+# COVID-19 vaccination history
+
+The dates and brands of any COVID-19 vaccines administered as part of the national roll-out (e.g., excluding in vaccine trials and vaccines administered abroad) are available in the primary care records via transfer from the National Immunisation Management System (NIMS). Vaccine cardinality (dose 1, dose 2, ...) is determined by vaccination dates alone. We cannot distinguish between "third" doses in immunosuppressed or otherwise vulnerable people which were administered ahead of the national booster roll-out, and "booster" doses, i.e., indication for 3rd vaccine dose. However, we match on characteristics that approximate determinants of third dose vaccination, and the recruitment period excludes a majority of early third dose recipients. 
+
 
 # Matching details
 
