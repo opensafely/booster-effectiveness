@@ -20,7 +20,7 @@ with open("./lib/design/study-dates.json") as f:
 
 # change these in design.R if necessary
 firstpossiblevax_date = study_dates["firstpossiblevax_date"]
-studystart_date = study_dates["studystart_date"] 
+index_date = study_dates["index_date"] 
 studyend_date = study_dates["studyend_date"]
 firstpfizer_date = study_dates["firstpfizer_date"]
 firstaz_date = study_dates["firstaz_date"]
@@ -243,7 +243,7 @@ study = StudyDefinition(
     "float": {"distribution": "normal", "mean": 25, "stddev": 5},
   },
   
-  index_date = studystart_date,
+  index_date = index_date,
   
   # This line defines the study population
   population=patients.satisfying(

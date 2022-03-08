@@ -13,22 +13,20 @@ fs::dir_create(here("lib", "design"))
 
 # define key dates ----
 
-# study_dates <- lst(
-#   studystart_date = "2021-09-16", #start of follow-up thursday 16 sepetember first booster jabs administered in england
-#   studyend_date = "2021-12-29", # end of follow-up 15 weeks after start
-#   lastvax2_date = "2021-08-01", # don't recruit anyone with second vaccination after this date
-#   lastvax3_date = "2021-12-08", # end of recruitment -- 12 weeks after start
-#   firstpfizer_date = "2020-12-08", # first pfizer vaccination in national roll-out
-#   firstaz_date = "2021-01-04", # first az vaccination in national roll-out
-#   firstmoderna_date = "2021-04-13", # first moderna vaccination in national roll-out
-#   firstpossiblevax_date = "2020-06-01", # used to catch "real" vaccination dates (eg not 1900-01-01)
-# )
-
 study_dates <- lst(
-  studystart_date = "2021-09-16", #start of follow-up thursday 16 sepetember first booster jabs administered in england
-  studyend_date = "2021-12-15", # end of follow-up (no hosp dates after this)
-  lastvax2_date = "2021-10-01", # don't recruit anyone with second vaccination after this date
-  lastvax3_date = "2021-12-01", # end of recruitment
+  index_date = "2021-09-16", # index date for dates as "time since index date" format
+  pfizerstart_date = "2021-09-16", #start of recruitment thursday 16 sepetember first pfizer booster jabs administered in england
+  pfizerend_date = "2021-12-16", # end of recruitment (13 weeks later)
+  #pfizerfollowend_date = "2021-12-31", # end of follow-up
+
+  modernastart_date = "2021-10-29", #start of recruitment friday 29 october first moderna booster jabs administered in england
+  modernaend_date = "2021-12-16", # end of recruitment (7 weeks later)
+  #modernafollowend_date = "2021-12-31", # end of follow-up
+
+  studyend_date = "2021-12-31", # end of follow-up
+
+  lastvax2_date = "2021-12-01", # don't recruit anyone with second vaccination after this date
+
   firstpfizer_date = "2020-12-08", # first pfizer vaccination in national roll-out
   firstaz_date = "2021-01-04", # first az vaccination in national roll-out
   firstmoderna_date = "2021-04-13", # first moderna vaccination in national roll-out
@@ -50,6 +48,7 @@ events_lookup <- tribble(
   "postest", "positive_test_date", "Positive SARS-CoV-2 test",
   "covidemergency", "covidemergency_date", "COVID-19 A&E attendance",
   "covidadmitted", "covidadmitted_date", "COVID-19 hospitalisation",
+  "noncovidadmitted", "noncovidadmitted_date", "Non-COVID-19 hospitalisation",
   "covidadmittedproxy1", "covidadmittedproxy1_date", "COVID-19 hospitalisation (A&E proxy)",
   "covidadmittedproxy2", "covidadmittedproxy2_date", "COVID-19 hospitalisation (A&E proxy v2)",
   "covidcc", "covidcc_date", "COVID-19 critical care",

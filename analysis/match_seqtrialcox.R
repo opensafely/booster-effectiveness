@@ -90,8 +90,6 @@ study_dates <-
   jsonlite::read_json(path=here("lib", "design", "study-dates.json")) %>%
   map(as.Date)
 
-
-
 ## import metadata ----
 events <- read_rds(here("lib", "design", "event-variables.rds"))
 
@@ -140,7 +138,7 @@ data_rollingstrata_vaxcount <-
   ungroup() %>%
   group_by(across(all_of(rolling_variables))) %>%
   mutate(
-    vax3_time = as.numeric(vax3_date - study_dates$studystart_date),
+    vax3_time = as.numeric(vax3_date - study_dates$index_date),
     cumuln = cumsum(n),
     # calculate rolling weekly average, anchored at end of period
     weight = lag(pmin(rolling_window, row_number()),rolling_window-1),
@@ -188,7 +186,7 @@ data_tte <-
   data_cohort %>%
   transmute(
     patient_id,
-    day0_date = study_dates$studystart_date-1, # day before the first trial date
+    day0_date = study_dates$index_date-1, # day before the first trial date
     treatment_date = if_else(vax3_type==treatment, vax3_date, as.Date(NA)),
     competingtreatment_date = if_else(vax3_type!=treatment, vax3_date, as.Date(NA)),
 
@@ -285,7 +283,7 @@ local({
   # within the construct of the model, there are no time-dependent variables, only time-dependent treatment effects (modelled as piecewise constant hazards)
 
 
-  max_trial_time <- study_dates$lastvax3_date - study_dates$studystart_date
+  max_trial_time <- study_dates[[glue("{treatment}end_date")]] - study_dates$index_date
   trials <- seq_len(max_trial_time+1)
 
   # initialise list of candidate controls
