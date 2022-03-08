@@ -262,31 +262,6 @@ actions:
         svg: output/models/seqtrialcox/pfizer/covidadmittedproxy1/none/report_*.svg
         png: output/models/seqtrialcox/pfizer/covidadmittedproxy1/none/report_*.png
 
-  model_seqtrialcox_pfizer_nonovidadmitted_none:
-    run: r:latest analysis/model_seqtrialcox.R pfizer nonovidadmitted none
-    needs:
-    - match_seqtrialcox_pfizer
-    - data_selection
-    - data_process_long
-    outputs:
-      highly_sensitive:
-        rds: output/models/seqtrialcox/pfizer/nonovidadmitted/none/model_*.rds
-      moderately_sensitive:
-        txt: output/models/seqtrialcox/pfizer/nonovidadmitted/none/model_*.txt
-        csv: output/models/seqtrialcox/pfizer/nonovidadmitted/none/model_*.csv
-
-  report_seqtrialcox_pfizer_nonovidadmitted_none:
-    run: r:latest analysis/report_seqtrialcox.R pfizer nonovidadmitted none
-    needs:
-    - data_selection
-    - model_seqtrialcox_pfizer_nonovidadmitted_none
-    - match_seqtrialcox_pfizer
-    outputs:
-      moderately_sensitive:
-        csv: output/models/seqtrialcox/pfizer/nonovidadmitted/none/report_*.csv
-        svg: output/models/seqtrialcox/pfizer/nonovidadmitted/none/report_*.svg
-        png: output/models/seqtrialcox/pfizer/nonovidadmitted/none/report_*.png
-
   model_seqtrialcox_pfizer_covidadmitted_none:
     run: r:latest analysis/model_seqtrialcox.R pfizer covidadmitted none
     needs:
@@ -311,6 +286,31 @@ actions:
         csv: output/models/seqtrialcox/pfizer/covidadmitted/none/report_*.csv
         svg: output/models/seqtrialcox/pfizer/covidadmitted/none/report_*.svg
         png: output/models/seqtrialcox/pfizer/covidadmitted/none/report_*.png
+
+  model_seqtrialcox_pfizer_noncovidadmitted_none:
+    run: r:latest analysis/model_seqtrialcox.R pfizer noncovidadmitted none
+    needs:
+    - match_seqtrialcox_pfizer
+    - data_selection
+    - data_process_long
+    outputs:
+      highly_sensitive:
+        rds: output/models/seqtrialcox/pfizer/noncovidadmitted/none/model_*.rds
+      moderately_sensitive:
+        txt: output/models/seqtrialcox/pfizer/noncovidadmitted/none/model_*.txt
+        csv: output/models/seqtrialcox/pfizer/noncovidadmitted/none/model_*.csv
+
+  report_seqtrialcox_pfizer_noncovidadmitted_none:
+    run: r:latest analysis/report_seqtrialcox.R pfizer noncovidadmitted none
+    needs:
+    - data_selection
+    - model_seqtrialcox_pfizer_noncovidadmitted_none
+    - match_seqtrialcox_pfizer
+    outputs:
+      moderately_sensitive:
+        csv: output/models/seqtrialcox/pfizer/noncovidadmitted/none/report_*.csv
+        svg: output/models/seqtrialcox/pfizer/noncovidadmitted/none/report_*.svg
+        png: output/models/seqtrialcox/pfizer/noncovidadmitted/none/report_*.png
 
   model_seqtrialcox_pfizer_covidcc_none:
     run: r:latest analysis/model_seqtrialcox.R pfizer covidcc none
