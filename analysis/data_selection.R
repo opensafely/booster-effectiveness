@@ -53,10 +53,19 @@ data_criteria <- data_processed %>%
       (vax1_type=="moderna") & (vax1_date >= study_dates$firstmoderna_date) ~ TRUE,
       TRUE ~ FALSE
     ),
-
     vax2_beforelastvaxdate = !is.na(vax2_date) & (vax2_date <= study_dates$lastvax2_date),
-    vax3_afterstudystartdate = (vax3_date >= study_dates$studystart_date) | is.na(vax3_date),
-    vax3_beforelastvaxdate = (vax3_date <= study_dates$lastvax3_date) & !is.na(vax3_date),
+    vax3_afterstartdate = case_when(
+      (vax1_type=="pfizer") & (vax3_date >= study_dates$pfizerstart_date) ~ TRUE,
+      #(vax1_type=="az") & (vax1_date >= study_dates$azstart_date) ~ TRUE,
+      (vax1_type=="moderna") & (vax3_date >= study_dates$modernastart_date) ~ TRUE,
+      TRUE ~ FALSE
+    ),
+    vax3_beforeenddate = case_when(
+      (vax1_type=="pfizer") & (vax3_date <= study_dates$pfizerend_date) & !is.na(vax3_date) ~ TRUE,
+      #(vax1_type=="az") & (vax1_date <= study_dates$azend_date) & !is.na(vax3_date) ~ TRUE,
+      (vax1_type=="moderna") & (vax3_date <= study_dates$modernaend_date) & !is.na(vax3_date) ~ TRUE,
+      TRUE ~ FALSE
+    ),
     vax12_homologous = vax1_type==vax2_type,
     has_vaxgap12 = vax2_date >= (vax1_date+17), # at least 17 days between first two vaccinations
     has_vaxgap23 = vax3_date >= (vax2_date+17) | is.na(vax3_date), # at least 17 days between second and third vaccinations
@@ -70,7 +79,7 @@ data_criteria <- data_processed %>%
       #jcvi_group_6orhigher & # temporary until more data available
       vax1_afterfirstvaxdate &
       vax2_beforelastvaxdate &
-      vax3_afterstudystartdate &
+      vax3_afterstartdate &
       has_age & has_sex & has_imd & has_ethnicity & has_region &
       has_vaxgap12 & has_vaxgap23 & has_knownvax1 & has_knownvax2 & vax12_homologous &
       isnot_hscworker &
@@ -90,13 +99,13 @@ arrow::write_feather(data_cohort, here("output", "data", "data_cohort.feather"))
 
 data_flowchart <- data_criteria %>%
   transmute(
-    c0 = vax1_afterfirstvaxdate & vax2_beforelastvaxdate & vax3_afterstudystartdate,# & jcvi_group_6orhigher,
+    c0 = vax1_afterfirstvaxdate & vax2_beforelastvaxdate & vax3_afterstartdate,
     #c1_1yearfup = c0_all & (has_follow_up_previous_year),
     c1 = c0 & (has_age & has_sex & has_imd & has_ethnicity & has_region),
     c2 = c1 & (has_vaxgap12 & has_vaxgap23 & has_knownvax1 & has_knownvax2 & vax12_homologous),
     c3 = c2 & (isnot_hscworker ),
     c4 = c3 & (isnot_carehomeresident & isnot_endoflife & isnot_housebound),
-    c5 = c4 & vax3_beforelastvaxdate & has_expectedvax3type
+    c5 = c4 & vax3_beforeenddate & has_expectedvax3type
   ) %>%
   summarise(
     across(.fns=sum)

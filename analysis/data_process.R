@@ -107,12 +107,6 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
 data_processed <- data_extract %>%
   mutate(
 
-    # studystart_date = as.Date(study_dates$studystart_date), # i.e., this is interpreted later as [midnight at the _end of_ the start date] = [midnight at the _start of_ start date + 1], So that for example deaths on start_date+1 occur at t=1, not t=0.
-    # firstpfizer_date = as.Date(study_dates$firstpfizer_date),
-    # firstaz_date = as.Date(study_dates$firstaz_date),
-    # firstmoderna_date = as.Date(study_dates$firstmoderna_date),
-    # studyend_date = as.Date(study_dates$studyend_date),
-
     ageband = cut(
       age,
       breaks=c(-Inf, 18, 40, 50, 60, 70, 80, 90, Inf),
@@ -403,14 +397,14 @@ data_processed <- data_processed %>%
     vax2_date = covid_vax_2_date,
     vax3_date = covid_vax_3_date,
     vax4_date = covid_vax_4_date,
-    vax1_day = as.integer(floor((vax1_date - study_dates$studystart_date))+1), # day 0 is the day before "start_date"
-    vax2_day = as.integer(floor((vax2_date - study_dates$studystart_date))+1), # day 0 is the day before "start_date"
-    vax3_day = as.integer(floor((vax3_date - study_dates$studystart_date))+1), # day 0 is the day before "start_date"
-    vax4_day = as.integer(floor((vax4_date - study_dates$studystart_date))+1), # day 0 is the day before "start_date"
-    vax1_week = as.integer(floor((vax1_date - study_dates$studystart_date)/7)+1), # week 1 is days 1-7.
-    vax2_week = as.integer(floor((vax2_date - study_dates$studystart_date)/7)+1), # week 1 is days 1-7.
-    vax3_week = as.integer(floor((vax3_date - study_dates$studystart_date)/7)+1), # week 1 is days 1-7.
-    vax4_week = as.integer(floor((vax4_date - study_dates$studystart_date)/7)+1), # week 1 is days 1-7.
+    vax1_day = as.integer(floor((vax1_date - study_dates$index_date))+1), # day 0 is the day before "start_date"
+    vax2_day = as.integer(floor((vax2_date - study_dates$index_date))+1), # day 0 is the day before "start_date"
+    vax3_day = as.integer(floor((vax3_date - study_dates$index_date))+1), # day 0 is the day before "start_date"
+    vax4_day = as.integer(floor((vax4_date - study_dates$index_date))+1), # day 0 is the day before "start_date"
+    vax1_week = as.integer(floor((vax1_date - study_dates$index_date)/7)+1), # week 1 is days 1-7.
+    vax2_week = as.integer(floor((vax2_date - study_dates$index_date)/7)+1), # week 1 is days 1-7.
+    vax3_week = as.integer(floor((vax3_date - study_dates$index_date)/7)+1), # week 1 is days 1-7.
+    vax4_week = as.integer(floor((vax4_date - study_dates$index_date)/7)+1), # week 1 is days 1-7.
 ) %>%
 select(
   -starts_with("covid_vax_"),
