@@ -131,6 +131,18 @@ data_covidadmitted <- data_processed %>%
   arrange(patient_id, date) %>%
   mutate(event="covidadmitted") # need to change name to match "outcome" argument
 
+data_noncovidadmitted <-
+  anti_join(
+    data_admitted_unplanned %>% filter(event=="admitted_unplanned"), data_covidadmitted, by=c("patient_id", "date")
+  ) %>%
+  arrange(patient_id, date) %>%
+  group_by(patient_id) %>%
+  mutate(
+    event="noncovidadmitted",
+    index=as.character(row_number())
+  ) %>%
+  ungroup()
+
 data_covidcc <- data_processed %>%
   select(patient_id, matches("^covidcc\\_\\d+\\_date")) %>%
   pivot_longer(
@@ -178,13 +190,14 @@ data_allevents <-
     data_covidemergency,
     data_covidemergencyhosp,
     data_covidadmitted,
+    data_noncovidadmitted,
     data_covidcc,
     data_coviddeath,
     data_noncoviddeath,
     data_death
   ) %>%
   mutate(
-    time = as.integer(date - study_dates$studystart_date-1),
+    time = as.integer(date - study_dates$index_date-1),
   )
 
 
@@ -240,8 +253,8 @@ write_rds(data_timevarying, here("output", "data", "data_long_timevarying.rds"),
 data_allevents <-
  data_allevents %>%
   bind_rows(
-    data_timevarying %>% filter(covidadmittedproxy1==1) %>% transmute(patient_id, event="covidadmittedproxy1", date=tstop+(study_dates$studystart_date-1), time=tstop),
-    data_timevarying %>% filter(covidadmittedproxy2==1) %>% transmute(patient_id, event="covidadmittedproxy2", date=tstop+(study_dates$studystart_date-1), time=tstop)
+    data_timevarying %>% filter(covidadmittedproxy1==1) %>% transmute(patient_id, event="covidadmittedproxy1", date=tstop+(study_dates$index_date-1), time=tstop),
+    data_timevarying %>% filter(covidadmittedproxy2==1) %>% transmute(patient_id, event="covidadmittedproxy2", date=tstop+(study_dates$index_date-1), time=tstop)
   )
 
 

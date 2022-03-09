@@ -46,108 +46,7 @@ study_dates <-
   map(as.Date)
 
 
-## cohort ----
-
-fs::file_copy(here("output", "data", "flowchart.csv"), here("output", "manuscript-objects", "flowchart.csv"), overwrite = TRUE)
-
-data_cohort <- read_rds(here("output", "data", "data_cohort.rds"))
-
-cohort_summary <-
-  data_cohort %>%
-  mutate(
-    censor_date = pmin(
-      dereg_date,
-      vax4_date-1, # -1 because we assume vax occurs at the start of the day
-      if_else(!(vax3_type %in% c("pfizer", "moderna")), vax3_date-1, as.Date(NA)), # censor if third dose is not pfizer or moderna
-      death_date,
-      study_dates$studyend_date,
-      na.rm=TRUE
-    ),
-
-    # assume vaccination occurs at the start of the day, and all other events occur at the end of the day.
-
-    tte_censor = tte(study_dates$studystart_date-1, censor_date, censor_date, na.censor=TRUE),
-    #ind_censor = censor_indicator(censor_date, censor_date),
-  ) %>%
-  summarise(
-    n = n(),
-    n_boosted = sum(between(vax3_date, study_dates$studystart_date, study_dates$lastvax3_date) & vax3_type %in% c("pfizer", "moderna"), na.rm=TRUE),
-
-    n_12pfizer = sum(vax12_type=="pfizer-pfizer"),
-    prop_12pfizer = n_12pfizer/n,
-    n_12az = sum(vax12_type=="az-az"),
-    prop_12az = n_12az/n,
-    n_12moderna = sum(vax12_type=="moderna-moderna"),
-    prop_12moderna = n_12moderna/n,
-    n_3pfizer = sum(vax3_type=="pfizer" & vax3_date <= study_dates$lastvax3_date, na.rm=TRUE),
-    prop_3pfizer = n_3pfizer/n_boosted,
-    n_3moderna = sum(vax3_type=="moderna" & vax3_date <= study_dates$lastvax3_date, na.rm=TRUE),
-    prop_3moderna = n_3moderna/n_boosted,
-
-    age_median = median(age),
-    age_Q1 = quantile(age, 0.25),
-    age_Q3 = quantile(age, 0.75),
-    female = mean(sex=="Female"),
-    fu_years = sum(tte_censor)/365.25,
-    fu_median = median(tte_censor),
-    #priorinfection = mean(prior_covid_infection),
-    #timesinceseconddose = mean(study_dates$studystart_date - vax2_date),
-
-  )
-
-write_csv(cohort_summary, here("output", "manuscript-objects", "cohortsummary.csv"))
-
-
-## table 1 ----
-
-fs::file_copy(here("output", "descriptive", "table1", "table1.csv"), here("output", "manuscript-objects", "cohorttable1.csv"), overwrite = TRUE)
-fs::file_copy(here("output", "descriptive", "table1", "table1by.csv"), here("output", "manuscript-objects", "cohorttable1by.csv"), overwrite = TRUE)
-
-
-## vax dates ----
-
-#
-# cumulvax_jcvi <- data_cohort %>%
-#   filter(!is.na(vax3_date), vax3_type %in% c("pfizer", "moderna")) %>%
-#   droplevels() %>%
-#   group_by(jcvi_group, vax3_type_descr, vax3_date) %>%
-#   summarise(
-#     n=n()
-#   ) %>%
-#   # make implicit counts explicit
-#   complete(
-#     vax3_date = full_seq(c(.$vax3_date), 1),
-#     fill = list(n=0)
-#   ) %>%
-#   group_by(jcvi_group, vax3_type_descr) %>%
-#   mutate(
-#     cumuln = cumsum(n),
-#     # calculate rolling weekly average, anchored at end of period
-#     rolling7n = stats::filter(n, filter = rep(1, 7), method="convolution", sides=1)/7
-#   ) %>%
-#   arrange(jcvi_group, vax3_type_descr, vax3_date)
-#
-#
-# cumulvax_jcvi_redacted <-
-#   cumulvax_jcvi %>%
-#   mutate(
-#     cumuln = redactor2(n, threshold=5, cumuln),
-#     n = redactor2(n, threshold=5),
-#   )
-# write_csv(cumulvax_jcvi_redacted, here("output", "descriptive", "vaxdate_jcvi_redacted.csv"))
-
-# fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_count.png"), here("output", "manuscript-objects", "plot_vaxdate_count.png"), overwrite = TRUE)
-# fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_step.png"), here("output", "manuscript-objects", "plot_vaxdate_step.png"), overwrite = TRUE)
-# fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_stack.png"), here("output", "manuscript-objects", "plot_vaxdate_stack.png"), overwrite = TRUE)
-# fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_count_jcvi.png"), here("output", "manuscript-objects", "plot_vaxdate_count_jcvi.png"), overwrite = TRUE)
-# fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_step_jcvi.png"), here("output", "manuscript-objects", "plot_vaxdate_step_jcvi.png"), overwrite = TRUE)
-# fs::file_copy(here("output", "descriptive", "vaxdate", "plot_vaxdate_stack_jcvi.png"), here("output", "manuscript-objects", "plot_vaxdate_stack_jcvi.png"), overwrite = TRUE)
-
-
 ## matching ----
-
-#fs::file_copy(here("output", "models", "seqtrialcox", "pfizer", "match_coverage_stack.png"), here("output", "manuscript-objects", "match_coverage_pfizer_stack.png"), overwrite = TRUE)
-#fs::file_copy(here("output", "models", "seqtrialcox", "moderna", "match_coverage_stack.png"), here("output", "manuscript-objects", "match_coverage_moderna_stack.png"), overwrite = TRUE)
 
 fs::file_copy(here("output", "match", "combined", "table1.csv"), here("output", "manuscript-objects", "matchtable1.csv"), overwrite = TRUE)
 fs::file_copy(here("output", "match", "combined", "table1by.csv"), here("output", "manuscript-objects", "matchtable1by.csv"), overwrite = TRUE)
@@ -162,14 +61,16 @@ fs::file_copy(here("output", "match", "combined", "flowchart.csv"), here("output
 
 for(subgroup_variable in c("none", "vax12_type", "cev", "age65plus")){
   fs::dir_create(here("output", "manuscript-objects", subgroup_variable))
-  fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "incidence.csv"), here("output", "manuscript-objects", subgroup_variable, "incidence.csv"), overwrite = TRUE)
+  #fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "incidence.csv"), here("output", "manuscript-objects", subgroup_variable, "incidence.csv"), overwrite = TRUE)
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "km.csv"), here("output", "manuscript-objects", subgroup_variable, "km.csv"), overwrite = TRUE)
+  fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "cif.csv"), here("output", "manuscript-objects", subgroup_variable, "cif.csv"), overwrite = TRUE)
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "effects.csv"), here("output", "manuscript-objects", subgroup_variable, "effects.csv"), overwrite = TRUE)
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "metaeffects.csv"), here("output", "manuscript-objects", subgroup_variable, "metaeffects.csv"), overwrite = TRUE)
+  fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "meta2effects.csv"), here("output", "manuscript-objects", subgroup_variable, "meta2effects.csv"), overwrite = TRUE)
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "overalleffects.csv"), here("output", "manuscript-objects", subgroup_variable, "overalleffects.csv"), overwrite = TRUE)
 }
 
-
+fs::file_copy(here("output", "models", "seqtrialcox", "combined", "none", "incidence_all.csv"), here("output", "manuscript-objects", "none", "incidence_all.csv"), overwrite = TRUE)
 
 ## create text for output review issue ----
 fs::dir_ls(here("output", "manuscript-objects"), type="file", recurse =TRUE) %>%

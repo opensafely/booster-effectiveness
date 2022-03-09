@@ -116,8 +116,7 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
   model_metaparams <-
     expand_grid(
       treatment = factor(c("pfizer", "moderna")),
-      outcome = factor(c("postest", "covidemergency", "covidadmittedproxy1", "covidadmitted", "coviddeath")),
-      #outcome = factor(c("postest", "covidadmission")),
+      outcome = factor(c("postest", "covidemergency", "covidadmittedproxy1", "covidadmitted", "noncovidadmitted", "coviddeath", "noncoviddeath")),
       subgroup = factor(recode_subgroup),
       subgroup_variable = factor(subgroup_variable),
     ) %>%
@@ -215,6 +214,24 @@ model_metaeffects <-
 
 write_csv(model_metaeffects, path = fs::path(output_dir, "metaeffects.csv"))
 
+
+model_meta2effects <-
+  model_metaparams %>%
+  mutate(
+    meta2effects = pmap(list(treatment, outcome, subgroup), function(x, y, z) read_csv(here("output", "models", "seqtrialcox", x, y, z, glue("report_meta2effects.csv"))))
+  ) %>%
+  unnest(meta2effects) %>%
+  mutate(
+    model_descr = fct_reorder(model_descr, model),
+    hr = exp(estimate),
+    hr.ll = exp(conf.low),
+    hr.ul = exp(conf.high),
+    ve = 1-hr,
+    ve.ll = 1-hr.ul,
+    ve.ul = 1-hr.ll
+  )
+
+write_csv(model_meta2effects, path = fs::path(output_dir, "meta2effects.csv"))
 
 
 formatpercent100 <- function(x,accuracy){
@@ -332,6 +349,7 @@ incidence <-
 
 write_csv(incidence, fs::path(output_dir, "incidence.csv"))
 
+incidence %>% filter(fup_period=="All") %>% write_csv(fs::path(output_dir, "incidence_all.csv"))
 
 gt_incidence <-
   incidence %>%
@@ -435,4 +453,15 @@ ggsave(filename=fs::path(output_dir, "kmplot.svg"), plot_km, width=20, height=15
 ggsave(filename=fs::path(output_dir, "kmplot.png"), plot_km, width=20, height=15, units="cm")
 ggsave(filename=fs::path(output_dir, "kmplot.pdf"), plot_km, width=20, height=15, units="cm")
 
+
+
+## CIF rates ----
+
+cif <- model_metaparams %>%
+  mutate(
+    cif = pmap(list(treatment, outcome, subgroup), function(x, y, z) read_csv(here("output", "models", "seqtrialcox", x, y, z, glue("report_cif.csv"))))
+  ) %>%
+  unnest(cif)
+
+write_csv(cif, fs::path(output_dir, "cif.csv"))
 

@@ -36,6 +36,7 @@ library('tidyverse')
 library('here')
 library('glue')
 library('survival')
+library('cmprsk')
 
 ## Import custom user functions
 source(here("lib", "functions", "utility.R"))
@@ -150,6 +151,34 @@ model_metaeffects <- model_effects %>%
   )
 
 write_csv(model_metaeffects, path = fs::path(output_dir, "report_metaeffects.csv"))
+
+
+
+## meta analysis of period-specific hazards ----
+
+model_meta2effects <- model_effects %>%
+  mutate(
+    period = (term_right>28) + 1,
+  ) %>%
+  group_by(
+    period, model, model_descr,
+  ) %>%
+  summarise(
+    term_left = min(term_left),
+    term_right = max(term_right),
+    estimate = weighted.mean(estimate, robust.se^-2),
+    std.error = sqrt(1/sum(std.error^-2)),
+    robust.se = sqrt(1/sum(robust.se^-2)),
+    statistic = estimate/robust.se,
+    p.value = 2 * pmin(pnorm(statistic), pnorm(-statistic)),
+    conf.low = estimate + qnorm(0.025)*robust.se,
+    conf.high = estimate + qnorm(0.975)*robust.se,
+  ) %>%
+  mutate(
+    term_midpoint = (term_left+term_right)/2,
+  )
+
+write_csv(model_meta2effects, path = fs::path(output_dir, "report_meta2effects.csv"))
 
 
 ## incidence rates ----
@@ -333,6 +362,150 @@ plot_km
 ggsave(filename=fs::path(output_dir, "report_kmplot.svg"), plot_km, width=20, height=15, units="cm")
 ggsave(filename=fs::path(output_dir, "report_kmplot.png"), plot_km, width=20, height=15, units="cm")
 
+## Cumulative incidence function (accountign for competing risks ----
+
+# TODO once matching script re-run, remove this and import data_tte instead
+data_tte <- read_rds(here("output", "data", "data_cohort.rds")) %>%
+  filter(patient_id %in% data_seqtrialcox$patient_id) %>%
+  transmute(
+    patient_id,
+    day0_date = study_dates$studystart_date-1, # day before the first trial date
+
+    treatment_date = if_else(vax3_type==treatment, vax3_date, as.Date(NA)),
+    competingtreatment_date = if_else(vax3_type!=treatment, vax3_date, as.Date(NA)),
+
+    # person-time is up to and including censor date
+    censor_date = pmin(
+      dereg_date,
+      competingtreatment_date-1, # -1 because we assume vax occurs at the start of the day
+      vax4_date-1, # -1 because we assume vax occurs at the start of the day
+      study_dates$studyend_date,
+      na.rm=TRUE
+    ),
+
+    # possible competing events
+    tte_coviddeath = tte(day0_date, coviddeath_date, censor_date, na.censor=TRUE),
+    tte_noncoviddeath = tte(day0_date, noncoviddeath_date, censor_date, na.censor=TRUE),
+    tte_death = tte(day0_date, death_date, censor_date, na.censor=TRUE),
+
+    tte_censor = tte(day0_date, censor_date, censor_date, na.censor=TRUE),
+  ) %>%
+  mutate(
+    # convert tte variables (days since day0), to integer to save space
+    across(starts_with("tte_"), as.integer),
+  )
+
+
+competing_event<-"death"
+if(outcome == "death"){
+  competing_event<-NULL
+}
+if(outcome=="coviddeath"){
+  competing_event<-"noncoviddeath"
+}
+if(outcome=="noncoviddeath"){
+  competing_event<-"coviddeath"
+}
+
+data_cif0 <-
+data_seqtrialcox %>%
+  group_by(patient_id, treated) %>%
+  summarise(
+    time_outcome = max(tstop) - min(tstart),
+    ind_outcome = as.integer(last(ind_outcome)),
+    tte_recruitment = first(tte_recruitment),
+    tte_controlistreated = first(tte_controlistreated),
+  ) %>%
+  left_join(data_tte, by="patient_id") %>%
+  mutate(
+    tte_competingevent = .data[[paste0("tte_",competing_event)]],
+    tte_censor=pmin(tte_censor, tte_controlistreated, na.rm=TRUE),
+    status_outcome = case_when(
+      ind_outcome==1 ~ outcome,
+      !is.na(tte_competingevent) & (tte_competingevent-tte_recruitment==time_outcome) & (tte_competingevent<=tte_censor) ~ competing_event,
+      TRUE ~ "censored",
+    )
+  )
+
+
+cif_obj <- cuminc(ftime = data_cif0$time_outcome, fstatus = data_cif0$status_outcome, group=data_cif0$treated, cencode="censored")
+
+cif_mat <- timepoints(cuminc_obj, seq(0, max(postbaselinecuts), 1))
+
+data_atrisk <-
+  data_cif0 %>%
+  group_by(treated) %>%
+  summarise(n.risk=n())
+
+data_cif <-
+  left_join(
+    pivot_longer(
+      as_tibble(t(cif_mat$est), rownames="time"),
+      cols=-any_of("time"),
+      names_to=c("treated","event"),
+      names_sep="\\s",
+      values_to="cmlinc"
+    ),
+    pivot_longer(
+      as_tibble(t(cif_mat$var), rownames="time"),
+      cols=-any_of("time"),
+      names_to=c("treated","event"),
+      names_sep="\\s",
+      values_to="var"
+    ),
+    by=c("treated", "event", "time")
+  ) %>%
+  mutate(
+    treated = as.integer(treated),
+    time=as.integer(time)+0L,
+    treated_descr = if_else(treated==1L, "Boosted", "Unboosted"),
+    cmlinc.ll = cmlinc + qnorm(0.025)*sqrt(var),
+    cmlinc.ul = cmlinc + qnorm(0.975)*sqrt(var),
+  )%>%
+  arrange(
+    desc(treated), event, time
+  )
+
+data_cif_rounded <-
+  data_cif %>%
+  left_join(data_atrisk, by="treated") %>%
+  group_by(treated, event) %>%
+  mutate(
+    cmlinc = ceiling_any(cmlinc, 1/floor(max(n.risk, na.rm=TRUE)/(threshold+1))),
+    cmlinc.ll = ceiling_any(cmlinc.ll, 1/floor(max(n.risk, na.rm=TRUE)/(threshold+1))),
+    cmlinc.ul = ceiling_any(cmlinc.ul, 1/floor(max(n.risk, na.rm=TRUE)/(threshold+1))),
+  )
+
+write_csv(data_cif_rounded, fs::path(output_dir, "report_cif.csv"))
+
+plot_cif <- data_cif_rounded %>%
+  filter(event==outcome) %>%
+  ggplot(aes(group=treated_descr, colour=treated_descr, fill=treated_descr)) +
+  geom_step(aes(x=time, y=cmlinc))+
+  geom_rect(aes(xmin=time, xmax=time+1, ymin=cmlinc.ll, ymax=cmlinc.ul), alpha=0.1, colour="transparent")+
+  scale_color_brewer(type="qual", palette="Set1", na.value="grey") +
+  scale_fill_brewer(type="qual", palette="Set1", guide="none", na.value="grey") +
+  scale_x_continuous(breaks = seq(0,600,14))+
+  scale_y_continuous(expand = expansion(mult=c(0,0.01)))+
+  coord_cartesian(xlim=c(0, NA))+
+  labs(
+    x="Days",
+    y="Cumulative incidence",
+    colour=NULL,
+    title=NULL
+  )+
+  theme_minimal()+
+  theme(
+    axis.line.x = element_line(colour = "black"),
+    panel.grid.minor.x = element_blank(),
+    legend.position=c(.05,.95),
+    legend.justification = c(0,1),
+  )
+
+plot_cif
+
+ggsave(filename=fs::path(output_dir, "report_cifplot.png"), plot_cif, width=20, height=15, units="cm")
+
 
 ## marginal cumulative risk differences ----
 
@@ -401,7 +574,7 @@ if(any(data_tidy_surv$n.event==0)){
       values_to="surv"
     ) %>%
     mutate(
-      treated_descr = fct_recode(treated, `Not boosted`="surv0", `Boosted`="surv1")
+      treated_descr = fct_recode(treated, `Boosted`="surv1", `Not boosted`="surv0")
     )
 
 

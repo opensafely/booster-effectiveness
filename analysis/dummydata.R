@@ -27,25 +27,30 @@ study_dates <- jsonlite::read_json(
   path=here("lib", "design", "study-dates.json")
 )
 
-index_date <- as.Date(study_dates$studystart_date)
-studystart_date <- as.Date(study_dates$studystart_date)
-studyend_date <- as.Date(study_dates$studyend_date)
+index_date <- as.Date(study_dates$index_date)
+pfizerstart_date <- as.Date(study_dates$pfizerstart_date)
+pfizerend_date <- as.Date(study_dates$pfizerend_date)
+modernastart_date <- as.Date(study_dates$modernastart_date)
+modernaend_date <- as.Date(study_dates$modernaend_date)
+
 firstpfizer_date <- as.Date(study_dates$firstpfizer_date)
 firstaz_date <- as.Date(study_dates$firstaz_date)
 firstmoderna_date <- as.Date(study_dates$firstmoderna_date)
 
-index_day <- 0
-studystart_day <- as.integer(studystart_date - index_date)
-studyend_day <- as.integer(studyend_date - index_date)
+index_day <- 0L
+pfizerstart_day <- as.integer(pfizerstart_date - index_date)
+pfizerend_day <- as.integer(pfizerend_date - index_date)
+modernastart_day <- as.integer(modernastart_date - index_date)
+modernaend_day <- as.integer(modernaend_date - index_date)
+
 firstpfizer_day <- as.integer(firstpfizer_date - index_date)
 firstaz_day <- as.integer(firstaz_date - index_date)
 firstmoderna_day <- as.integer(firstmoderna_date - index_date)
 
 
 known_variables <- c(
-  "index_date",
-  "studystart_date", "studyend_date", "firstpfizer_date", "firstaz_date", "firstmoderna_date",
-  "index_day", "studystart_day", "studyend_day", "firstpfizer_day", "firstaz_day", "firstmoderna_day"
+  "index_date", "pfizerstart_date", "pfizerend_date", "modernastart_date", "modernaend_date", "firstpfizer_date", "firstaz_date", "firstmoderna_date",
+  "index_day", "pfizerstart_day", "pfizerend_day", "modernastart_day", "modernaend_day",  "firstpfizer_day", "firstaz_day", "firstmoderna_day"
 )
 
 sim_list = lst(
@@ -60,7 +65,7 @@ sim_list = lst(
     missing_rate = ~0.01
   ),
   covid_vax_pfizer_3_day = bn_node(
-    ~as.integer(runif(n=1, max(covid_vax_pfizer_2_day+15,studystart_day), max(covid_vax_pfizer_2_day,studystart_day)+100)),
+    ~as.integer(runif(n=1, max(covid_vax_pfizer_2_day+15,pfizerstart_day), max(covid_vax_pfizer_2_day, pfizerstart_day)+100)),
     missing_rate = ~0.5
   ),
   covid_vax_pfizer_4_day = bn_node(
@@ -77,7 +82,7 @@ sim_list = lst(
     missing_rate = ~0.01
   ),
   covid_vax_az_3_day = bn_node(
-    ~as.integer(runif(n=1, max(covid_vax_az_2_day+15,studystart_day), max(covid_vax_az_2_day,studystart_day)+100)),
+    ~as.integer(runif(n=1, max(covid_vax_az_2_day+15,pfizerstart_day), max(covid_vax_az_2_day,pfizerstart_day)+100)),
     missing_rate = ~0.5
   ),
   covid_vax_az_4_day = bn_node(
@@ -94,7 +99,7 @@ sim_list = lst(
     missing_rate = ~0.01
   ),
   covid_vax_moderna_3_day = bn_node(
-    ~as.integer(runif(n=1, max(covid_vax_moderna_2_day+15, studystart_day), max(covid_vax_moderna_2_day,studystart_day)+100)),
+    ~as.integer(runif(n=1, max(covid_vax_moderna_2_day+15, modernastart_day), max(covid_vax_moderna_2_day,modernastart_day)+100)),
     missing_rate = ~0.5
   ),
   covid_vax_moderna_4_day = bn_node(

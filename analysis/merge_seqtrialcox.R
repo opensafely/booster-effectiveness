@@ -151,7 +151,7 @@ write_csv(data_coverage, fs::path(output_dir, "merge_data_coverage.csv"))
 
 # report matching info ----
 
-day1_date <- study_dates$studystart_date
+day1_date <- study_dates$index_date
 
 ## candidate matching summary ----
 
@@ -179,7 +179,8 @@ match_summary_trial <-
     n=n(),
     fup_sum = sum(fup),
     fup_years = sum(fup)/365.25,
-    fup_mean = mean(fup)
+    fup_mean = mean(fup),
+    fup_median = median(fup)
   ) %>%
   arrange(
     trial_time, treated
@@ -208,10 +209,24 @@ match_summary_treated <-
     lastrecruitdate = max(tte_recruitment) + day1_date,
     fup_sum = sum(fup),
     fup_years = sum(fup)/365.25,
-    fup_mean = mean(fup)
+    fup_mean = mean(fup),
+    fup_median = median(fup),
+
+    n_12pfizer = sum(vax12_type=="pfizer-pfizer"),
+    prop_12pfizer = n_12pfizer/n,
+    n_12az = sum(vax12_type=="az-az"),
+    prop_12az = n_12az/n,
+    # n_12moderna = sum(vax12_type=="moderna-moderna"),
+    # prop_12moderna = n_12moderna/n,
+
+    age_median = median(age),
+    age_Q1 = quantile(age, 0.25),
+    age_Q3 = quantile(age, 0.75),
+    female = mean(sex=="Female"),
   )
 
 write_csv(match_summary_treated, fs::path(output_dir, "merge_summary_treated.csv"))
+
 
 
 # summary of boosted people
@@ -234,7 +249,21 @@ match_summary <-
     lastrecruitdate = max(tte_recruitment) + day1_date,
     fup_sum = sum(fup),
     fup_years = sum(fup)/365.25,
-    fup_mean = mean(fup)
+    fup_mean = mean(fup),
+    fup_median = median(fup),
+
+    n_12pfizer = sum(vax12_type=="pfizer-pfizer"),
+    prop_12pfizer = n_12pfizer/n,
+    n_12az = sum(vax12_type=="az-az"),
+    prop_12az = n_12az/n,
+    # n_12moderna = sum(vax12_type=="moderna-moderna"),
+    # prop_12moderna = n_12moderna/n,
+
+    age_median = median(age),
+    age_Q1 = quantile(age, 0.25),
+    age_Q3 = quantile(age, 0.75),
+    female = mean(sex=="Female"),
+
   ) %>%
   bind_cols(candidate_summary) %>%
   mutate(
@@ -552,8 +581,18 @@ data_criteria <-
       na.rm=TRUE
     ),
     vax2_beforelastvaxdate = !is.na(vax2_date) & (vax2_date <= study_dates$lastvax2_date),
-    vax3_afterstudystartdate = (vax3_date >= study_dates$studystart_date) | is.na(vax3_date),
-    vax3_beforelastvaxdate = (vax3_date <= study_dates$lastvax3_date) & !is.na(vax3_date),
+    vax3_afterstartdate = case_when(
+      (vax1_type=="pfizer") & (vax3_date >= study_dates$pfizerstart_date) ~ TRUE,
+      #(vax1_type=="az") & (vax1_date >= study_dates$azstart_date) ~ TRUE,
+      (vax1_type=="moderna") & (vax3_date >= study_dates$modernastart_date) ~ TRUE,
+      TRUE ~ FALSE
+    ),
+    vax3_beforeenddate = case_when(
+      (vax1_type=="pfizer") & (vax3_date <= study_dates$pfizerend_date) & !is.na(vax3_date) ~ TRUE,
+      #(vax1_type=="az") & (vax1_date <= study_dates$azend_date) & !is.na(vax3_date) ~ TRUE,
+      (vax1_type=="moderna") & (vax3_date <= study_dates$modernaend_date) & !is.na(vax3_date) ~ TRUE,
+      TRUE ~ FALSE
+    ),
     vax3_beforecensordate = (vax3_date-1 < censor_date) & !is.na(vax3_date),
     vax12_homologous = vax1_type==vax2_type,
     has_vaxgap12 = vax2_date >= (vax1_date+17), # at least 17 days between first two vaccinations
@@ -577,7 +616,7 @@ data_criteria <-
 data_flowchart <-
   data_criteria %>%
   transmute(
-    c0 = vax1_afterfirstvaxdate & vax2_beforelastvaxdate & vax3_treatment & vax3_afterstudystartdate & vax3_beforelastvaxdate & vax3_beforecensordate,
+    c0 = vax1_afterfirstvaxdate & vax2_beforelastvaxdate & vax3_treatment & vax3_afterstartdate & vax3_beforeenddate & vax3_beforecensordate,
     #c1_1yearfup = c0_all & (has_follow_up_previous_year),
     c1 = c0 & (has_vaxgap12 & has_vaxgap23 & has_knownvax1 & has_knownvax2 & vax12_homologous),
     c2 = c1 & (isnot_hscworker ),
