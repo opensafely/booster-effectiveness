@@ -63,6 +63,7 @@ for(subgroup_variable in c("none", "vax12_type", "cev", "age65plus")){
   fs::dir_create(here("output", "manuscript-objects", subgroup_variable))
   #fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "incidence.csv"), here("output", "manuscript-objects", subgroup_variable, "incidence.csv"), overwrite = TRUE)
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "km.csv"), here("output", "manuscript-objects", subgroup_variable, "km.csv"), overwrite = TRUE)
+  fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "cif.csv"), here("output", "manuscript-objects", subgroup_variable, "cif.csv"), overwrite = TRUE)
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "effects.csv"), here("output", "manuscript-objects", subgroup_variable, "effects.csv"), overwrite = TRUE)
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "metaeffects.csv"), here("output", "manuscript-objects", subgroup_variable, "metaeffects.csv"), overwrite = TRUE)
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "meta2effects.csv"), here("output", "manuscript-objects", subgroup_variable, "meta2effects.csv"), overwrite = TRUE)

@@ -200,7 +200,20 @@ data_tte <-
       na.rm=TRUE
     ),
 
+    noncompetingcensor_date = pmin(
+      dereg_date,
+      competingtreatment_date-1, # -1 because we assume vax occurs at the start of the day
+      vax4_date-1, # -1 because we assume vax occurs at the start of the day
+      study_dates$studyend_date,
+      na.rm=TRUE
+    ),
+
     # assume vaccination occurs at the start of the day, and all other events occur at the end of the day.
+
+    # possible competing events
+    tte_coviddeath = tte(day0_date, coviddeath_date, noncompetingcensor_date, na.censor=TRUE),
+    tte_noncoviddeath = tte(day0_date, noncoviddeath_date, noncompetingcensor_date, na.censor=TRUE),
+    tte_death = tte(day0_date, death_date, noncompetingcensor_date, na.censor=TRUE),
 
     tte_censor = tte(day0_date, censor_date, censor_date, na.censor=TRUE),
 
