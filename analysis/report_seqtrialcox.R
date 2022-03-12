@@ -43,7 +43,7 @@ source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "survival.R"))
 source(here("lib", "functions", "redaction.R"))
 
-output_dir_matched <- here("output", "match", outcome)
+output_dir_matched <- here("output", "match", treatment)
 output_dir <- here("output", "models", "seqtrialcox", treatment, outcome, subgroup)
 
 data_seqtrialcox <- read_rds(fs::path(output_dir, "model_data_seqtrialcox.rds"))
@@ -364,37 +364,7 @@ ggsave(filename=fs::path(output_dir, "report_kmplot.png"), plot_km, width=20, he
 
 ## Cumulative incidence function (accountign for competing risks ----
 
-# TODO once matching script re-run, remove this and import data_tte instead
-data_tte <- read_rds(here("output", "data", "data_cohort.rds")) %>%
-  filter(patient_id %in% data_seqtrialcox$patient_id) %>%
-  transmute(
-    patient_id,
-    day0_date = study_dates$studystart_date-1, # day before the first trial date
-
-    treatment_date = if_else(vax3_type==treatment, vax3_date, as.Date(NA)),
-    competingtreatment_date = if_else(vax3_type!=treatment, vax3_date, as.Date(NA)),
-
-    # person-time is up to and including censor date
-    censor_date = pmin(
-      dereg_date,
-      competingtreatment_date-1, # -1 because we assume vax occurs at the start of the day
-      vax4_date-1, # -1 because we assume vax occurs at the start of the day
-      study_dates$studyend_date,
-      na.rm=TRUE
-    ),
-
-    # possible competing events
-    tte_coviddeath = tte(day0_date, coviddeath_date, censor_date, na.censor=TRUE),
-    tte_noncoviddeath = tte(day0_date, noncoviddeath_date, censor_date, na.censor=TRUE),
-    tte_death = tte(day0_date, death_date, censor_date, na.censor=TRUE),
-
-    tte_censor = tte(day0_date, censor_date, censor_date, na.censor=TRUE),
-  ) %>%
-  mutate(
-    # convert tte variables (days since day0), to integer to save space
-    across(starts_with("tte_"), as.integer),
-  )
-
+data_tte <- read_rds(fs::path(output_dir_matched, "match_data_tte.rds"))
 
 competing_event<-"death"
 if(outcome == "death"){
@@ -430,7 +400,7 @@ data_seqtrialcox %>%
 
 cif_obj <- cuminc(ftime = data_cif0$time_outcome, fstatus = data_cif0$status_outcome, group=data_cif0$treated, cencode="censored")
 
-cif_mat <- timepoints(cuminc_obj, seq(0, max(postbaselinecuts), 1))
+cif_mat <- timepoints(cif_obj, seq(0, max(postbaselinecuts), 1))
 
 data_atrisk <-
   data_cif0 %>%
