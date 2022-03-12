@@ -55,15 +55,15 @@ data_criteria <- data_processed %>%
     ),
     vax2_beforelastvaxdate = !is.na(vax2_date) & (vax2_date <= study_dates$lastvax2_date),
     vax3_afterstartdate = case_when(
-      (vax1_type=="pfizer") & (vax3_date >= study_dates$pfizerstart_date) ~ TRUE,
-      #(vax1_type=="az") & (vax1_date >= study_dates$azstart_date) ~ TRUE,
-      (vax1_type=="moderna") & (vax3_date >= study_dates$modernastart_date) ~ TRUE,
+      (vax3_type=="pfizer") & (vax3_date >= study_dates$pfizerstart_date) ~ TRUE,
+      #(vax3_type=="az") & (vax1_date >= study_dates$azstart_date) ~ TRUE,
+      (vax3_type=="moderna") & (vax3_date >= study_dates$modernastart_date) ~ TRUE,
       TRUE ~ FALSE
     ),
     vax3_beforeenddate = case_when(
-      (vax1_type=="pfizer") & (vax3_date <= study_dates$pfizerend_date) & !is.na(vax3_date) ~ TRUE,
-      #(vax1_type=="az") & (vax1_date <= study_dates$azend_date) & !is.na(vax3_date) ~ TRUE,
-      (vax1_type=="moderna") & (vax3_date <= study_dates$modernaend_date) & !is.na(vax3_date) ~ TRUE,
+      (vax3_type=="pfizer") & (vax3_date <= study_dates$pfizerend_date) & !is.na(vax3_date) ~ TRUE,
+      #(vax3_type=="az") & (vax1_date <= study_dates$azend_date) & !is.na(vax3_date) ~ TRUE,
+      (vax3_type=="moderna") & (vax3_date <= study_dates$modernaend_date) & !is.na(vax3_date) ~ TRUE,
       TRUE ~ FALSE
     ),
     vax12_homologous = vax1_type==vax2_type,
