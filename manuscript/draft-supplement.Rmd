@@ -2,7 +2,6 @@
 title: "Effectiveness of COVID-19 Booster doses in England: a sequential trials study in OpenSAFELY: Supplementary materials"
 output:
   html_document:
-    keep_md: yes
     self_contained: yes
   word_document: default
   bookdown::html_document2:

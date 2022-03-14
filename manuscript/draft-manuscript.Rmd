@@ -2,7 +2,6 @@
 title: "Effectiveness of BNT162b2 booster doses in England: a observational study in OpenSAFELY-TPP"
 output:
   html_document:
-    keep_md: yes
     self_contained: yes
   pdf_document:
     toc: no
