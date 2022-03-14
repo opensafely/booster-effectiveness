@@ -207,6 +207,7 @@ format_ratio = function(numer,denom, width=7){
   )
 }
 
+threshold <- 5
 
 incidence_rate_redacted <- local({
 
@@ -260,38 +261,36 @@ incidence_rate_redacted <- local({
       rrECI = paste0(rrE, " ", rrCI)
     )
 
-  redacted <-
+  rounded <-
     unredacted_wide %>%
     mutate(
-      n_0 = redactor2(n_0, 5, n_0),
-      n_1 = redactor2(n_0, 5, n_1),
+      n_0 = ceiling_any(n_0, threshold+1),
+      n_1 = ceiling_any(n_1, threshold+1),
 
-      rate_0 = redactor2(events_1, 5, rate_0),
-      rate_1 = redactor2(events_1, 5, rate_1),
+      rate_0 = ceiling_any(events_0, threshold+1),
+      rate_1 = ceiling_any(events_1, threshold+1),
 
-      rr = redactor2(pmin(events_1, events_0), 5, rr),
-      rrE = redactor2(pmin(events_1, events_0), 5, rrE),
-      rrCI = redactor2(pmin(events_1, events_0), 5, rrCI),
-      rrECI = redactor2(pmin(events_1, events_0), 5, rrECI),
+      rr =  rate_1 / rate_0,
+      rrE = scales::label_number(accuracy=0.01, trim=FALSE)(rr),
+      rrCI = rrCI_exact(events_1, yearsatrisk_1, events_0, yearsatrisk_0, 0.01),
+      rrECI = paste0(rrE, " ", rrCI),
 
-      events_0 = redactor2(events_0, 5),
-      events_1 = redactor2(events_1, 5),
+      events_0 = ceiling_any(events_0, threshold+1),
+      events_1 = ceiling_any(events_1, threshold+1),
 
       q_0 = format_ratio(events_0, yearsatrisk_0),
       q_1 = format_ratio(events_1, yearsatrisk_1),
     )
 
-  redacted
+  rounded
 
 })
 
-write_csv(incidence_rate_redacted, fs::path(output_dir, "report_incidence.csv"))
+write_csv(incidence_rate_rounded, fs::path(output_dir, "report_incidence.csv"))
 
 
 ## kaplan meier cumulative risk differences ----
 
-
-threshold <- 5
 
 dat_surv <-
   data_seqtrialcox %>%
