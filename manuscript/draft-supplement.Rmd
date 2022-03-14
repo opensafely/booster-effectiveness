@@ -159,7 +159,7 @@ Booster eligibility was dependent on vaccine priority group, largely determined 
 The Joint Committee on Vaccine and Immunisation (JCVI) priority groups were defined as follows:
 
 
-```{r, jcvi, echo=FALSE, message=FALSE, warning=FALSE}
+```{r, table-jcvi, echo=FALSE, message=FALSE, warning=FALSE}
 
 tibble(
   `Priority group` = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10a", "10b"),
@@ -192,7 +192,7 @@ Note that we excluded care home residents and health care workers in our analysi
 
 # Variables and codelists
 
-```{r, codelists, echo=FALSE, message=FALSE, warning=FALSE}
+```{r, table-codelists, echo=FALSE, message=FALSE, warning=FALSE}
 
 variable_table <- readxl::read_xlsx(here("lib", "design", "variable-descriptions.xlsx"))
 
@@ -224,7 +224,7 @@ Codelists can be found at `https://codelists.opensafely.org/codelist/<ID>`, subs
 
 Candidate matching characteristics as on the day of recruitment into the treatment or control group.
 
-```{r table1, echo=FALSE, warning=FALSE, message=FALSE}
+```{r table-table1, echo=FALSE, warning=FALSE, message=FALSE}
 table1_body <- read_csv(fs::path(output_dir_os, "matchtable1.csv")) %>% filter(treatment=="pfizer")
 table1_by <- read_csv(fs::path(output_dir_os, "matchtable1by.csv")) %>% filter(treatment=="pfizer")
 
@@ -281,7 +281,7 @@ table1 %>%
 
 Cumulative booster vaccination over the duration of the study period, by matching eligibility and matching success.
 
-```{r, vaxdate, echo=FALSE, message=FALSE, warning=FALSE, out.width='90%', out.height='50%', results='asis', out.extra=''}
+```{r, figure-vaxdate, echo=FALSE, message=FALSE, warning=FALSE, out.width='90%', out.height='50%', results='asis', out.extra=''}
 #read_rds(fs::path(output_dir_os, "descriptive", "vaxdate", "plot_vaxdate_stack.rds"))
 
 xmin <- min(matchcoverage$vax3_date )
@@ -382,7 +382,7 @@ cat("  \n\n")
 
 For variables that were matched exactly the SMD is zero, and so are not shown.
 
-```{r plot_smd, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
+```{r figure-smd, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
 
 plot_smd <-
   smd %>%
@@ -433,7 +433,7 @@ plot_smd
 ## Figure S3: Estimated booster effectiveness, all models
 
 
-```{r plot_effects, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
+```{r figure-effects-alladjustment, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
 
 formatpercent100 <- function(x,accuracy){
   formatx <- scales::label_percent(accuracy)(x)
@@ -455,6 +455,9 @@ formatpercent100 <- function(x,accuracy){
     filter(
       outcome %in% outcomes,
       treatment %in% c("pfizer")
+    ) %>%
+    mutate(
+      model_descr = fct_inorder(model_descr),
     ) %>%
     ggplot()+
     geom_point(aes(y=hr, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
@@ -498,8 +501,8 @@ formatpercent100 <- function(x,accuracy){
       plot.caption.position = "plot",
       plot.caption = element_text(hjust = 0, face= "italic"),
   
-      legend.position = "none"
-     ) +
+      legend.position = "bottom",
+    ) +
     NULL
 
 

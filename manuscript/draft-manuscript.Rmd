@@ -521,7 +521,7 @@ BG is guarantor.
 
 Participant characteristics as on the day of recruitment into the treatment or control group.
 
-```{r table1, echo=FALSE, warning=FALSE, message=FALSE}
+```{r table-table1, echo=FALSE, warning=FALSE, message=FALSE}
 table1_body <- read_csv(fs::path(output_dir_os, "matchtable1.csv")) %>% filter(treatment=="pfizer")
 table1_by <- read_csv(fs::path(output_dir_os, "matchtable1by.csv")) %>% filter(treatment=="pfizer")
 
@@ -579,7 +579,7 @@ table1 %>%
 
 Total follow-up and incidence rates for each outcome, by treatment group. The cumulative incidence of each outcome is provided in Figure 2.
 
-```{r table2, echo=FALSE, warning=FALSE, message=FALSE}
+```{r table-incidence, echo=FALSE, warning=FALSE, message=FALSE}
 incidences %>%
   filter(
     fup_period == "All",
@@ -653,7 +653,7 @@ incidences %>%
 
 Vaccine effectiveness, $(1-\text{hazard ratio})\times100\%$, for the main and subgroup analyses across all outcomes.
 
-```{r table_effects, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
+```{r table-effects, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
 
 bind_rows(
   meta2hazards,
@@ -710,7 +710,7 @@ bind_rows(
 
 (need to convert to figure)
 
-```{r flowchart, echo=FALSE, warning=FALSE, message=FALSE}
+```{r figure-flowchart, echo=FALSE, warning=FALSE, message=FALSE}
 
 matchflowchart %>%
   transmute(
@@ -774,7 +774,7 @@ matchflowchart %>%
 
 Kaplan-Meier estimates of cumulative incidence in matched boosted and unboosted treatment groups, stratified by primary course and without further adjustment for potential confounders.
 
-```{r cmlinc, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', out.width='90%', fig.height=7.5, results='asis'}
+```{r figure-cmlinc, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', out.width='90%', fig.height=7.5, results='asis'}
 
 plot_km <- 
   km %>%
@@ -845,7 +845,7 @@ plot_km
 
 For each outcome based on the fully adjusted model, the hazard ratios for boosting with BNT162b2 versus not boosting is shown, stratified by primary course and time since boosting. Models with less extensive confounder adjustment are provided in supplementary materials (Figure S3).
 
-```{r plot_effects, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
+```{r figure-effects, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
 
 formatpercent100 <- function(x,accuracy){
   formatx <- scales::label_percent(accuracy, suffix="")(x)
