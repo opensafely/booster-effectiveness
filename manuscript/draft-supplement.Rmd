@@ -218,78 +218,191 @@ variable_table %>%
 
 Codelists can be found at `https://codelists.opensafely.org/codelist/<ID>`, substituting `<ID>` for the codelist identifier in the table above.
 
-### Table S1: Inclusion criteria
 
-```{r flowchart, echo=FALSE, warning=FALSE, message=FALSE}
+\newpage
 
-matchflowchart %>%
-  transmute(
-    treatment,
-    stage,
-    criteria = str_wrap(criteria, 40),
-    n,
-    n_exclude,
-    pct_all
-  ) %>%
-  pivot_wider(
-    id_cols = c(stage, criteria),
-    names_from = treatment,
-    values_from = c(n, n_exclude, pct_all)
-  ) %>%
-  gt() %>%
-  cols_label(
-    stage="",
-    criteria = "",
-    
-    n_pfizer = "N",
-    #n_moderna = "N",
+#### Table S1: Characteristics of candidate participants
 
-    n_exclude_pfizer = "N excluded",
-    #n_exclude_moderna = "N excluded",
-    
-    pct_all_pfizer = "% remaining",
-    #pct_all_moderna = "% remaining",
+Candidate matching characteristics as on the day of recruitment into the treatment or control group.
+
+```{r table1, echo=FALSE, warning=FALSE, message=FALSE}
+table1_body <- read_csv(fs::path(output_dir_os, "matchtable1.csv")) %>% filter(treatment=="pfizer")
+table1_by <- read_csv(fs::path(output_dir_os, "matchtable1by.csv")) %>% filter(treatment=="pfizer")
+
+table1 <- 
+  table1_body %>%
+  #filter(outcome %in% outcomes) %>%
+  group_by(variable) %>%
+  mutate(
+    label = if_else(row_number()==1, label, str_c("&nbsp;&nbsp;&nbsp;", label)),
   ) %>%
-  tab_spanner(
-    label = "BNT162b2",
-    columns = ends_with("pfizer")
+  mutate(
+    across(
+      starts_with("stat_"),
+      ~if_else(is.na(.x) & row_number()==1, "", .x)
+    )
   ) %>%
-  # tab_spanner(
-  #   label = "mRNA-1273",
-  #   columns = ends_with("moderna")
-  # ) %>%
-  fmt_percent(
-    columns = starts_with(c("pct_")),
-    decimals = 1
+  ungroup() %>%
+  mutate(
+    order = cumsum(lag(variable, 1, first(variable))!=variable)
   ) %>%
-  fmt_number(
-    columns = starts_with(c("n_")),
-    decimals= 0
+  select(
+    variable, var_label, label, starts_with("stat_"), order
   ) %>%
-  fmt_missing(
-    everything(),
-    missing_text="-"
+  rename(!!!set_names(table1_by$by_col, table1_by$by_chr))
+
+
+table1 %>%
+  select(-`Boosted, ineligible`, -`Boosted, eligible, unmatched`) %>%
+  gt(groupname_col="treatment_descr") %>%
+  fmt_markdown(columns = "label") %>%
+  tab_style(
+    style = list(
+      cell_fill(color = "gray96")
+    ),
+    locations = cells_body(
+      rows = order%%2 == 0
+    )
   ) %>%
   tab_style(
-    style=cell_text(whitespace ="pre-wrap"),
-    #style=cell_text(style ="italic"),
-    locations = cells_body(columns = "criteria")
-  )
+    style = list(
+      cell_text(weight = "bold")
+    ),
+    locations = cells_column_labels(everything())
+  ) %>%
+  cols_label(
+     label=md("Characteristic")
+  ) %>%
+  cols_hide(c("variable", "var_label", "order"))
 ```
 
 \newpage
 
+#### Figure S1: Booster uptake and matching success
+
+Cumulative booster vaccination over the duration of the study period, by matching eligibility and matching success.
+
+```{r, vaxdate, echo=FALSE, message=FALSE, warning=FALSE, out.width='90%', out.height='50%', results='asis', out.extra=''}
+#read_rds(fs::path(output_dir_os, "descriptive", "vaxdate", "plot_vaxdate_stack.rds"))
+
+xmin <- min(matchcoverage$vax3_date )
+xmax <- max(matchcoverage$vax3_date )+1
+data_coverage <- matchcoverage  %>%
+  mutate(
+    status = factor(status, levels=c("ineligible", "unmatched", "matched")),
+    status_descr = fct_relabel(status, str_to_title)
+  ) %>%
+  arrange(status) %>%
+  mutate(
+    status_descr = fct_inorder(status_descr)
+  ) %>%
+  filter(treatment=="pfizer") %>%
+  mutate(
+    # vax12_type = fct_case_when(
+    #   vax12_type == "pfizer-pfizer" ~ "BNT162b2",
+    #   vax12_type == "az-az" ~ "ChAdOx1-S",
+    #   vax12_type == "moderna-moderna" ~ "mRNA-1273",
+    #   TRUE ~ NA_character_
+    # ),
+    course = fct_case_when(
+      vax12_type=="pfizer-pfizer" & treatment=="pfizer" ~ "2× BNT162b2  / 1× BNT162b2",
+      vax12_type=="az-az" & treatment=="pfizer" ~ "2× ChAdOx1-S / 1× BNT162b2",
+      vax12_type=="pfizer-pfizer" & treatment=="moderna" ~ "2× BNT162b2 / 1× mRNA-1273",
+      vax12_type=="az-az" & treatment=="moderna" ~ "2× ChAdOx1-S / 1× mRNA-1273",
+      TRUE ~ NA_character_
+    )
+  )
+
+data_annotate <- 
+  data_coverage %>%
+  filter(vax12_type=="pfizer-pfizer") %>%
+  group_by(status_descr, course) %>%
+  summarise(
+    xpos = first(lubridate::floor_date((vax3_date), "1 month")),
+    ypos= max(cumuln)
+  ) %>%
+  ungroup() %>%
+  arrange(desc(status_descr)) %>%
+  mutate(
+    ypos=(cumsum(ypos) + lag(cumsum(ypos), 1, 0))/2
+  ) %>%
+  mutate(
+    course="2× ChAdOx1-S / 1× BNT162b2"
+  )
+  
+  
+ggplot(data_coverage) +
+  geom_col(
+    aes(
+      x=vax3_date+0.5,
+      y=cumuln,
+      group=status_descr,
+      fill=status_descr,
+      colour=NULL
+    ),
+    position=position_stack(),
+    alpha=0.5,
+    width=1
+  )+
+  geom_rect(xmin=xmin, xmax= xmax+1, ymin=0, ymax=6, fill="grey", colour="transparent")+
+  geom_text(data=data_annotate, mapping=aes(x = xpos, y = (ypos), label = status_descr, colour=status_descr), hjust=0, show.legend = FALSE)+
+  facet_wrap(vars(course))+
+  scale_x_date(
+    breaks = unique(lubridate::ceiling_date(matchcoverage$vax3_date, "1 month")),
+    limits = c(lubridate::floor_date((xmin), "1 month"), NA),
+    labels = scales::label_date("%d/%m"),
+    expand = expansion(add=1),
+  )+
+  scale_y_continuous(
+    labels = scales::label_number(accuracy = 1, big.mark=","),
+    expand = expansion(c(0, NA))
+  )+
+  scale_fill_brewer(type="qual", palette="Set2", direction = -1)+
+  scale_colour_brewer(type="qual", palette="Set2", direction = -1)+
+  labs(
+    x="Date",
+    y="Cumulative booster vaccines",
+    colour=NULL,
+    fill=NULL,
+    alpha=NULL
+  ) +
+  theme_minimal()+
+  theme(
+    axis.line.x.bottom = element_line(),
+    axis.text.x.top=element_text(hjust=0),
+    strip.text.y.right = element_text(angle = 0),
+    axis.ticks.x=element_line(),
+    legend.position = "none"
+  )+
+  NULL
+cat("  \n\n")
+```
 
 
-### Figure S1: Standardised Mean Differences between Boosted and Unboosted groups
+### Figure S2: Standardised Mean Differences between Boosted and Unboosted groups
 
+For variables that were matched exactly the SMD is zero, and so are not shown.
 
 ```{r plot_smd, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
 
 plot_smd <-
   smd %>%
+  filter(
+    !(var_label %in% c("Primary vaccine course", "Age", "Region", "Prior documented SARS-CoV-2 infection", "Clinically extremely vulnerable"))
+  ) %>%
   mutate(
     level=fct_rev(fct_inorder(level))
+  ) %>%
+  droplevels() %>%
+  mutate(
+    variable = fct_inorder(variable),
+    variable_card = as.numeric(variable)%%2,
+    variable_levels = replace_na(as.character(variable_levels), ""),
+  ) %>%
+  arrange(variable) %>%
+  mutate(
+    level = fct_rev(fct_inorder(str_replace(paste(variable, variable_levels, sep=": "),  "\\:\\s$", ""))),
+    cardn = row_number()
   ) %>%
   ggplot()+
   geom_point(aes(x=smd, y=level))+
@@ -315,62 +428,6 @@ plot_smd
 
 ```
 
-
-### Figure S2: Kaplan-Meier cumulative incidence curves
-
-```{r plot_km, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
-
-plot_km <- km %>%
-  filter(
-    outcome %in% outcomes,
-    treatment=="pfizer"
-  ) %>%
-    ggplot()+
-    geom_step(aes(x=time, y=(1-surv)*1000, group=treated_descr, colour=treated_descr))+
-    geom_rect(aes(xmin=time, xmax=leadtime, ymin=(1-surv.ll)*1000, ymax=(1-surv.ul)*1000, group=treated_descr, fill=treated_descr), alpha=0.1)+
-    geom_hline(aes(yintercept=0), colour='black')+
-    facet_grid(rows=vars(outcome_descr_wrap), cols=vars(subgroup_level_descr), switch="y", scales="free_y")+
-    scale_x_continuous(
-      breaks = seq(0,7*max(postbaselinecuts),by=14),
-      expand = expansion(0)
-    )+
-    scale_y_continuous(
-      expand = expansion(0),
-      #limits = c(0L,NA)
-    )+
-    scale_colour_brewer(type="qual", palette="Set1", na.value="grey")+
-    scale_fill_brewer(type="qual", palette="Set1", guide="none", na.value="grey")+
-    labs(
-      x=NULL,
-      y="Cumulative incidence\nper 1000",
-      colour=NULL
-    )+
-    theme_minimal()+
-    theme(
-      legend.position=c(0.15,0.85),
-      legend.justification = c(1,0),
-      legend.direction = "vertical",
-      axis.text.x.top=element_text(hjust=0),
-
-      strip.placement = "outside",
-      strip.background = element_blank(),
-      strip.text.y.left = element_text(angle = 0),
-
-      panel.border = element_blank(),
-      axis.line.y = element_line(colour = "black"),
-      axis.line.x.top = element_line(colour = "black"),
-      panel.grid.minor.x = element_blank(),
-      panel.grid.minor.y = element_blank(),
-
-      panel.spacing = unit(0.8, "lines"),
-
-    )+
-    NULL
-
-plot_km
-
-
-```
 
 \newpage
 

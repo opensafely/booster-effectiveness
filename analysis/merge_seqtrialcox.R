@@ -461,7 +461,7 @@ write_csv(tab_summary_baseline_redacted$table_body, fs::path(output_dir, "merge_
 write_csv(tab_summary_baseline_redacted$df_by, fs::path(output_dir, "merge_table1by.csv"))
 gtsave(as_gt(tab_summary_baseline_redacted), fs::path(output_dir, "merge_table1.html"))
 
-# love plot ----
+# love / smd plot ----
 
 
 data_smd <- tab_summary_baseline$meta_data %>%
