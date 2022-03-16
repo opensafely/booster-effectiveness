@@ -62,9 +62,6 @@ matchsummary_control <- read_csv(fs::path(output_dir_os, "matchsummary_treated.c
 matchflowchart <- read_csv(fs::path(output_dir_os, "matchflowchart.csv"))
 matchcoverage <- read_csv(fs::path(output_dir_os, "matchcoverage.csv"))
 incidences <- read_csv(fs::path(output_dir_os, "none", "incidence_all.csv")) %>% mutate(events=events_1+events_0)
-
-
-
 pfizerdurationweeks <- as.numeric(as.duration(study_dates$pfizerend_date - study_dates$pfizerstart_date +1) , "weeks")
 ```
 
@@ -580,37 +577,56 @@ table1 %>%
 Total follow-up and incidence rates for each outcome, by treatment group. The cumulative incidence of each outcome is provided in Figure 2.
 
 ```{r table-incidence, echo=FALSE, warning=FALSE, message=FALSE}
-incidences %>%
-  filter(
-    fup_period == "All",
-    outcome %in% c("postest", "covidadmitted", "coviddeath", "noncoviddeath"),
-    treatment == "pfizer"
+
+km70 <- km %>% 
+  filter(leadtime==max(postbaselinecuts)) %>%
+  mutate(
+    treated=(treated_descr=="Boosted")*1L
   ) %>%
-  left_join(
-    matchsummary %>% select(treatment, n_eligible, prop_matched_eligible),
-    by=c("treatment")
+  select(
+    treatment, outcome , subgroup, 
+    treated, surv
+  ) %>%
+  pivot_wider(
+    id_cols= c("treatment", "outcome", "subgroup"),
+    names_from=treated,
+    names_prefix="surv_",
+    values_from=surv
   ) %>%
   mutate(
-    treatment_descr = paste0(
-      #treatment_descr, " - ",
-      label_number(1, big.mark=",")(n_eligible), " eligible, ",
-      label_number(1, big.mark=",")(n_1), " matched (",
-      label_percent(0.1)(prop_matched_eligible), ")."
-    )
+    risk_1 = 1 - surv_1,
+    risk_0 = 1 - surv_0,
+    
+    kmrr = risk_1 / risk_0,
+    kmrd = risk_1 - risk_0,
+    VErr = 1-kmrr,
+    kmrrE = label_number(accuracy=0.01, scale=1)(kmrr),
+    kmrdE = label_number(accuracy=0.01, scale=1000)(kmrd)
+  )
+
+
+incidences %>%
+  left_join(km70) %>%
+  filter(
+    fup_period == "All",
+    outcome %in% outcomes,
+    treatment == "pfizer"
   ) %>%
   select(
     #treatment_descr, 
     outcome_descr,
     #fup_period,
     q_1,
-    rate_1,
+    risk_1,
     q_0, 
-    rate_0,
+    risk_0,
+    kmrrE,
+    kmrdE
     #rrECI
   ) %>%
   mutate(
-    rate_1=if_else(rate_1<0.001, "<0.001", label_number(0.001)(rate_1)),
-    rate_0=if_else(rate_0<0.001, "<0.001", label_number(0.001)(rate_0)),
+    risk_1=if_else(risk_1<0.001, "<0.001", label_number(0.001)(risk_1)),
+    risk_0=if_else(risk_0<0.001, "<0.001", label_number(0.001)(risk_0)),
   ) %>%
   gt(
    #groupname_col = c("treatment_descr"),
@@ -622,8 +638,13 @@ incidences %>%
     q_0 = "Events / person-years",
     q_1   = "Events / person-years",
     
-    rate_0 = "Incidence rate",
-    rate_1 = "Incidence rate",
+    #rate_0 = "Incidence rate",
+    #rate_1 = "Incidence rate",
+    
+    risk_0 = "Cumulative risk",
+    risk_1 = "Cumulative risk",
+    kmrrE = "Risk ratio",
+    kmrdE = "Risk difference (per 1000 people)"
     #rrECI = "Incidence rate ratio (95% CI)"
   ) %>%
   tab_spanner(
