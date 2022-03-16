@@ -54,8 +54,8 @@ var_labels <-
     rural_urban_group ~ "Rural/urban category",
     stp ~ "STP",
     jcvi_group ~ "JCVI group",
-    cev ~ "Clinically extremely vulnerable",
-
+    #cev ~ "Clinically extremely vulnerable",
+    cev_cv ~ "Risk group",
     sev_obesity ~ "Body Mass Index > 40 kg/m^2",
 
     chronic_heart_disease ~ "Chronic heart disease",
@@ -80,6 +80,14 @@ var_labels <-
 
 ## baseline variables
 tab_summary_baseline <- data_cohort %>%
+  mutate(
+    #TODO can remove once data_process has rerun
+    cev_cv = case_when(
+      cev ~ "Clinically extremely vulnerable",
+      cv ~ "Clinically at-risk",
+      TRUE ~ "Not Clinically at-risk"
+    ),
+  ) %>%
   select(
     all_of(names(var_labels)),
     -age, -stp, -jcvi_group

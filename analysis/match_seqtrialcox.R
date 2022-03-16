@@ -258,6 +258,7 @@ data_baseline <-
     sev_mental,
     cev,
     cv,
+    cev_cv,
     sev_obesity,
     chronic_heart_disease,
     chronic_kidney_disease,

@@ -411,6 +411,25 @@ actions_list <- splice(
   action_model("pfizer", "noncoviddeath", "cev-FALSE"),
   action_model("pfizer", "noncoviddeath", "cev-TRUE"),
 
+  comment("### Models by prior infection ('prior_covid_infection')"),
+
+  action_model("pfizer", "postest", "prior_covid_infection-FALSE"),
+  action_model("pfizer", "postest", "prior_covid_infection-TRUE"),
+  action_model("pfizer", "covidemergency", "prior_covid_infection-FALSE"),
+  action_model("pfizer", "covidemergency", "prior_covid_infection-TRUE"),
+  action_model("pfizer", "covidadmittedproxy1", "prior_covid_infection-FALSE"),
+  action_model("pfizer", "covidadmittedproxy1", "prior_covid_infection-TRUE"),
+  action_model("pfizer", "covidadmitted", "prior_covid_infection-FALSE"),
+  action_model("pfizer", "covidadmitted", "prior_covid_infection-TRUE"),
+  action_model("pfizer", "noncovidadmitted", "prior_covid_infection-FALSE"),
+  action_model("pfizer", "noncovidadmitted", "prior_covid_infection-TRUE"),
+  action_model("pfizer", "covidcc", "prior_covid_infection-FALSE"),
+  action_model("pfizer", "covidcc", "prior_covid_infection-TRUE"),
+  action_model("pfizer", "coviddeath", "prior_covid_infection-FALSE"),
+  action_model("pfizer", "coviddeath", "prior_covid_infection-TRUE"),
+  action_model("pfizer", "noncoviddeath", "prior_covid_infection-FALSE"),
+  action_model("pfizer", "noncoviddeath", "prior_covid_infection-TRUE"),
+
   comment("### Models by age ('age65plus')"),
 
   action_model("pfizer", "postest", "age65plus-FALSE"),
@@ -481,6 +500,25 @@ actions_list <- splice(
   action_model("moderna", "coviddeath", "cev-TRUE"),
   action_model("moderna", "noncoviddeath", "cev-FALSE"),
   action_model("moderna", "noncoviddeath", "cev-TRUE"),
+
+  comment("### Models by prior infection ('prior_covid_infection')"),
+
+  action_model("moderna", "postest", "prior_covid_infection-FALSE"),
+  action_model("moderna", "postest", "prior_covid_infection-TRUE"),
+  action_model("moderna", "covidemergency", "prior_covid_infection-FALSE"),
+  action_model("moderna", "covidemergency", "prior_covid_infection-TRUE"),
+  action_model("moderna", "covidadmittedproxy1", "prior_covid_infection-FALSE"),
+  action_model("moderna", "covidadmittedproxy1", "prior_covid_infection-TRUE"),
+  action_model("moderna", "covidadmitted", "prior_covid_infection-FALSE"),
+  action_model("moderna", "covidadmitted", "prior_covid_infection-TRUE"),
+  action_model("moderna", "noncovidadmitted", "prior_covid_infection-FALSE"),
+  action_model("moderna", "noncovidadmitted", "prior_covid_infection-TRUE"),
+  action_model("moderna", "covidcc", "prior_covid_infection-FALSE"),
+  action_model("moderna", "covidcc", "prior_covid_infection-TRUE"),
+  action_model("moderna", "coviddeath", "prior_covid_infection-FALSE"),
+  action_model("moderna", "coviddeath", "prior_covid_infection-TRUE"),
+  action_model("moderna", "noncoviddeath", "prior_covid_infection-FALSE"),
+  action_model("moderna", "noncoviddeath", "prior_covid_infection-TRUE"),
 
   comment("### Models by age ('age65plus')"),
 

@@ -170,6 +170,12 @@ data_processed <- data_extract %>%
     cv = immunosuppressed | chronic_kidney_disease | chronic_resp_disease | diabetes | chronic_liver_disease |
       chronic_neuro_disease | chronic_heart_disease | asplenia | learndis | sev_mental,
 
+    cev_cv = fct_case_when(
+      cev ~ "Clinically extremely vulnerable",
+      cv ~ "Clinically at-risk",
+      TRUE ~ "Not clinically at-risk"
+    ) %>% fct_rev(),
+
     multimorb =
       (sev_obesity) +
       (chronic_heart_disease) +
@@ -188,6 +194,15 @@ data_processed <- data_extract %>%
     # original priority groups https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1007737/Greenbook_chapter_14a_30July2021.pdf#page=15
     # new priority groups https://www.england.nhs.uk/coronavirus/wp-content/uploads/sites/52/2021/07/C1327-covid-19-vaccination-autumn-winter-phase-3-planning.pdf
     # group 10 split into 16-39 and 40-49 because of earlier roll-out in 40+ from 15 Nov https://www.gov.uk/government/news/jcvi-issues-advice-on-covid-19-booster-vaccines-for-those-aged-40-to-49-and-second-doses-for-16-to-17-year-olds
+
+    jcvi_ageband = cut(
+      age_august2021,
+      breaks=c(-Inf, 18, 40, 50, 55, 60, 65, 70, 75, 80, Inf),
+      labels=c("under 18", "18-39", "40-49", "50-54", "55-59", "60-64", "65-69", "70-74", "75-79", "80+"),
+      right=FALSE
+    ),
+
+
     jcvi_group = fct_case_when(
       care_home_combined | hscworker  ~ "1",
       age_august2021>=80 ~ "2",
