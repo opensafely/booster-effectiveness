@@ -299,10 +299,7 @@ dat_surv <-
     tte_outcome = max(tstop) - min(tstart),
     ind_outcome = as.integer(last(ind_outcome))
   ) %>%
-  mutate(
-    treated_descr = if_else(treated==1L, "Boosted", "Unboosted"),
-  ) %>%
-  group_by(treated_descr) %>%
+  group_by(treated) %>%
   nest() %>%
   mutate(
     n_events = map_int(data, ~sum(.x$ind_outcome, na.rm=TRUE)),
@@ -311,8 +308,11 @@ dat_surv <-
     }),
     surv_obj_tidy = map(surv_obj, ~tidy_surv(.x, addtimezero = TRUE)),
   ) %>%
-  select(treated_descr, n_events, surv_obj_tidy) %>%
-  unnest(surv_obj_tidy)
+  select(treated, n_events, surv_obj_tidy) %>%
+  unnest(surv_obj_tidy) %>%
+  mutate(
+    treated_descr = if_else(treated==1L, "Boosted", "Unboosted"),
+  )
 
 data_surv_rounded <-
   dat_surv %>%
@@ -328,7 +328,7 @@ data_surv_rounded <-
     n.censor = c(NA, diff(cml.censor)),
     n.risk = ceiling_any(max(n.risk, na.rm=TRUE), threshold+1) - (cml.event + cml.censor)
   ) %>%
-  select(treated_descr, time, leadtime, interval, surv, surv.ll, surv.ul, n.risk, n.event, n.censor)
+  select(treated, treated_descr, time, leadtime, interval, surv, surv.ll, surv.ul, n.risk, n.event, n.censor)
 
 
 write_csv(data_surv_rounded, fs::path(output_dir, "report_km.csv"))
