@@ -209,7 +209,7 @@ format_ratio = function(numer,denom, width=7){
 
 threshold <- 5
 
-incidence_rate_redacted <- local({
+incidence_rate_rounded <- local({
 
   unredacted_treated <-
     data_seqtrialcox %>%
