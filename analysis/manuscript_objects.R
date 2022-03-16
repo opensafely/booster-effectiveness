@@ -59,7 +59,7 @@ fs::file_copy(here("output", "match", "combined", "flowchart.csv"), here("output
 
 ## models ----
 
-for(subgroup_variable in c("none", "vax12_type", "cev", "age65plus")){
+for(subgroup_variable in c("none", "vax12_type", "cev", "age65plus", "prior_covid_infection")){
   fs::dir_create(here("output", "manuscript-objects", subgroup_variable))
   #fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "incidence.csv"), here("output", "manuscript-objects", subgroup_variable, "incidence.csv"), overwrite = TRUE)
   fs::file_copy(here("output", "models", "seqtrialcox", "combined", subgroup_variable, "km.csv"), here("output", "manuscript-objects", subgroup_variable, "km.csv"), overwrite = TRUE)
