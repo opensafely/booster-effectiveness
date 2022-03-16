@@ -465,3 +465,36 @@ cif <- model_metaparams %>%
 
 write_csv(cif, fs::path(output_dir, "cif.csv"))
 
+
+
+plot_cif <-
+  cif %>%
+  mutate(
+    treatment_subgroup_descr = paste0(subgroup_descr, " \n", treatment_descr)
+  ) %>%
+  ggplot(aes(group=treated_descr, colour=treated_descr, fill=treated_descr)) +
+  geom_step(aes(x=time, y=cmlinc))+
+  geom_rect(aes(xmin=time, xmax=leadtime, ymin=cmlinc.ll, ymax=cmlinc.ul), alpha=0.1, colour="transparent")+
+  facet_grid(rows=vars(outcome_descr), cols=vars(treatment_subgroup_descr), switch="y")+
+  scale_color_brewer(type="qual", palette="Set1", na.value="grey") +
+  scale_fill_brewer(type="qual", palette="Set1", guide="none", na.value="grey") +
+  scale_x_continuous(breaks = seq(0,600,14), limits=c(min(postbaselinecuts), max(postbaselinecuts)+1), expand = c(0, 0))+
+  scale_y_continuous(expand = expansion(mult=c(0,0.01)))+
+  coord_cartesian(xlim=c(0, NA))+
+  labs(
+    x="Days",
+    y="Cumulative incidence",
+    colour=NULL,
+    title=NULL
+  )+
+  theme_minimal()+
+  theme(
+    axis.line.x = element_line(colour = "black"),
+    panel.grid.minor.x = element_blank(),
+    legend.position=c(.05,.95),
+    legend.justification = c(0,1),
+  )+
+  NULL
+plot_cif
+
+ggsave(filename=fs::path(output_dir, "cifplot.png"), plot_cif, width=20, height=15, units="cm")
