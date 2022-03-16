@@ -287,8 +287,8 @@ formula3_pw <- formula_vaxonly %>% update(formula_strata) %>% update(formula_dem
 
 model_descr = c(
   "Unadjusted" = "0",
-  "region- and trial-stratified" = "1",
-  "Demographic adjustment" = "2",
+  #"region- and trial-stratified" = "1",
+  #"Demographic adjustment" = "2",
   "Full adjustment" = "3"
 )
 
@@ -453,16 +453,16 @@ cox_model <- function(timesplit, number, formula_cox){
 }
 
 summary0 <- cox_model("", 0, formula0_pw)
-summary1 <- cox_model("", 1, formula1_pw)
-summary2 <- cox_model("", 2, formula2_pw)
+#summary1 <- cox_model("", 1, formula1_pw)
+#summary2 <- cox_model("", 2, formula2_pw)
 summary3 <- cox_model("", 3, formula3_pw)
 
 # combine results
 model_glance <-
   bind_rows(
     summary0$glance,
-    summary1$glance,
-    summary2$glance,
+    #summary1$glance,
+    #summary2$glance,
     summary3$glance,
   ) %>%
   mutate(
@@ -473,8 +473,8 @@ write_csv(model_glance, fs::path(output_dir, "model_glance.csv"))
 model_tidy <-
   bind_rows(
     summary0$tidy,
-    summary1$tidy,
-    summary2$tidy,
+    #summary1$tidy,
+    #summary2$tidy,
     summary3$tidy,
   ) %>%
   mutate(
@@ -496,16 +496,16 @@ formula3_overall <- formula_vaxonly_overall %>% update(formula_strata) %>% updat
 
 
 summary0overall <- cox_model("overall", 0, formula0_overall)
-summary1overall <- cox_model("overall", 1, formula1_overall)
-summary2overall <- cox_model("overall", 2, formula2_overall)
+#summary1overall <- cox_model("overall", 1, formula1_overall)
+#summary2overall <- cox_model("overall", 2, formula2_overall)
 summary3overall <- cox_model("overall", 3, formula3_overall)
 
 # combine results
 model_overallglance <-
   bind_rows(
     summary0overall$glance,
-    summary1overall$glance,
-    summary2overall$glance,
+    #summary1overall$glance,
+    #summary2overall$glance,
     summary3overall$glance,
   ) %>%
   mutate(
@@ -516,8 +516,8 @@ write_csv(model_overallglance, fs::path(output_dir, "model_overallglance.csv"))
 model_overalltidy <-
   bind_rows(
     summary0overall$tidy,
-    summary1overall$tidy,
-    summary2overall$tidy,
+    #summary1overall$tidy,
+    #summary2overall$tidy,
     summary3overall$tidy,
   ) %>%
   mutate(
