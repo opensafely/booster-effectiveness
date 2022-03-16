@@ -405,7 +405,8 @@ var_labels <- list(
   imd_Q5 ~ "IMD",
   region ~ "Region",
   #rural_urban_group ~ "Rural/urban category",
-  cev ~ "Clinically extremely vulnerable",
+  #cev ~ "Clinically extremely vulnerable",
+  cev_cv ~ "JCVI clinical risk group",
 
   sev_obesity ~ "Body Mass Index > 40 kg/m^2",
 
@@ -437,6 +438,12 @@ tab_summary_baseline <-
   mutate(
     N = 1L,
     status_descr = fct_recode(status, !!!status_recode),
+    #TODO can remove once data_process has rerun
+    cev_cv = case_when(
+      cev ~ "Clinically extremely vulnerable",
+      cv ~ "Clinically at-risk",
+      TRUE ~ "Not Clinically at-risk"
+    ),
   ) %>%
   select(
     status_descr,
