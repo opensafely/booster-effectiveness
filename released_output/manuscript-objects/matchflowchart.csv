@@ -1,0 +1,11 @@
+treatment,treatment_descr,criteria,n,n_exclude,pct_exclude,pct_all,pct_step,crit,stage
+pfizer,BNT162b2,Aged 18+ and recieved booster dose between 16 September and 1 December 2021 inclusive,5763280,NA,NA,1,NA,c0,Boosted
+pfizer,BNT162b2,with homologous primary vaccination course of BNT162b2 or ChAdOx1-S,5746539,16741,0.0029047695062533836,0.9970952304937466,0.9970952304937466,c1,NA
+pfizer,BNT162b2,and not a HSC worker,5373976,372563,0.06483258879823142,0.9324509654224677,0.9351674112017686,c2,NA
+pfizer,BNT162b2,"and not a care/nursing home resident, end-of-life or housebound",5129996,243980,0.0454002771876912,0.8901174331283574,0.9545997228123088,c3,NA
+pfizer,BNT162b2,with no missing demographic information,4764097,365899,0.07132539674494873,0.826629454060882,0.9286746032550512,c4,Eligible (people)
+pfizer,BNT162b2,and no evidence of SARS-CoV-2 infection within 90 days of boosting,4666769,97328,0.020429474882648277,0.8097418483918879,0.9795705251173518,c5,NA
+pfizer,BNT162b2,and not in hospital when boosted,4264383,402386,0.0862236806664311,0.7399229258339002,0.913776319333569,c6,NA
+pfizer,BNT162b2,"and not boosted at an unusual time given region, priority group, and second dose date",3998664,265719,0.062311241743530074,0.6938174095306839,0.9376887582564699,c7,Eligible (context)
+pfizer,BNT162b2,and successfully matched to an unboosted control,3426960,571704,0.14297375323358003,0.5946197304312821,0.85702624676642,c8,Matched
+pfizer,BNT162b2,and also selected as a control in an earlier trial,1390767,2036193,0.5941688843756565,0.2413151885731736,0.40583111562434343,c9,NA

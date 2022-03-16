@@ -95,6 +95,18 @@ if(subgroup_variable=="age65plus"){
   )
 }
 
+if(subgroup_variable=="prior_covid_infection"){
+  recode_subgroup <- c(
+    `Prior SARS-CoV-2 infection` = "prior_covid_infection-FALSE",
+    `No prior SARS-CoV-2 infection` = "prior_covid_infection-TRUE"
+  )
+  recode_subgroup_variable <- c(`Prior SARS-CoV-2 infection` = "prior_covid_infection")
+  recode_subgroup_level <- c(
+    `Prior SARS-CoV-2 infection` = "FALSE",
+    `No prior SARS-CoV-2 infection` = "TRUE"
+  )
+}
+
 
 if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
   model_metaparams <-

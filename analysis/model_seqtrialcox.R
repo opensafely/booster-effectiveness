@@ -25,7 +25,7 @@ if(length(args)==0){
   outcome <- "postest"
   #subgroup <- "none"
   #subgroup <- "vax12_type-pfizer-pfizer"
-  subgroup <- "cev-TRUE"
+  subgroup <- "prior_covid_infection-TRUE"
 } else {
   removeobjects <- TRUE
   treatment <- args[[1]]

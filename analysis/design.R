@@ -15,7 +15,7 @@ fs::dir_create(here("lib", "design"))
 
 study_dates <- lst(
   index_date = "2021-09-16", # index date for dates as "time since index date" format
-  pfizerstart_date = "2021-09-16", #start of recruitment thursday 16 sepetember first pfizer booster jabs administered in england
+  pfizerstart_date = "2021-09-16", #start of recruitment thursday 16 september first pfizer booster jabs administered in england
   pfizerend_date = "2021-12-16", # end of recruitment (13 weeks later)
   #pfizerfollowend_date = "2021-12-31", # end of follow-up
 
@@ -87,13 +87,14 @@ write_rds(postbaselinecuts, here("lib", "design", "postbaselinecuts.rds"))
 # what matching variables
 exact_variables <- c(
 
-  "jcvi_group",
+  "jcvi_ageband",
+  "cev_cv",
   "vax12_type",
   #"vax2_week",
   "region",
   #"sex",
-  "cev",
-  "cv",
+  #"cev_cv",
+
   #"multimorb",
   "prior_covid_infection",
   #"immunosuppressed",
