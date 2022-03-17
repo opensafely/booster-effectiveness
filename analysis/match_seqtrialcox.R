@@ -147,7 +147,7 @@ data_rollingstrata_vaxcount <-
   ) %>%
   filter(vax3_time>=0)
 
-write_rds(data_rollingstrata_vaxcount, fs::path(output_dir, "match_data_rollingstrata_vaxcount.rds"))
+write_rds(data_rollingstrata_vaxcount, fs::path(output_dir, "match_data_rollingstrata_vaxcount.rds"), compress="gz")
 
 data_nontimevarying <-
   data_cohort %>%
@@ -233,7 +233,7 @@ data_tte <-
     across(where(is.logical), ~.x*1L)
   )
 
-write_rds(data_tte, fs::path(output_dir, "match_data_tte.rds"))
+write_rds(data_tte, fs::path(output_dir, "match_data_tte.rds"), compress="gz")
 
 logoutput_datasize(data_tte)
 
@@ -470,7 +470,7 @@ local({
     )
 })
 
-write_rds(data_matchstatus, fs::path(output_dir, "match_data_matchstatus.rds"))
+write_rds(data_matchstatus, fs::path(output_dir, "match_data_matchstatus.rds"), compress="gz")
 
 # number of treated/controls per trial
 controls_per_trial <- with(data_matchstatus %>% filter(matched==1), table(trial_time, treated))
@@ -519,4 +519,4 @@ data_merged <-
 
 logoutput_datasize(data_merged)
 
-write_rds(data_merged, fs::path(output_dir, "match_data_merged.rds"))
+write_rds(data_merged, fs::path(output_dir, "match_data_merged.rds"), compress="gz")
