@@ -224,9 +224,12 @@ data_seqtrialcox <- local({
   data_st
 })
 
+
+if(removeobjects){rm(data_matched)}
+
 logoutput_datasize(data_seqtrialcox)
 
-write_rds(data_seqtrialcox, fs::path(output_dir, "model_data_seqtrialcox.rds"))
+write_rds(data_seqtrialcox, fs::path(output_dir, "model_data_seqtrialcox.rds"), compress="gz")
 
 # outcome frequency
 outcomes_per_treated <- table(days = data_seqtrialcox$fup_period, outcome=data_seqtrialcox$ind_outcome, treated=data_seqtrialcox$treated)
