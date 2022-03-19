@@ -546,6 +546,7 @@ actions_list <- splice(
   action_combine_model("vax12_type", c("pfizer-pfizer", "az-az")),
   action_combine_model("cev", c("FALSE", "TRUE")),
   action_combine_model("age65plus", c("FALSE", "TRUE")),
+  action_combine_model("prior_covid_infection", c("FALSE", "TRUE")),
 
   comment("# # # # # # # # # # # # # # # # # # #", "Manuscript", "# # # # # # # # # # # # # # # # # # #"),
 
@@ -562,7 +563,8 @@ actions_list <- splice(
       "combine_model_none",
       "combine_model_vax12_type",
       "combine_model_cev",
-      "combine_model_age65plus"
+      "combine_model_age65plus",
+      "combine_model_prior_covid_infection"
     ),
     moderately_sensitive = lst(
       csv = "output/manuscript-objects/*.csv",

@@ -486,7 +486,7 @@ plot_cif <-
   ) %>%
   ggplot(aes(group=treated_descr, colour=treated_descr, fill=treated_descr)) +
   geom_step(aes(x=time, y=cmlinc))+
-  geom_rect(aes(xmin=time, xmax=leadtime, ymin=cmlinc.ll, ymax=cmlinc.ul), alpha=0.1, colour="transparent")+
+  geom_rect(aes(xmin=time, xmax=time+1, ymin=cmlinc.ll, ymax=cmlinc.ul), alpha=0.1, colour="transparent")+
   facet_grid(rows=vars(outcome_descr), cols=vars(treatment_subgroup_descr), switch="y")+
   scale_color_brewer(type="qual", palette="Set1", na.value="grey") +
   scale_fill_brewer(type="qual", palette="Set1", guide="none", na.value="grey") +
