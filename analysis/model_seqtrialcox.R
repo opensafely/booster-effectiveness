@@ -23,9 +23,9 @@ if(length(args)==0){
   removeobjects <- FALSE
   treatment <- "pfizer"
   outcome <- "postest"
-  #subgroup <- "none"
+  subgroup <- "none"
   #subgroup <- "vax12_type-pfizer-pfizer"
-  subgroup <- "prior_covid_infection-TRUE"
+  #subgroup <- "prior_covid_infection-TRUE"
 } else {
   removeobjects <- TRUE
   treatment <- args[[1]]
@@ -103,7 +103,7 @@ data_matched <-
     none="",
     age65plus=age>=65,
     treated_patient_id = paste0(treated, "_", patient_id),
-    fup = pmin(tte_stop - tte_recruitment, last(postbaselinecuts)),
+    fup = pmin(tte_matchcensor - tte_recruitment, last(postbaselinecuts)),
   ) %>%
   fastDummies::dummy_cols(select_columns = subgroup_variable, remove_selected_columns = FALSE) %>%
   filter(.[[subgroup_dummy]]==1L)
@@ -118,7 +118,7 @@ data_timevaryingoutcomes <- local({
 
   data_join <-
     data_tte %>%
-    select(patient_id, day0_date, censor_date, tte_stop)
+    select(patient_id, day0_date, censor_date, tte_censor)
 
   data_outcome <-
     read_rds(here("output", "data", glue("data_long_allevents.rds"))) %>%
@@ -134,7 +134,7 @@ data_timevaryingoutcomes <- local({
       data2 = data_tte,
       id = patient_id,
       tstart = 0L,
-      tstop = tte_stop
+      tstop = tte_censor
     ) %>%
     tmerge(
       data1 = .,
@@ -144,6 +144,7 @@ data_timevaryingoutcomes <- local({
       tte_outcome = event(tte, tte)
     ) %>%
     mutate(
+      # overwrite default "0" for event(tte, tte) function in tmerge, and remove ind_outcome
       tte_outcome = if_else(ind_outcome==1L, as.integer(tte_outcome), NA_integer_),
       ind_outcome = NULL
     )
@@ -160,6 +161,7 @@ data_timevaryingoutcomes <- local({
 data_seqtrialcox <- local({
 
   data_st0 <-
+    # add tte_outcome variable to matched data
     data_matched %>%
     left_join(
       data_timevaryingoutcomes %>% rename(tstart2 = tstart, tstop2 = tstop),
@@ -194,7 +196,7 @@ data_seqtrialcox <- local({
       data2 = data_st0,
       id = treated_patient_id,
       tstart = tte_recruitment,
-      tstop = pmin(tte_stop, tte_outcome, tte_recruitment+last(postbaselinecuts), na.rm=TRUE),
+      tstop = pmin(tte_matchcensor, tte_outcome, tte_recruitment+last(postbaselinecuts), na.rm=TRUE),
       ind_outcome = event(tte_outcome)
     ) %>%
     # add post-recruitment periods

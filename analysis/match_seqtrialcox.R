@@ -187,13 +187,13 @@ data_tte <-
   transmute(
     patient_id,
     day0_date = study_dates$index_date-1, # day before the first trial date
-    treatment_date = if_else(vax3_type==treatment, vax3_date, as.Date(NA)),
-    competingtreatment_date = if_else(vax3_type!=treatment, vax3_date, as.Date(NA)),
+    treatment_date = if_else(vax3_type %in% treatment, vax3_date, as.Date(NA)),
+    competingtreatment_date = if_else(!(vax3_type %in% treatment), vax3_date, as.Date(NA)),
 
     # person-time is up to and including censor date
     censor_date = pmin(
       dereg_date,
-      competingtreatment_date-1, # -1 because we assume vax occurs at the start of the day
+      #competingtreatment_date-1, # -1 because we assume vax occurs at the start of the day
       vax4_date-1, # -1 because we assume vax occurs at the start of the day
       death_date,
       study_dates$studyend_date,
@@ -202,7 +202,7 @@ data_tte <-
 
     noncompetingcensor_date = pmin(
       dereg_date,
-      competingtreatment_date-1, # -1 because we assume vax occurs at the start of the day
+      #competingtreatment_date-1, # -1 because we assume vax occurs at the start of the day
       vax4_date-1, # -1 because we assume vax occurs at the start of the day
       study_dates$studyend_date,
       na.rm=TRUE
@@ -217,14 +217,14 @@ data_tte <-
 
     tte_censor = tte(day0_date, censor_date, censor_date, na.censor=TRUE),
 
-    tte_treatment = tte(day0_date, treatment_date-1, censor_date-1, na.censor=TRUE), # -1 to move censoring forward by one day so that everybody has at least one day of follow up
-
-    tte_stop = pmin(tte_censor, na.rm=TRUE),
+    tte_treatment = tte(day0_date, treatment_date-1, censor_date, na.censor=TRUE),
+    tte_competingtreament = tte(day0_date, competingtreatment_date-1, censor_date, na.censor=TRUE),
+    tte_vax3 = tte(day0_date, vax3_date-1, censor_date, na.censor=TRUE)
 
   ) %>%
   filter(
     # remove anyone with competing vaccine on first trial day
-    (competingtreatment_date-1>day0_date) | is.na(competingtreatment_date),
+    #(competingtreatment_date-1>day0_date) | is.na(competingtreatment_date),
   ) %>%
   mutate(
     # convert tte variables (days since day0), to integer to save space
@@ -297,8 +297,9 @@ local({
   # within the construct of the model, there are no time-dependent variables, only time-dependent treatment effects (modelled as piecewise constant hazards)
 
 
-  max_trial_time <- study_dates[[glue("{treatment}end_date")]] - study_dates$index_date
-  trials <- seq_len(max_trial_time+1)
+  max_trial_time <- as.integer(study_dates[[glue("{treatment}end_date")]] + 1 - study_dates[[glue("{treatment}start_date")]])
+  start_trial_time <- as.integer(study_dates[[glue("{treatment}start_date")]] - study_dates[[glue("index_date")]])
+  trials <- seq(start_trial_time+1, max_trial_time, 1)
 
   # initialise list of candidate controls
   candidate_ids0 <- data_tte$patient_id
@@ -351,7 +352,7 @@ local({
       ) %>%
       filter(
         # remove anyone already censored
-        tte_stop > trial_time,
+        tte_censor > trial_time,
         # remove anyone who has experienced covid within the last 90 days
         !between(mostrecent_anycovid, trial_time-90, trial_time) | is.na(mostrecent_anycovid),
         # remove anyone currently in hospital
@@ -362,7 +363,7 @@ local({
         # everyone treated on trial day and eligible
         treated_candidate = ((tte_treatment %in% trial_time) & treated_within_recruitment_period)*1,
         # everyone not yet treated by trial day, not yet censored, and not already selected as a control
-        control_candidate = (((tte_treatment > trial_time) | is.na(tte_treatment)) & (patient_id %in% candidate_ids0))*1
+        control_candidate = (((tte_vax3 > trial_time) | is.na(tte_vax3)) & (patient_id %in% candidate_ids0))*1
       ) %>%
       filter((treated_candidate==1L) | (control_candidate==1L))
 
@@ -430,8 +431,8 @@ local({
       group_by(match_id) %>%
       mutate(
         tte_recruitment = trial_time,
-        tte_controlistreated = tte_treatment[treated==0],
-        tte_stop = pmin(tte_stop, tte_controlistreated, na.rm=TRUE),
+        tte_controlistreated = tte_vax3[treated==0],
+        tte_matchcensor = pmin(tte_censor, tte_controlistreated, na.rm=TRUE),
       ) %>%
       ungroup()
 
@@ -454,7 +455,7 @@ local({
 
   data_matched <-
     data_matched %>%
-    transmute(patient_id, match_id, matched=1L, control=1L-treated, trial_time, tte_recruitment, tte_controlistreated, tte_stop)
+    transmute(patient_id, match_id, matched=1L, control=1L-treated, trial_time, tte_recruitment, tte_controlistreated, tte_matchcensor)
 
   data_matchstatus <<-
     data_treated %>%

@@ -95,7 +95,7 @@ data_matched <-
   filter(matched==1L) %>%
   mutate(
     treated_patient_id = paste0(treated, "_", patient_id),
-    fup = pmin(tte_stop - tte_recruitment, last(postbaselinecuts))
+    fup = pmin(tte_matchcensor - tte_recruitment, last(postbaselinecuts))
   )
 
 logoutput_datasize(data_matched)
