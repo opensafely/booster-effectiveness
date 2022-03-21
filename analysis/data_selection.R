@@ -38,7 +38,7 @@ data_criteria <- data_processed %>%
   transmute(
     patient_id,
     has_age = !is.na(age),
-    has_sex = sex %in% c("M", "F"),
+    has_sex = !is.na(sex) & !(sex %in% c("I", "U")),
     has_imd = !is.na(imd),
     has_ethnicity = !is.na(ethnicity_combined),
     has_region = !is.na(region),
@@ -58,7 +58,6 @@ data_criteria <- data_processed %>%
       (vax3_type=="pfizer") & (vax3_date < study_dates$pfizerstart_date) ~ FALSE,
       #(vax3_type=="az") & (vax1_date >= study_dates$azstart_date) ~ TRUE,
       (vax3_type=="moderna") & (vax3_date < study_dates$modernastart_date) ~ FALSE,
-
       TRUE ~ TRUE
     ),
     vax3_beforeenddate = case_when(
