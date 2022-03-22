@@ -21,7 +21,7 @@ args <- commandArgs(trailingOnly=TRUE)
 if(length(args)==0){
   # use for interactive testing
   removeobjects <- FALSE
-  treatment <- "pfizer"
+  treatment <- "moderna"
 } else {
   removeobjects <- TRUE
   treatment <- args[[1]]
@@ -297,9 +297,9 @@ local({
   # within the construct of the model, there are no time-dependent variables, only time-dependent treatment effects (modelled as piecewise constant hazards)
 
 
-  max_trial_time <- as.integer(study_dates[[glue("{treatment}end_date")]] + 1 - study_dates[[glue("{treatment}start_date")]])
+  end_trial_time <- as.integer(study_dates[[glue("{treatment}end_date")]] + 1 - study_dates[[glue("index_date")]])
   start_trial_time <- as.integer(study_dates[[glue("{treatment}start_date")]] - study_dates[[glue("index_date")]])
-  trials <- seq(start_trial_time+1, max_trial_time, 1)
+  trials <- seq(start_trial_time+1, end_trial_time, 1)
 
   # initialise list of candidate controls
   candidate_ids0 <- data_tte$patient_id
