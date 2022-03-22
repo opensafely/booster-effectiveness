@@ -29,7 +29,6 @@ library('tidyverse')
 library('here')
 library('glue')
 library('survival')
-library('MatchIt')
 
 ## Import custom user functions from lib
 
