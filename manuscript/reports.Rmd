@@ -60,11 +60,8 @@ matchsummary_treated <- read_csv(fs::path(output_dir_os, "matchsummary_treated.c
 matchsummary_control <- read_csv(fs::path(output_dir_os, "matchsummary_treated.csv")) %>% filter(treated == 0L)
 matchflowchart <- read_csv(fs::path(output_dir_os, "matchflowchart.csv"))
 matchcoverage <- read_csv(fs::path(output_dir_os, "matchcoverage.csv"))
-incidences <- read_csv(fs::path(output_dir_os, "none", "incidence_all.csv")) %>% mutate(events=events_1+events_0)
+incidences <- read_csv(fs::path(output_dir_os, "none", "incidence.csv")) %>% mutate(events=events_1+events_0)
 
-
-
-studydurationweeks <- as.numeric(as.duration(study_dates$studyend_date - study_dates$studystart_date +1) , "weeks")
 ```
 
 ```{r, effects, echo=FALSE, message=FALSE, warning=FALSE}
@@ -101,7 +98,8 @@ km <-
     read_csv(fs::path(output_dir_os, "none", "km.csv")),
     read_csv(fs::path(output_dir_os, "vax12_type", "km.csv")),
     read_csv(fs::path(output_dir_os, "cev", "km.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
-    read_csv(fs::path(output_dir_os, "age65plus", "km.csv")) %>% mutate(subgroup_level=as.character(subgroup_level))
+    read_csv(fs::path(output_dir_os, "age65plus", "km.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+    read_csv(fs::path(output_dir_os, "prior_covid_infection", "km.csv")) %>% mutate(subgroup_level=as.character(subgroup_level))
   ) %>%
   filter(
     outcome %in% outcomes
@@ -139,6 +137,7 @@ hazards <-
     read_csv(fs::path(output_dir_os, "vax12_type", "effects.csv")),
     read_csv(fs::path(output_dir_os, "cev", "effects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
     read_csv(fs::path(output_dir_os, "age65plus", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
+    read_csv(fs::path(output_dir_os, "prior_covid_infection", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
   ) %>%
   filter(
     outcome %in% outcomes
@@ -163,6 +162,7 @@ overallhazards <-
     read_csv(fs::path(output_dir_os, "vax12_type", "overalleffects.csv")),
     read_csv(fs::path(output_dir_os, "cev", "overalleffects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
     read_csv(fs::path(output_dir_os, "age65plus", "overalleffects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+    read_csv(fs::path(output_dir_os, "prior_covid_infection", "overalleffects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
   ) %>%
   filter(
     outcome %in% outcomes
@@ -188,6 +188,7 @@ meta28hazards <-
     read_csv(fs::path(output_dir_os, "vax12_type", "effects.csv")),
     read_csv(fs::path(output_dir_os, "cev", "effects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
     read_csv(fs::path(output_dir_os, "age65plus", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
+    read_csv(fs::path(output_dir_os, "prior_covid_infection", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
   ) %>%
   filter(
     outcome %in% outcomes
@@ -237,6 +238,7 @@ meta42hazards <-
     read_csv(fs::path(output_dir_os, "vax12_type", "effects.csv")),
     read_csv(fs::path(output_dir_os, "cev", "effects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
     read_csv(fs::path(output_dir_os, "age65plus", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
+    read_csv(fs::path(output_dir_os, "prior_covid_infection", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
   ) %>%
   filter(
     outcome %in% outcomes
@@ -360,7 +362,7 @@ matchflowchart %>%
 ```
 
 
-#### Table 1: Participant characteristics
+#### Table 1a: Participant characteristics for Pfizer boosting
 
 Participant characteristics as on the day of recruitment into the treatment or control group.
 
@@ -415,18 +417,74 @@ table1 %>%
 ```
 
 
+
+#### Table 1b: Participant characteristics for Moderna boosting
+
+Participant characteristics as on the day of recruitment into the treatment or control group.
+
+```{r table1, echo=FALSE, warning=FALSE, message=FALSE}
+table1_body <- read_csv(fs::path(output_dir_os, "matchtable1.csv")) %>% filter(treatment=="moderna")
+table1_by <- read_csv(fs::path(output_dir_os, "matchtable1by.csv")) %>% filter(treatment=="moderna")
+
+table1 <- 
+  table1_body %>%
+  #filter(outcome %in% outcomes) %>%
+  group_by(variable) %>%
+  mutate(
+    label = if_else(row_number()==1, label, str_c("&nbsp;&nbsp;&nbsp;", label)),
+  ) %>%
+  mutate(
+    across(
+      starts_with("stat_"),
+      ~if_else(is.na(.x) & row_number()==1, "", .x)
+    )
+  ) %>%
+  ungroup() %>%
+  mutate(
+    order = cumsum(lag(variable, 1, first(variable))!=variable)
+  ) %>%
+  select(
+    variable, var_label, label, starts_with("stat_"), order
+  ) %>%
+  rename(!!!set_names(table1_by$by_col, table1_by$by_chr))
+
+
+table1 %>%
+  gt(groupname_col="treatment_descr") %>%
+  fmt_markdown(columns = "label") %>%
+  tab_style(
+    style = list(
+      cell_fill(color = "gray96")
+    ),
+    locations = cells_body(
+      rows = order%%2 == 0
+    )
+  ) %>%
+  tab_style(
+    style = list(
+      cell_text(weight = "bold")
+    ),
+    locations = cells_column_labels(everything())
+  ) %>%
+  cols_label(
+     label=md("Characteristic")
+  ) %>%
+  cols_hide(c("variable", "var_label", "order"))
+```
+
+
 \newpage
 
 
-#### Table 2: Follow-up and outcomes
+#### Table 2a: Follow-up and outcomes for Pfizer boosting
 
-Total follow-up and incidence rates for each outcome, by treatment group. The cumulative incidence of each outcome is provided in Supplementary Figure S2.
+Total follow-up and incidence rates for each outcome, by treatment group. 
 
 ```{r table2, echo=FALSE, warning=FALSE, message=FALSE}
 incidences %>%
   filter(
     fup_period == "All",
-    outcome %in% c("postest", "covidadmitted", "coviddeath"),
+    outcome %in% c("postest", "covidadmitted", "coviddeath", "noncoviddeath"),
     treatment == "pfizer"
   ) %>%
   left_join(
@@ -490,24 +548,109 @@ incidences %>%
 \newpage
 
 
-## Table 3a: Estimated booster effectiveness (5 period)
+
+#### Table 2b: Follow-up and outcomes for Moderna boosting
+
+Total follow-up and incidence rates for each outcome, by treatment group. 
+
+```{r table2, echo=FALSE, warning=FALSE, message=FALSE}
+incidences %>%
+  filter(
+    fup_period == "All",
+    outcome %in% c("postest", "covidadmitted", "coviddeath", "noncoviddeath"),
+    treatment == "moderna"
+  ) %>%
+  left_join(
+    matchsummary %>% select(treatment, n_eligible, prop_matched_eligible),
+    by=c("treatment")
+  ) %>%
+  mutate(
+    treatment_descr = paste0(
+      #treatment_descr, " - ",
+      label_number(1, big.mark=",")(n_eligible), " eligible, ",
+      label_number(1, big.mark=",")(n_1), " matched (",
+      label_percent(0.1)(prop_matched_eligible), ")."
+    ),
+  ) %>%
+  select(
+    treatment_descr, 
+    outcome_descr,
+    q_1,
+    rate_1,
+    q_0, 
+    rate_0,
+    rrECI
+  ) %>%
+  mutate(
+    rate_1=if_else(rate_1<0.001, "<0.001", label_number(0.001)(rate_1)),
+    rate_0=if_else(rate_0<0.001, "<0.001", label_number(0.001)(rate_0)),
+  ) %>%
+  gt(
+   groupname_col = c("treatment_descr"),
+  ) %>%
+  cols_label(
+    #treatment_descr = "Treatment",
+    outcome_descr = "Outcome",
+
+    q_0 = "Events / person-years",
+    q_1   = "Events / person-years",
+
+    rate_0 = "Incidence rate",
+    rate_1 = "Incidence rate",
+    rrECI = "Incidence rate ratio (95% CI)"
+  ) %>%
+  tab_spanner(
+    label = "Boosted",
+    columns = ends_with("1")
+  ) %>%
+  tab_spanner(
+    label = "Unboosted",
+    columns = ends_with("0")
+  ) %>%
+  fmt_missing(
+    everything(),
+    missing_text="--"
+  ) %>%
+  cols_align(
+    align = "right",
+    columns = everything()
+  ) 
+
+
+```
+\newpage
+
+
+## Table 3a: Estimated Pfizer booster effectiveness (5 period)
 
 Main and subgroup analyses
 ```{r table_effects, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
 
-hazards %>%
+
+
+bind_rows(
+  hazards,
+  overallhazards %>% mutate(term_left = 0, term_right=70)
+) %>%
   filter(model==3, treatment=="pfizer") %>%
   mutate(
-    period = paste(term_left+1, "-", term_right),
+    period = fct_inorder(paste(term_left+1, "-", term_right)),
     ve_display = str_remove(ve_display, fixed("%"))
   ) %>%
-  arrange(treatment_descr, outcome_descr, subgroup_level_descr, term_left) %>%
+  arrange(treatment_descr, outcome_descr, subgroup_level_descr, period) %>%
   group_by(outcome, treatment, subgroup_level_descr, model) %>%
   mutate(
-    subgroup_level_descr=if_else(row_number()==1, subgroup_level_descr, factor(NA, levels=levels(subgroup_level_descr)))
+    #subgroup_level_descr=if_else(row_number()==1, subgroup_level_descr, factor(NA, levels=levels(subgroup_level_descr))),
+    period = paste0(period, " days")
   ) %>%
   ungroup() %>%
-  select(outcome_descr, subgroup_level_descr, period, hr_display, ve_display) %>%
+  select(outcome_descr, subgroup_level_descr, period, ve_display) %>%
+  pivot_wider(
+    id_cols = c("outcome_descr", "subgroup_level_descr"),
+    names_from = "period",
+    #names_prefix ="period",
+    values_from = "ve_display"
+  ) %>%
   gt(
     groupname_col = c("outcome_descr"),
   ) %>%
@@ -515,14 +658,14 @@ hazards %>%
     #treatment_descr = "Treatment",
     subgroup_level_descr="",
     outcome_descr = "Outcome",
-
-    period = "Days since booster",
-    hr_display   = "HR (95% CI)",
-    ve_display   = "VE (95% CI)",
   ) %>%
   cols_align(
     align = "right",
     columns = everything()
+  ) %>%
+  tab_spanner(
+    label = "Booster vaccine effectiveness (95% CI)",
+    columns = ends_with("days")
   ) %>%
   fmt_missing(
     c("subgroup_level_descr"),
@@ -533,23 +676,36 @@ hazards %>%
 
 \newpage
 
-## Table 3b: Estimated booster effectiveness (2 period split at 28 days)
+## Table 3a: Estimated Moderna booster effectiveness (5 period)
 
-```{r table_effects28, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
+Main and subgroup analyses
+```{r table_effects, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
 
-meta28hazards %>%
-  filter(model==3, treatment=="pfizer") %>%
+
+
+bind_rows(
+  hazards,
+  overallhazards %>% mutate(term_left = 0, term_right=70)
+) %>%
+  filter(model==3, treatment=="moderna") %>%
   mutate(
-    period = paste(term_left+1, "-", term_right),
+    period = fct_inorder(paste(term_left+1, "-", term_right)),
     ve_display = str_remove(ve_display, fixed("%"))
   ) %>%
-  arrange(treatment_descr, outcome_descr, subgroup_level_descr, term_left) %>%
+  arrange(treatment_descr, outcome_descr, subgroup_level_descr, period) %>%
   group_by(outcome, treatment, subgroup_level_descr, model) %>%
   mutate(
-    subgroup_level_descr=if_else(row_number()==1, subgroup_level_descr, factor(NA, levels=levels(subgroup_level_descr)))
+    #subgroup_level_descr=if_else(row_number()==1, subgroup_level_descr, factor(NA, levels=levels(subgroup_level_descr))),
+    period = paste0(period, " days")
   ) %>%
   ungroup() %>%
-  select(outcome_descr, subgroup_level_descr, period, hr_display, ve_display) %>%
+  select(outcome_descr, subgroup_level_descr, period, ve_display) %>%
+  pivot_wider(
+    id_cols = c("outcome_descr", "subgroup_level_descr"),
+    names_from = "period",
+    #names_prefix ="period",
+    values_from = "ve_display"
+  ) %>%
   gt(
     groupname_col = c("outcome_descr"),
   ) %>%
@@ -557,14 +713,14 @@ meta28hazards %>%
     #treatment_descr = "Treatment",
     subgroup_level_descr="",
     outcome_descr = "Outcome",
-
-    period = "Days since booster",
-    hr_display   = "HR (95% CI)",
-    ve_display   = "VE (95% CI)",
   ) %>%
   cols_align(
     align = "right",
     columns = everything()
+  ) %>%
+  tab_spanner(
+    label = "Booster vaccine effectiveness (95% CI)",
+    columns = ends_with("days")
   ) %>%
   fmt_missing(
     c("subgroup_level_descr"),
@@ -575,48 +731,6 @@ meta28hazards %>%
 
 \newpage
 
-
-## Table 3c: Estimated booster effectiveness (2 period split at 42 days)
-
-```{r table_effects42, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
-
-meta28hazards %>%
-  filter(model==3, treatment=="pfizer") %>%
-  mutate(
-    period = paste(term_left+1, "-", term_right),
-    ve_display = str_remove(ve_display, fixed("%"))
-  ) %>%
-  arrange(treatment_descr, outcome_descr, subgroup_level_descr, term_left) %>%
-  group_by(outcome, treatment, subgroup_level_descr, model) %>%
-  mutate(
-    subgroup_level_descr=if_else(row_number()==1, subgroup_level_descr, factor(NA, levels=levels(subgroup_level_descr)))
-  ) %>%
-  ungroup() %>%
-  select(outcome_descr, subgroup_level_descr, period, hr_display, ve_display) %>%
-  gt(
-    groupname_col = c("outcome_descr"),
-  ) %>%
-  cols_label(
-    #treatment_descr = "Treatment",
-    subgroup_level_descr="",
-    outcome_descr = "Outcome",
-
-    period = "Days since booster",
-    hr_display   = "HR (95% CI)",
-    ve_display   = "VE (95% CI)",
-  ) %>%
-  cols_align(
-    align = "right",
-    columns = everything()
-  ) %>%
-  fmt_missing(
-    c("subgroup_level_descr"),
-    missing_text=""
-  )
-
-```
-
-\newpage
 
 #### Figure 1: Booster vaccination uptake, treatment group eligibility and matching success
 
@@ -636,7 +750,7 @@ data_coverage <- matchcoverage  %>%
   mutate(
     status_descr = fct_inorder(status_descr)
   ) %>%
-  filter(treatment=="pfizer") %>%
+  #filter(treatment=="pfizer") %>%
   mutate(
     # vax12_type = fct_case_when(
     #   vax12_type == "pfizer-pfizer" ~ "BNT162b2",
@@ -735,7 +849,6 @@ formatpercent100 <- function(x,accuracy){
     formatx
   )
 }
-
 
   ## hazard ratio
 

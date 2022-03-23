@@ -1,5 +1,5 @@
 ---
-title: "Effectiveness of BNT162b2 booster doses in England: a observational study in OpenSAFELY-TPP"
+title: "Effectiveness of BNT162b2 booster doses in England: an observational study in OpenSAFELY-TPP"
 output:
   html_document:
     self_contained: yes
@@ -119,7 +119,8 @@ km <-
     read_csv(fs::path(output_dir_os, "none", "km.csv")),
     read_csv(fs::path(output_dir_os, "vax12_type", "km.csv")),
     read_csv(fs::path(output_dir_os, "cev", "km.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
-    read_csv(fs::path(output_dir_os, "age65plus", "km.csv")) %>% mutate(subgroup_level=as.character(subgroup_level))
+    read_csv(fs::path(output_dir_os, "age65plus", "km.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+    read_csv(fs::path(output_dir_os, "prior_covid_infection", "km.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
   ) %>%
   filter(
     outcome %in% outcomes
@@ -136,17 +137,16 @@ km <-
 
 
 
-km70 <- km %>% 
-  filter(leadtime==max(postbaselinecuts)) %>%
+kmdiff <- km %>% 
   mutate(
     treated=(treated_descr=="Boosted")*1L
   ) %>%
   select(
     treatment, outcome , subgroup, 
-    treated, surv
+    treated, surv, time, leadtime
   ) %>%
   pivot_wider(
-    id_cols= c("treatment", "outcome", "subgroup"),
+    id_cols= c("treatment", "outcome", "subgroup", "time", "leadtime"),
     names_from=treated,
     names_prefix="surv_",
     values_from=surv
@@ -162,6 +162,7 @@ km70 <- km %>%
     kmrdE = label_number(accuracy=0.01, scale=1000)(kmrd)
   )
 
+km70 <- kmdiff %>% filter(leadtime==max(postbaselinecuts))
 # 
 # cmlinc <- read_csv(fs::path(output_dir_os, "cmlinc.csv")) %>%
 #   mutate(
@@ -186,6 +187,7 @@ hazards <-
     read_csv(fs::path(output_dir_os, "vax12_type", "effects.csv")),
     read_csv(fs::path(output_dir_os, "cev", "effects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
     read_csv(fs::path(output_dir_os, "age65plus", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
+    read_csv(fs::path(output_dir_os, "prior_covid_infection", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
   ) %>%
   filter(
     outcome %in% outcomes
@@ -210,6 +212,7 @@ overallhazards <-
     read_csv(fs::path(output_dir_os, "vax12_type", "overalleffects.csv")),
     read_csv(fs::path(output_dir_os, "cev", "overalleffects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
     read_csv(fs::path(output_dir_os, "age65plus", "overalleffects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+    read_csv(fs::path(output_dir_os, "prior_covid_infection", "overalleffects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
   ) %>%
   filter(
     outcome %in% outcomes
@@ -236,6 +239,7 @@ meta2hazards <-
     read_csv(fs::path(output_dir_os, "vax12_type", "effects.csv")),
     read_csv(fs::path(output_dir_os, "cev", "effects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
     read_csv(fs::path(output_dir_os, "age65plus", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
+    read_csv(fs::path(output_dir_os, "prior_covid_infection", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
   ) %>%
   filter(
     outcome %in% outcomes
@@ -274,7 +278,7 @@ meta2hazards <-
   mutate(
     hr_display = paste0(label_number(accuracy=0.01)(hr), " (", label_number(accuracy=0.01)(hr.ll), "-", label_number(accuracy=0.01)(hr.ul), ")"),
     ve_display = paste0(label_percent(accuracy=0.1)(ve), " (", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
-    ve_display95 = paste0(label_percent(accuracy=0.1)(ve), " (95% CI", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
+    ve_display95 = paste0(label_percent(accuracy=0.1)(ve), " (95%CI ", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
   )
 
 # meta2hazards <- 
@@ -346,7 +350,7 @@ We used the OpenSAFELY-TPP database, covering 40% of English primary care practi
 
 *Results*
 
-We matched `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` BNT162b2 booster recipients to unboosted controls. During the first 28 days after the booster, estimated booster effectiveness (95% CI) comparing a BNT162b2 booster dose to two doses only was `r filter(overallhazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 test, `r filter(overallhazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3) %>% pull(ve_display)` for COVID-19 death, and `r filter(overallhazards, subgroup=="none", outcome=="noncoviddeath", treatment=="pfizer", model==3) %>% pull(ve_display)` for non-COVID-19 death.
+We matched `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` BNT162b2 booster recipients to unboosted controls. During the first 28 days after the booster, estimated booster effectiveness comparing a BNT162b2 booster dose to two doses only was `r filter(overallhazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 test, `r filter(overallhazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3) %>% pull(ve_display95)` for COVID-19 hospital admission, `r filter(overallhazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3) %>% pull(ve_display)` for COVID-19 death, and `r filter(overallhazards, subgroup=="none", outcome=="noncoviddeath", treatment=="pfizer", model==3) %>% pull(ve_display)` for non-COVID-19 death.
 
 *Conclusion*
 
@@ -455,7 +459,7 @@ After exclusions for missing values on demographic variables, there were no miss
 
 ## Software, code, and reproducibility
 
-Data management and analyses were conducted in Python version 3.8.10 and R version 4.0.2. All code is shared openly for review and re-sue under MIT open license at <https://github.com/opensafely/booster-effectiveness>. The supplementary materials provide further details of the codelists and data sources used for all variables in the study. Detailed pseudonymised patient data is potentially re-identifiable and therefore not shared. Any reported figures based on counts below 6 are redacted or rounded for disclosure control.
+Data management and analyses were conducted in Python version 3.8.10 and R version 4.0.2. All code is shared openly for review and re-use under MIT open license at <https://github.com/opensafely/booster-effectiveness>. The supplementary materials provide further details of the codelists and data sources used for all variables in the study. Detailed pseudonymised patient data is potentially re-identifiable and therefore not shared. Any reported figures based on counts below 6 are redacted or rounded for disclosure control.
 
 This study followed the STROBE-RECORD reporting guidelines.
 
@@ -489,7 +493,7 @@ and `r km70 %>% filter(treatment=="pfizer", outcome=="postest", subgroup=="none"
 representing a risk difference of `r km70 %>% filter(treatment=="pfizer", outcome=="postest", subgroup=="none") %>% pull(kmrd) %>% (label_number(0.1, scale=1000))` per 1000. 
 For COVID-19 hospital admission, this was `r km70 %>% filter(treatment=="pfizer", outcome=="covidadmitted", subgroup=="none") %>% pull(risk_1) %>% (label_number(0.1, scale=1000))` 
 and `r km70 %>% filter(treatment=="pfizer", outcome=="covidadmitted", subgroup=="none") %>% pull(risk_0) %>% (label_number(0.1, scale=1000))` 
-respectively (`r km70 %>% filter(treatment=="pfizer", outcome=="covidadmitted", subgroup=="none") %>% pull(kmrd) %>% (label_number(0.1, scale=-1000))` fewer events). 
+respectively (`r km70 %>% filter(treatment=="pfizer", outcome=="covidadmitted", subgroup=="none") %>% pull(kmrd) %>% (label_number(0.1, scale=-1000))` fewer events in the boosted group). 
 For COVID-19 death it was `r km70 %>% filter(treatment=="pfizer", outcome=="coviddeath", subgroup=="none") %>% pull(risk_1) %>% (label_number(0.1, scale=1000))` 
 and `r km70 %>% filter(treatment=="pfizer", outcome=="coviddeath", subgroup=="none") %>% pull(risk_0) %>% (label_number(0.1, scale=1000))` 
 (`r km70 %>% filter(treatment=="pfizer", outcome=="coviddeath", subgroup=="none") %>% pull(kmrd) %>% (label_number(0.1, scale=-1000))` fewer events), 
@@ -499,7 +503,7 @@ and `r km70 %>% filter(treatment=="pfizer", outcome=="noncoviddeath", subgroup==
 
 The rate of increase in the cumulative incidence of positive SARS-CoV-2 tests in boosted people tapered substantially around 7 days after boosting, something not observed in unboosted controls (Figure 2). The cumulative incidence of COVID-19 hospital admission and COVID-19 death also diverged substantially between the boosted and unboosted groups. We also see substantial differences for non-COVID-19 deaths between the boosted and unboosted.
 
-The overall (days 1-70) estimated booster effectiveness (95% CI) comparing the boosted and unboosted gorups was `r filter(overallhazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3) %>% pull(ve_display95)` for positive SARS-CoV-2 test, `r filter(overallhazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3) %>% pull(ve_display)` for COVID-19 death, and `r filter(overallhazards, subgroup=="none", outcome=="noncoviddeath", treatment=="pfizer", model==3) %>% pull(ve_display)` for non-COVID-19 death. Estimated booster effectiveness against COVID-19 outcomes was generally lower during days 1-28 than days 29-70: `r filter(meta2hazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` and `r filter(meta2hazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3, term_right==70) %>% pull(ve_display)` for positive SARS-CoV-2 test; `r filter(meta2hazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` and `r filter(meta2hazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3, term_right==70) %>% pull(ve_display)` respectively for COVID-19 hospital admission; `r filter(meta2hazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` and `r filter(meta2hazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3, term_right==70) %>% pull(ve_display)` respectively for COVID-19 death. Estimated booster effectiveness against non-COVID19 death was similar during days 1-28 and 29-70 (`r filter(meta2hazards, subgroup=="none", outcome=="noncoviddeath", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` and `r filter(meta2hazards, subgroup=="none", outcome=="noncoviddeath", treatment=="pfizer", model==3, term_right==70) %>% pull(ve_display)`).
+The overall (days 1-70) estimated booster effectiveness comparing the boosted and unboosted groups was `r filter(overallhazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3) %>% pull(ve_display95)` for positive SARS-CoV-2 test, `r filter(overallhazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3) %>% pull(ve_display)` for COVID-19 death, and `r filter(overallhazards, subgroup=="none", outcome=="noncoviddeath", treatment=="pfizer", model==3) %>% pull(ve_display)` for non-COVID-19 death. Estimated booster effectiveness against COVID-19 outcomes was generally lower during days 1-28 than days 29-70: `r filter(meta2hazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` and `r filter(meta2hazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3, term_right==70) %>% pull(ve_display)` for positive SARS-CoV-2 test; `r filter(meta2hazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` and `r filter(meta2hazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3, term_right==70) %>% pull(ve_display)` respectively for COVID-19 hospital admission; `r filter(meta2hazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` and `r filter(meta2hazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3, term_right==70) %>% pull(ve_display)` respectively for COVID-19 death. Estimated booster effectiveness against non-COVID19 death was similar during days 1-28 and 29-70 (`r filter(meta2hazards, subgroup=="none", outcome=="noncoviddeath", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` and `r filter(meta2hazards, subgroup=="none", outcome=="noncoviddeath", treatment=="pfizer", model==3, term_right==70) %>% pull(ve_display)`).
 
 Estimated effectiveness for narrower time periods are provided in supplementary materials (Table S3).
 
@@ -511,7 +515,7 @@ Amongst people classified as clinically extremely vulnerable estimated booster e
 
 Amongst people aged $\geq$ 65 years estimated booster effectiveness was `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="age65plus-TRUE", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 test, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="age65plus-TRUE", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="age65plus-TRUE", model==3) %>% pull(ve_display)` for COVID-19 death, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="age65plus-TRUE", model==3) %>% pull(ve_display)` for non-COVID-19 death.  Corresponding effectiveness was slightly lower in people aged 18-64 years: `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)`, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)` respectively.
 
-
+Amongst people with evidence of prior SARS-CoV-2 infection, estimated booster effectiveness was `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="prior_covid_infection-TRUE", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 test, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="prior_covid_infection-TRUE", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="prior_covid_infection-TRUE", model==3) %>% pull(ve_display)` for COVID-19 death, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="prior_covid_infection-TRUE", model==3) %>% pull(ve_display)` for non-COVID-19 death.  Corresponding effectiveness was ... in people with no evidence of prior infection: `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="prior_covid_infection-FALSE", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="prior_covid_infection-FALSE", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="prior_covid_infection-FALSE", model==3) %>% pull(ve_display)`, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="prior_covid_infection-FALSE", model==3) %>% pull(ve_display)` respectively.
 
 # Discussion
 
@@ -582,9 +586,8 @@ BG is guarantor.
 
 ## Tables and Figures
 
-#### Table 1: Participant characteristics
+#### Table 1: Characteristics (%) of `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` boosted people included in the study, and their matched controls, on the day of recruitment.
 
-Participant characteristics as on the day of recruitment into the treatment or control group.
 
 ```{r table-table1, echo=FALSE, warning=FALSE, message=FALSE}
 table1_body <- read_csv(fs::path(output_dir_os, "matchtable1.csv")) %>% filter(treatment=="pfizer")
@@ -640,14 +643,12 @@ table1 %>%
 
 \newpage
 
-#### Table 2: Follow-up and outcomes
-
-Total follow-up and incidence rates for each outcome, by treatment group. The cumulative incidence of each outcome is provided in Figure 2.
+#### Table 2: Total events and person-years of follow-up, and incidence rates, for each outcome, in the boosted and unboosted groups.
 
 ```{r table-incidence, echo=FALSE, warning=FALSE, message=FALSE}
 
 incidences %>%
-  left_join(km70) %>%
+  left_join(kmdiff %>% filter(time = postbaselinecuts[-1] -1)) %>%
   filter(
     fup_period == "All",
     outcome %in% outcomes,
@@ -711,9 +712,9 @@ incidences %>%
 
 \newpage
 
-#### Table 3: Estimated booster effectiveness
+#### Table 3: Estimated booster vaccine effectiveness
 
-Vaccine effectiveness, $(1-\text{hazard ratio})\times100\%$, for the main and subgroup analyses across all outcomes.
+Effectiveness $(100 \times (1-\text{hazard ratio}))$ for the main and subgroup analyses and for all outcomes.
 
 ```{r table-effects, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
 
@@ -936,7 +937,7 @@ formatpercent100 <- function(x,accuracy){
   postbaselinecuts28 <- c(0,28,70)
   
   plot_hazards <-
-    meta2hazards %>%
+    hazards %>%
     filter(
       model==3,
       outcome %in% outcomes,
