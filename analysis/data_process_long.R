@@ -197,7 +197,7 @@ data_allevents <-
     data_death
   ) %>%
   mutate(
-    time = as.integer(date - study_dates$index_date-1),
+    time = as.integer(date - (study_dates$index_date - 1)),
   )
 
 

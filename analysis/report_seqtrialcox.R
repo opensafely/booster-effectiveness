@@ -267,8 +267,8 @@ incidence_rate_rounded <- local({
       n_0 = ceiling_any(n_0, threshold+1),
       n_1 = ceiling_any(n_1, threshold+1),
 
-      rate_0 = ceiling_any(events_0, threshold+1),
-      rate_1 = ceiling_any(events_1, threshold+1),
+      rate_0 = events_0/yearsatrisk_0,
+      rate_1 = events_1/yearsatrisk_1,
 
       rr =  rate_1 / rate_0,
       rrE = scales::label_number(accuracy=0.01, trim=FALSE)(rr),
@@ -328,7 +328,7 @@ data_surv_rounded <-
     n.censor = c(NA, diff(cml.censor)),
     n.risk = ceiling_any(max(n.risk, na.rm=TRUE), threshold+1) - (cml.event + cml.censor)
   ) %>%
-  select(treated, treated_descr, time, leadtime, interval, surv, surv.ll, surv.ul, n.risk, n.event, n.censor)
+  select(treated, treated_descr, time, interval, surv, surv.ll, surv.ul, n.risk, n.event, n.censor)
 
 
 write_csv(data_surv_rounded, fs::path(output_dir, "report_km.csv"))
@@ -336,7 +336,7 @@ write_csv(data_surv_rounded, fs::path(output_dir, "report_km.csv"))
 plot_km <- data_surv_rounded %>%
   ggplot(aes(group=treated_descr, colour=treated_descr, fill=treated_descr)) +
   geom_step(aes(x=time, y=1-surv))+
-  geom_rect(aes(xmin=time, xmax=leadtime, ymin=1-surv.ll, ymax=1-surv.ul), alpha=0.1, colour="transparent")+
+  geom_rect(aes(xmin=time, xmax=time+1, ymin=1-surv.ll, ymax=1-surv.ul), alpha=0.1, colour="transparent")+
   scale_color_brewer(type="qual", palette="Set1", na.value="grey") +
   scale_fill_brewer(type="qual", palette="Set1", guide="none", na.value="grey") +
   scale_x_continuous(breaks = seq(0,600,14))+
@@ -425,7 +425,7 @@ data_cif <-
     by=c("treated", "event", "time")
   ) %>%
   mutate(
-    treated = as.integer(treated),
+    treated = as.integer(as.character(treated)),
     time=as.integer(time)+0L,
     treated_descr = if_else(treated==1L, "Boosted", "Unboosted"),
     cmlinc.ll = cmlinc + qnorm(0.025)*sqrt(var),

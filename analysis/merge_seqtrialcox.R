@@ -29,7 +29,6 @@ library('tidyverse')
 library('here')
 library('glue')
 library('survival')
-library('MatchIt')
 
 ## Import custom user functions from lib
 
@@ -95,7 +94,7 @@ data_matched <-
   filter(matched==1L) %>%
   mutate(
     treated_patient_id = paste0(treated, "_", patient_id),
-    fup = pmin(tte_stop - tte_recruitment, last(postbaselinecuts))
+    fup = pmin(tte_matchcensor - tte_recruitment, last(postbaselinecuts))
   )
 
 logoutput_datasize(data_matched)
@@ -527,7 +526,7 @@ ggsave(plot_smd, filename="merge_plot_smd.pdf", path=output_dir)
 
 data_processed <- read_rds(here("output", "data", "data_processed.rds"))
 
-data_criteria <-
+data_criteria0 <-
   left_join(
     data_processed,
     data_merged %>%
@@ -547,7 +546,7 @@ data_criteria <-
 if(removeobjects) rm(data_processed)
 
 data_criteria <-
-  data_criteria %>%
+  data_criteria0 %>%
   left_join(
     data_merged %>%
       filter(control==1L) %>%
@@ -559,7 +558,7 @@ data_criteria <-
   ) %>%
   transmute(
     patient_id,
-    vax3_treatment = vax3_type == treatment,
+    vax3_treatment = vax3_type %in% treatment,
     has_age = !is.na(age),
     has_sex = !is.na(sex) & !(sex %in% c("I", "U")),
     has_imd = !is.na(imd),
@@ -588,16 +587,16 @@ data_criteria <-
       na.rm=TRUE
     ),
     vax2_beforelastvaxdate = !is.na(vax2_date) & (vax2_date <= study_dates$lastvax2_date),
-    vax3_afterstartdate = case_when(
-      (vax1_type=="pfizer") & (vax3_date >= study_dates$pfizerstart_date) ~ TRUE,
-      #(vax1_type=="az") & (vax1_date >= study_dates$azstart_date) ~ TRUE,
-      (vax1_type=="moderna") & (vax3_date >= study_dates$modernastart_date) ~ TRUE,
-      TRUE ~ FALSE
+    vax3_notbeforestartdate = case_when(
+      (vax3_type=="pfizer") & (vax3_date < study_dates$pfizerstart_date) & !is.na(vax3_date) ~ FALSE,
+      #(vax3_type=="az") & (vax1_date >= study_dates$azstart_date)  & !is.na(vax3_date) ~ FALSE,
+      (vax3_type=="moderna") & (vax3_date < study_dates$modernastart_date)  & !is.na(vax3_date) ~ FALSE,
+      TRUE ~ TRUE
     ),
     vax3_beforeenddate = case_when(
-      (vax1_type=="pfizer") & (vax3_date <= study_dates$pfizerend_date) & !is.na(vax3_date) ~ TRUE,
-      #(vax1_type=="az") & (vax1_date <= study_dates$azend_date) & !is.na(vax3_date) ~ TRUE,
-      (vax1_type=="moderna") & (vax3_date <= study_dates$modernaend_date) & !is.na(vax3_date) ~ TRUE,
+      (vax3_type=="pfizer") & (vax3_date <= study_dates$pfizerend_date) & !is.na(vax3_date) ~ TRUE,
+      #(vax3_type=="az") & (vax1_date <= study_dates$azend_date) & !is.na(vax3_date) ~ TRUE,
+      (vax3_type=="moderna") & (vax3_date <= study_dates$modernaend_date) & !is.na(vax3_date) ~ TRUE,
       TRUE ~ FALSE
     ),
     vax3_beforecensordate = (vax3_date-1 < censor_date) & !is.na(vax3_date),
@@ -615,15 +614,13 @@ data_criteria <-
 
     is_treatedandmatched = matched %in% 1L,
 
-    is_control = control %in% 1L
+    is_control = control %in% 1L,
   )
-
-
 
 data_flowchart <-
   data_criteria %>%
   transmute(
-    c0 = vax1_afterfirstvaxdate & vax2_beforelastvaxdate & vax3_treatment & vax3_afterstartdate & vax3_beforeenddate & vax3_beforecensordate,
+    c0 = vax1_afterfirstvaxdate & vax2_beforelastvaxdate & vax3_treatment & vax3_notbeforestartdate & vax3_beforeenddate & vax3_beforecensordate,
     #c1_1yearfup = c0_all & (has_follow_up_previous_year),
     c1 = c0 & (has_vaxgap12 & has_vaxgap23 & has_knownvax1 & has_knownvax2 & vax12_homologous),
     c2 = c1 & (isnot_hscworker ),

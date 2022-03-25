@@ -54,11 +54,11 @@ data_criteria <- data_processed %>%
       TRUE ~ FALSE
     ),
     vax2_beforelastvaxdate = !is.na(vax2_date) & (vax2_date <= study_dates$lastvax2_date),
-    vax3_afterstartdate = case_when(
-      (vax3_type=="pfizer") & (vax3_date >= study_dates$pfizerstart_date) ~ TRUE,
+    vax3_notbeforestartdate = case_when(
+      (vax3_type=="pfizer") & (vax3_date < study_dates$pfizerstart_date) ~ FALSE,
       #(vax3_type=="az") & (vax1_date >= study_dates$azstart_date) ~ TRUE,
-      (vax3_type=="moderna") & (vax3_date >= study_dates$modernastart_date) ~ TRUE,
-      TRUE ~ FALSE
+      (vax3_type=="moderna") & (vax3_date < study_dates$modernastart_date) ~ FALSE,
+      TRUE ~ TRUE
     ),
     vax3_beforeenddate = case_when(
       (vax3_type=="pfizer") & (vax3_date <= study_dates$pfizerend_date) & !is.na(vax3_date) ~ TRUE,
@@ -79,7 +79,7 @@ data_criteria <- data_processed %>%
       #jcvi_group_6orhigher & # temporary until more data available
       vax1_afterfirstvaxdate &
       vax2_beforelastvaxdate &
-      vax3_afterstartdate &
+      vax3_notbeforestartdate &
       has_age & has_sex & has_imd & has_ethnicity & has_region &
       has_vaxgap12 & has_vaxgap23 & has_knownvax1 & has_knownvax2 & vax12_homologous &
       isnot_hscworker &
@@ -99,7 +99,7 @@ arrow::write_feather(data_cohort, here("output", "data", "data_cohort.feather"))
 
 data_flowchart <- data_criteria %>%
   transmute(
-    c0 = vax1_afterfirstvaxdate & vax2_beforelastvaxdate & vax3_afterstartdate,
+    c0 = vax1_afterfirstvaxdate & vax2_beforelastvaxdate & vax3_notbeforestartdate,
     #c1_1yearfup = c0_all & (has_follow_up_previous_year),
     c1 = c0 & (has_age & has_sex & has_imd & has_ethnicity & has_region),
     c2 = c1 & (has_vaxgap12 & has_vaxgap23 & has_knownvax1 & has_knownvax2 & vax12_homologous),

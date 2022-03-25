@@ -546,29 +546,29 @@ actions_list <- splice(
   action_combine_model("vax12_type", c("pfizer-pfizer", "az-az")),
   action_combine_model("cev", c("FALSE", "TRUE")),
   action_combine_model("age65plus", c("FALSE", "TRUE")),
+  action_combine_model("prior_covid_infection", c("FALSE", "TRUE")),
 
   comment("# # # # # # # # # # # # # # # # # # #", "Manuscript", "# # # # # # # # # # # # # # # # # # #"),
 
   action(
-    name = "manuscript_objects",
-    run = "r:latest analysis/manuscript_objects.R",
+    name = "release_objects",
+    run = "r:latest analysis/release_objects.R",
     needs = list(
       "data_selection",
-      "descriptive_table1",
-      "descriptive_vaxdate",
-      "match_seqtrialcox_pfizer",
-      "match_seqtrialcox_moderna",
+#      "match_seqtrialcox_pfizer",
+#      "match_seqtrialcox_moderna",
       "combine_match",
       "combine_model_none",
       "combine_model_vax12_type",
       "combine_model_cev",
-      "combine_model_age65plus"
+      "combine_model_age65plus",
+      "combine_model_prior_covid_infection"
     ),
     moderately_sensitive = lst(
-      csv = "output/manuscript-objects/*.csv",
+      csv = "output/release-objects/*.csv",
       #png = "output/manuscript-objects/*.png",
       txt = "output/files-for-release.txt",
-      csvsubgroup = "output/manuscript-objects/*/*.csv",
+      csvsubgroup = "output/release-objects/*/*.csv",
     )
   )
 
@@ -622,3 +622,4 @@ names(actions_list) %>% tibble(action=.) %>%
 } else {
   stop("Backend not recognised")
 }
+

@@ -23,9 +23,9 @@ if(length(args)==0){
   removeobjects <- FALSE
   treatment <- "pfizer"
   outcome <- "postest"
-  #subgroup <- "none"
+  subgroup <- "none"
   #subgroup <- "vax12_type-pfizer-pfizer"
-  subgroup <- "prior_covid_infection-TRUE"
+  #subgroup <- "prior_covid_infection-TRUE"
 } else {
   removeobjects <- TRUE
   treatment <- args[[1]]
@@ -103,7 +103,7 @@ data_matched <-
     none="",
     age65plus=age>=65,
     treated_patient_id = paste0(treated, "_", patient_id),
-    fup = pmin(tte_stop - tte_recruitment, last(postbaselinecuts)),
+    fup = pmin(tte_matchcensor - tte_recruitment, last(postbaselinecuts)),
   ) %>%
   fastDummies::dummy_cols(select_columns = subgroup_variable, remove_selected_columns = FALSE) %>%
   filter(.[[subgroup_dummy]]==1L)
@@ -118,7 +118,7 @@ data_timevaryingoutcomes <- local({
 
   data_join <-
     data_tte %>%
-    select(patient_id, day0_date, censor_date, tte_stop)
+    select(patient_id, day0_date, censor_date, tte_censor)
 
   data_outcome <-
     read_rds(here("output", "data", glue("data_long_allevents.rds"))) %>%
@@ -134,7 +134,7 @@ data_timevaryingoutcomes <- local({
       data2 = data_tte,
       id = patient_id,
       tstart = 0L,
-      tstop = tte_stop
+      tstop = tte_censor
     ) %>%
     tmerge(
       data1 = .,
@@ -144,6 +144,7 @@ data_timevaryingoutcomes <- local({
       tte_outcome = event(tte, tte)
     ) %>%
     mutate(
+      # overwrite default "0" for event(tte, tte) function in tmerge, and remove ind_outcome
       tte_outcome = if_else(ind_outcome==1L, as.integer(tte_outcome), NA_integer_),
       ind_outcome = NULL
     )
@@ -160,6 +161,7 @@ data_timevaryingoutcomes <- local({
 data_seqtrialcox <- local({
 
   data_st0 <-
+    # add tte_outcome variable to matched data
     data_matched %>%
     left_join(
       data_timevaryingoutcomes %>% rename(tstart2 = tstart, tstop2 = tstop),
@@ -194,7 +196,7 @@ data_seqtrialcox <- local({
       data2 = data_st0,
       id = treated_patient_id,
       tstart = tte_recruitment,
-      tstop = pmin(tte_stop, tte_outcome, tte_recruitment+last(postbaselinecuts), na.rm=TRUE),
+      tstop = pmin(tte_matchcensor, tte_outcome, tte_recruitment+last(postbaselinecuts), na.rm=TRUE),
       ind_outcome = event(tte_outcome)
     ) %>%
     # add post-recruitment periods
@@ -224,9 +226,12 @@ data_seqtrialcox <- local({
   data_st
 })
 
+
+if(removeobjects){rm(data_matched)}
+
 logoutput_datasize(data_seqtrialcox)
 
-write_rds(data_seqtrialcox, fs::path(output_dir, "model_data_seqtrialcox.rds"))
+write_rds(data_seqtrialcox, fs::path(output_dir, "model_data_seqtrialcox.rds"), compress="gz")
 
 # outcome frequency
 outcomes_per_treated <- table(days = data_seqtrialcox$fup_period, outcome=data_seqtrialcox$ind_outcome, treated=data_seqtrialcox$treated)
@@ -287,8 +292,8 @@ formula3_pw <- formula_vaxonly %>% update(formula_strata) %>% update(formula_dem
 
 model_descr = c(
   "Unadjusted" = "0",
-  "region- and trial-stratified" = "1",
-  "Demographic adjustment" = "2",
+  #"region- and trial-stratified" = "1",
+  #"Demographic adjustment" = "2",
   "Full adjustment" = "3"
 )
 
@@ -453,16 +458,16 @@ cox_model <- function(timesplit, number, formula_cox){
 }
 
 summary0 <- cox_model("", 0, formula0_pw)
-summary1 <- cox_model("", 1, formula1_pw)
-summary2 <- cox_model("", 2, formula2_pw)
+#summary1 <- cox_model("", 1, formula1_pw)
+#summary2 <- cox_model("", 2, formula2_pw)
 summary3 <- cox_model("", 3, formula3_pw)
 
 # combine results
 model_glance <-
   bind_rows(
     summary0$glance,
-    summary1$glance,
-    summary2$glance,
+    #summary1$glance,
+    #summary2$glance,
     summary3$glance,
   ) %>%
   mutate(
@@ -473,8 +478,8 @@ write_csv(model_glance, fs::path(output_dir, "model_glance.csv"))
 model_tidy <-
   bind_rows(
     summary0$tidy,
-    summary1$tidy,
-    summary2$tidy,
+    #summary1$tidy,
+    #summary2$tidy,
     summary3$tidy,
   ) %>%
   mutate(
@@ -496,16 +501,16 @@ formula3_overall <- formula_vaxonly_overall %>% update(formula_strata) %>% updat
 
 
 summary0overall <- cox_model("overall", 0, formula0_overall)
-summary1overall <- cox_model("overall", 1, formula1_overall)
-summary2overall <- cox_model("overall", 2, formula2_overall)
+#summary1overall <- cox_model("overall", 1, formula1_overall)
+#summary2overall <- cox_model("overall", 2, formula2_overall)
 summary3overall <- cox_model("overall", 3, formula3_overall)
 
 # combine results
 model_overallglance <-
   bind_rows(
     summary0overall$glance,
-    summary1overall$glance,
-    summary2overall$glance,
+    #summary1overall$glance,
+    #summary2overall$glance,
     summary3overall$glance,
   ) %>%
   mutate(
@@ -516,8 +521,8 @@ write_csv(model_overallglance, fs::path(output_dir, "model_overallglance.csv"))
 model_overalltidy <-
   bind_rows(
     summary0overall$tidy,
-    summary1overall$tidy,
-    summary2overall$tidy,
+    #summary1overall$tidy,
+    #summary2overall$tidy,
     summary3overall$tidy,
   ) %>%
   mutate(

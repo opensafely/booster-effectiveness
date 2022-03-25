@@ -47,9 +47,8 @@ match_metaparams <-
   tibble(
     treatment = factor(recode_treatment),
     treatment_descr = fct_recode(treatment,  !!!recode_treatment),
-  ) %>% filter(
-    treatment=="pfizer"
   )
+
 
 # combine matching ----
 
