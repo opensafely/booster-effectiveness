@@ -4133,14 +4133,10 @@ actions:
   ## Manuscript 
   ## # # # # # # # # # # # # # # # # # # # 
 
-  manuscript_objects:
-    run: r:latest analysis/manuscript_objects.R
+  release_objects:
+    run: r:latest analysis/release_objects.R
     needs:
     - data_selection
-    - descriptive_table1
-    - descriptive_vaxdate
-    - match_seqtrialcox_pfizer
-    - match_seqtrialcox_moderna
     - combine_match
     - combine_model_none
     - combine_model_vax12_type
@@ -4149,7 +4145,7 @@ actions:
     - combine_model_prior_covid_infection
     outputs:
       moderately_sensitive:
-        csv: output/manuscript-objects/*.csv
+        csv: output/release-objects/*.csv
         txt: output/files-for-release.txt
-        csvsubgroup: output/manuscript-objects/*/*.csv
+        csvsubgroup: output/release-objects/*/*.csv
 

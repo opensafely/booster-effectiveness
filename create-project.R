@@ -551,14 +551,12 @@ actions_list <- splice(
   comment("# # # # # # # # # # # # # # # # # # #", "Manuscript", "# # # # # # # # # # # # # # # # # # #"),
 
   action(
-    name = "manuscript_objects",
-    run = "r:latest analysis/manuscript_objects.R",
+    name = "release_objects",
+    run = "r:latest analysis/release_objects.R",
     needs = list(
       "data_selection",
-      "descriptive_table1",
-      "descriptive_vaxdate",
-      "match_seqtrialcox_pfizer",
-      "match_seqtrialcox_moderna",
+#      "match_seqtrialcox_pfizer",
+#      "match_seqtrialcox_moderna",
       "combine_match",
       "combine_model_none",
       "combine_model_vax12_type",
@@ -567,10 +565,10 @@ actions_list <- splice(
       "combine_model_prior_covid_infection"
     ),
     moderately_sensitive = lst(
-      csv = "output/manuscript-objects/*.csv",
+      csv = "output/release-objects/*.csv",
       #png = "output/manuscript-objects/*.png",
       txt = "output/files-for-release.txt",
-      csvsubgroup = "output/manuscript-objects/*/*.csv",
+      csvsubgroup = "output/release-objects/*/*.csv",
     )
   )
 
