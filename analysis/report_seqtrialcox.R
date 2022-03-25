@@ -326,7 +326,7 @@ data_surv_rounded <-
     cml.censor = ceiling_any(cumsum(replace_na(n.censor, 0)), threshold+1),
     n.event = c(NA, diff(cml.event)),
     n.censor = c(NA, diff(cml.censor)),
-    n.risk = ceiling_any(max(n.risk, na.rm=TRUE), threshold+1) - (cml.event + cml.censor)
+    n.risk = lag(ceiling_any(max(n.risk, na.rm=TRUE), threshold+1) - (cml.event + cml.censor))
   ) %>%
   select(treated, treated_descr, time, interval, surv, surv.ll, surv.ul, n.risk, n.event, n.censor)
 
