@@ -481,6 +481,7 @@ write_csv(cif, fs::path(output_dir, "cif.csv"))
 
 plot_cif <-
   cif %>%
+  filter(event==outcome) %>%
   mutate(
     treatment_subgroup_descr = paste0(subgroup_descr, " \n", treatment_descr)
   ) %>%
