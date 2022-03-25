@@ -267,8 +267,8 @@ incidence_rate_rounded <- local({
       n_0 = ceiling_any(n_0, threshold+1),
       n_1 = ceiling_any(n_1, threshold+1),
 
-      rate_0 = ceiling_any(rate_0, threshold+1),
-      rate_1 = ceiling_any(rate_1, threshold+1),
+      rate_0 = events_0/yearsatrisk_0,
+      rate_1 = events_1/yearsatrisk_1,
 
       rr =  rate_1 / rate_0,
       rrE = scales::label_number(accuracy=0.01, trim=FALSE)(rr),
