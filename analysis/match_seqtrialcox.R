@@ -21,7 +21,7 @@ args <- commandArgs(trailingOnly=TRUE)
 if(length(args)==0){
   # use for interactive testing
   removeobjects <- FALSE
-  treatment <- "moderna"
+  treatment <- "pfizer"
 } else {
   removeobjects <- TRUE
   treatment <- args[[1]]
