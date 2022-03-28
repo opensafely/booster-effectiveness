@@ -990,9 +990,9 @@ formatpercent100 <- function(x,accuracy){
     ggplot()+
     geom_point(aes(y=hr, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
     geom_linerange(aes(ymin=hr.ll, ymax=hr.ul, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
-    geom_point(data = overallhazards_plotdata, mapping = aes(y=hr, x=max(postbaselinecuts28+14)), colour="darkgrey") +
-    geom_linerange(data = overallhazards_plotdata, mapping = aes(ymin=hr.ll, ymax=hr.ul, x=max(postbaselinecuts28+14)), colour="darkgrey") +
-    geom_rect(data = overallhazards_plotdata, ymin=-Inf, ymax=Inf, xmin=max(postbaselinecuts28), xmax=max(postbaselinecuts28+28), fill="grey95", alpha=0.5, colour="transparent") +
+    geom_point(data = overallhazards_plotdata, mapping = aes(y=hr, x=max(postbaselinecuts+14)), colour="black") +
+    geom_linerange(data = overallhazards_plotdata, mapping = aes(ymin=hr.ll, ymax=hr.ul, x=max(postbaselinecuts+14)), colour="black") +
+    geom_rect(data = overallhazards_plotdata, ymin=-Inf, ymax=Inf, xmin=max(postbaselinecuts), xmax=max(postbaselinecuts+28), fill="grey95", alpha=0.5, colour="transparent") +
     geom_hline(aes(yintercept=1), colour='grey')+
     facet_grid(rows=vars(outcome_descr_wrap), cols=vars(subgroup_level_descr), switch="y")+
     # scale_y_log10(
@@ -1017,7 +1017,7 @@ formatpercent100 <- function(x,accuracy){
         labels= scales::label_percent(1, suffix="")
       )
     )+
-    scale_x_continuous(breaks=c(postbaselinecuts28, max(postbaselinecuts28+14)), labels=c(postbaselinecuts28, "All"), limits=c(min(postbaselinecuts28), max(postbaselinecuts28+14)+14), expand = c(0, 0))+
+    scale_x_continuous(breaks=c(postbaselinecuts, max(postbaselinecuts+14)), labels=c(postbaselinecuts, "All"), limits=c(min(postbaselinecuts), max(postbaselinecuts+14)+14), expand = c(0, 0))+
     scale_colour_brewer(type="qual", palette="Set2", guide=guide_legend(ncol=1))+
     labs(
       y="Hazard ratio",
