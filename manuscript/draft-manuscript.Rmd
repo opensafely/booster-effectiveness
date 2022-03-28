@@ -36,7 +36,7 @@ source(here("lib", "functions", "utility.R"))
 
 # where are the outputs (ie the inputs for this manuscript!) saved?
 #output_dir_os <- here("output", "manuscript-objects")
-output_dir_os <- here("released_output", "manuscript-objects")
+output_dir_os <- here("released_output", "release-objects")
 
 # where should we put the objects created within this rmd script?
 output_dir_rmd <- here("manuscript", "figures")
