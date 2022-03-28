@@ -61,7 +61,7 @@ matchsummary_treated <- read_csv(fs::path(output_dir_os, "matchsummary_treated.c
 matchsummary_control <- read_csv(fs::path(output_dir_os, "matchsummary_treated.csv")) %>% filter(treated == 0L)
 matchflowchart <- read_csv(fs::path(output_dir_os, "matchflowchart.csv"))
 matchcoverage <- read_csv(fs::path(output_dir_os, "matchcoverage.csv"))
-incidences <- read_csv(fs::path(output_dir_os, "none", "incidence_all.csv")) %>% mutate(events=events_1+events_0)
+incidence_all <- read_csv(fs::path(output_dir_os, "none", "incidence_all.csv")) %>% mutate(events=events_1+events_0)
 pfizerdurationweeks <- as.numeric(as.duration(study_dates$pfizerend_date - study_dates$pfizerstart_date +1) , "weeks")
 ```
 
@@ -120,7 +120,7 @@ km <-
     read_csv(fs::path(output_dir_os, "vax12_type", "km.csv")),
     read_csv(fs::path(output_dir_os, "cev", "km.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
     read_csv(fs::path(output_dir_os, "age65plus", "km.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
-    read_csv(fs::path(output_dir_os, "prior_covid_infection", "km.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+    #read_csv(fs::path(output_dir_os, "prior_covid_infection", "km.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
   ) %>%
   filter(
     outcome %in% outcomes
@@ -133,58 +133,123 @@ km <-
     outcome_descr = fct_inorder(outcome_descr),
     outcome_descr_wrap = fct_relabel(outcome_descr, ~str_wrap(., width=15)),
     #model_name = fct_inorder(str_wrap(model_name, 15)),
+    treated = (treated_descr=="Boosted")*1L
+  ) %>%
+  group_by(treatment, treated_descr, outcome, subgroup) %>%
+  mutate(
+    cml.risk = cumsum(n.risk),
+    cml.event = cumsum(replace_na(n.event, 0)),
   )
 
+groupvariables <- c("treatment", "treatment_descr", "outcome", "outcome_descr", "outcome_descr_wrap", "subgroup", "subgroup_descr", "subgroup_level", "subgroup_level_descr")
 
 
-kmdiff <- km %>% 
+km_incidence <-
+  km %>%
   mutate(
-    treated=(treated_descr=="Boosted")*1L
+    n.atrisk = n.risk,
+    cml.atrisk = cumsum(replace_na(n.atrisk, 0)),
+    cml.event = cumsum(replace_na(n.event, 0)),
+    cml.censor = cumsum(replace_na(n.censor, 0)),
+    rate = n.event/n.atrisk,
+    cml.rate = cml.event / cml.atrisk,
+    risk = 1 - surv,
   ) %>%
   select(
-    treatment, outcome , subgroup, 
-    treated, surv, time, leadtime
-  ) %>%
-  pivot_wider(
-    id_cols= c("treatment", "outcome", "subgroup", "time", "leadtime"),
-    names_from=treated,
-    names_prefix="surv_",
-    values_from=surv
-  ) %>%
-  mutate(
-    risk_1 = 1 - surv_1,
-    risk_0 = 1 - surv_0,
-    
-    kmrr = risk_1 / risk_0,
-    kmrd = risk_1 - risk_0,
-    VErr = 1-kmrr,
-    kmrrE = label_number(accuracy=0.01, scale=1)(kmrr),
-    kmrdE = label_number(accuracy=0.01, scale=1000)(kmrd)
+    treated,
+    all_of(groupvariables),
+    time, interval,
+    surv, risk, n.atrisk, n.event, n.censor, rate, cml.atrisk, cml.event, cml.censor, cml.rate
   )
 
-km70 <- kmdiff %>% filter(leadtime==max(postbaselinecuts))
-# 
-# cmlinc <- read_csv(fs::path(output_dir_os, "cmlinc.csv")) %>%
-#   mutate(
-#     treatment_descr = fct_inorder(treatment_descr),
-#     outcome_descr = fct_inorder(outcome_descr),
-#     model_name = fct_inorder(str_wrap(model_name, 15)),
-#     inc_CI_to = paste0(label_number(0.1, scale=1000)(1-survival.ul), " to ", label_number(0.1, scale=1000)(1-survival.ll))
-#   )
 
-# riskdiff <- read_csv(fs::path(output_dir_os, "riskdiff.csv")) %>%
+kmconstrast <- function(data, cuts=NULL){
+
+  if(is.null(cuts)){cuts <- unique(data$time)}
+
+  data %>%
+    filter(time!=0) %>%
+    mutate(
+      period_start = cut(time, cuts, right=TRUE, label=cuts[-length(cuts)]),
+      period_end = cut(time, cuts, right=TRUE, label=cuts[-1]),
+      period = cut(time, cuts, right=TRUE, label=paste0(cuts[-length(cuts)]+1, " - ", cuts[-1]))
+    ) %>%
+    group_by(across(all_of(groupvariables))) %>%
+    group_by(
+      treated, period_start, period_end, period,
+      .add = TRUE
+    ) %>%
+    summarise(
+      interval = last(time) - first(time) + 1,
+      time=last(time),
+      cml.atrisk = last(cml.atrisk),
+      cml.event = last(cml.event),
+      cml.censor = last(cml.censor),
+      cml.rate = last(cml.rate),
+      persontime = sum(n.atrisk),
+      n.atrisk = first(n.atrisk),
+      n.event = sum(n.event, na.rm=TRUE),
+      n.censor = sum(n.censor, na.rm=TRUE),
+      surv = last(surv),
+      risk = last(risk),
+      rate = n.event/persontime,
+    ) %>%
+    pivot_wider(
+      id_cols= c(groupvariables, "period_start", "period_end", "period",  "interval", "time"),
+      names_from=treated,
+      names_glue="{.value}_{treated}",
+      values_from=c(surv, risk, n.atrisk, n.event, n.censor, rate, cml.atrisk, cml.event, cml.censor, cml.rate)
+    ) %>%
+    mutate(
+      kmrr = risk_1 / risk_0,
+      kmrd = risk_1 - risk_0,
+      irr = rate_1 / rate_0,
+      ird = rate_1 - rate_0,
+      cmlirr = cml.rate_1 / cml.rate_0,
+      cmlird = cml.rate_1 - cml.rate_0
+    ) %>%
+    mutate(
+      kmrd_display = label_number(accuracy=0.1, scale=1000, big.mark =",")(kmrd),
+      kmrd_inv_display = label_number(accuracy=0.1, scale=1000, big.mark =",")(-kmrd),
+    ) %>%
+    mutate(
+      cml.events = cml.event_0 + cml.events_1,
+      cml.atrisk = cml.atrisk_0 + cml.atrisk_1
+    )
+}
+
+kmtreated_daily <- kmconstrast(km_incidence)
+kmtreated_cuts <- kmconstrast(km_incidence, postbaselinecuts)
+kmtreated_overall <- kmconstrast(km_incidence, c(0,last(postbaselinecuts)))
+
+km70 <- kmtreated_daily %>% filter(time==max(postbaselinecuts))
+
+# 
+# incidence <- 
+#   bind_rows(
+#     read_csv(fs::path(output_dir_os, "none", "incidence.csv")),
+#     read_csv(fs::path(output_dir_os, "vax12_type", "incidence.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+#     #read_csv(fs::path(output_dir_os, "cev", "incidence.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+#     #read_csv(fs::path(output_dir_os, "age65plus", "incidence.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
+#     #read_csv(fs::path(output_dir_os, "prior_covid_infection", "incidence.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
+#   ) %>%
+#   filter(
+#     outcome %in% outcomes
+#   ) %>%
 #   mutate(
+#     subgroup_descr = fct_inorder(subgroup_descr),
+#     subgroup_level = fct_inorder(subgroup_level),
+#     #subgroup_level_descr = fct_inorder(fct_explicit_na(subgroup_level_descr, "All")),
 #     treatment_descr = fct_inorder(treatment_descr),
 #     outcome_descr = fct_inorder(outcome_descr),
-#     model_name = fct_inorder(str_wrap(model_name, 15)),
-#     diff_CI_to = paste0(label_number(0.01, scale=1000)(diff.ll), " to ", label_number(0.01, scale=1000)(diff.ul))
+#     outcome_descr_wrap = fct_relabel(outcome_descr, ~str_wrap(., width=15)),
 #   )
 
 
 hazards <- 
   bind_rows(
     read_csv(fs::path(output_dir_os, "none", "effects.csv")),
-    read_csv(fs::path(output_dir_os, "vax12_type", "effects.csv")),
+    read_csv(fs::path(output_dir_os, "vax12_type", "effects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
     read_csv(fs::path(output_dir_os, "cev", "effects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
     read_csv(fs::path(output_dir_os, "age65plus", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
     read_csv(fs::path(output_dir_os, "prior_covid_infection", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
@@ -303,19 +368,9 @@ meta2hazards <-
 #     ve_display = paste0(label_percent(accuracy=0.1)(ve), " (", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
 #   )
 
-#cmlinc3 <- cmlinc %>% filter(model==3)
 hazards3 <- hazards %>% filter(model==3)
 
-riskdiff <- km %>% 
-  group_by(treatment, treatment_descr, outcome, outcome_descr, outcome_descr_wrap, subgroup, subgroup_descr, subgroup_variable, subgroup_variable_descr, subgroup_level, subgroup_level_descr, time) %>%
-  summarise(
-    survdiff = diff(surv),
-  ) %>% 
-  mutate(
-    survdiff_display = label_number(accuracy=0.1, scale=1000, big.mark =",")(survdiff),
-    survdiff_inv_display = label_number(accuracy=0.1, scale=1000, big.mark =",")(-survdiff),
-  ) %>%
-  ungroup()
+
 ```
 
 William J Hulme^1^, Elizabeth J Williamson^2^, Elsie Horne^3,4^, Amelia Green^1^, Linda Nab^1^, Ruth Keogh^2^, Edward PK Parker^2^, Venexia Walker^3,4^, Helen Curtis^1^, Milan Wiedemann^1^, Christine Cunningham^1^, Alex J Walker^1^, Louis Fisher^1^, Christopher T Rentsch^2^, Anna Schultze^2^, Krishnan Bhaskaran^2^, Helen I McDonald^2^, John Tazare^2^, Laurie Tomlinson^2^, Tom Palmer^3,4^, Brian MacKenna^1^, Richard Croker^1^, Caroline E Morton^1^, Colm Andrews^1^, Robin Parks^1^, Lisa Hopcroft^1^, Jon Massey^1^, Jessica Morley^1^, Amir Mehrkar^1^, Seb Bacon^1^, Dave Evans^1^, Peter Inglesby^1^, George Hickman^1^, Simon Davy^1^, Tom Ward^1^, Rosalind M Eggo^2^, Angel YS Wong^2^, Rohini Mathur^2^, Kevin Wing^2^, Harriet Forbes^2^, Daniel Grint^2^, Viyasaan Mahalingasivam^2^, Bang Zheng^2^, Ian J Douglas^2^, Stephen JW Evans^2^, Liam Smeeth^2^, Chris Bates^5^, Jonathan Cockburn^5^, John Parry^5^, Frank Hester^5^, Sam Harper^5^, Jonathan AC Sterne^3,4^, Miguel A Hernán^6,7^, Ben Goldacre^1^.
@@ -391,9 +446,7 @@ We estimated high protection of BNT162b2 boosting against positive SARS-CoV-2 te
 In mid-September 2021, the national COVID-19 vaccination programme in England administered its first booster doses in adults who had already received their two-dose primary vaccination course @NHSEnglandNHS. Eligibility was initially restricted to those at highest risk of severe disease, then progressively extended. By 15 December 2021 every adult was eligible @NHSEnglandNHSb. Booster doses were initially available no earlier than six months after dose two, but this was reduced to three months on 8 December 2021, following concerns over the emergence of the Omicron variant @NHSEnglandNHSa1 @NHSEnglandNHSa2. Vaccine prioritisation schedules were guided by recommendations from the Joint Committee for Vaccine and Immunisation (JCVI) expert working group.
 
 <!-- https://www.england.nhs.uk/2021/09/nhs-begins-covid-19-booster-vaccination-campaign/ -->
-
 <!-- 13 december 30-39 become eligible (https://www.england.nhs.uk/2021/12/nhs-to-roll-out-life-saving-booster-jab-to-people-aged-30-plus/) -->
-
 <!-- 15 december everyone eligible https://www.england.nhs.uk/2021/12/nhs-booster-bookings-open-to-every-eligible-adult/ -->
 
 <!-- In most cases, BNT162b2 and half-dose mRNA-1273 vaccines were used for boosting, and administered regardless of the first and second dose brand. BNT162b2 was used from 16 September 2021, and mRNA-1273 from 29 October 2021 onwards. This provides an opportunity to investigate booster effectiveness of two different brands administered in overlapping periods and community contexts, as well as in subgroups defined by prior immunological and other clinical factors.-->
@@ -421,7 +474,6 @@ On each day of the recruitment period, each eligible person receiving a booster 
 People selected as controls were not eligible to be included again as a control, but were eligible for subsequent inclusion in the booster group. Any unmatched boosted people were excluded. 
 
 The supplementary materials provide further details of the matching process.
-<!-- We excluded matched pairs from days in which fewer than 10% of eligible treated people were successfully. -->
 
 ## Outcomes
 
@@ -435,9 +487,6 @@ Four outcomes were considered: positive SARS-CoV-2 test; COVID-19 hospital admis
 
 Each person was followed from the day of recruitment (i.e., time zero) until the earliest of outcome, death, practice de-registration, booster receipt by the control in the matching pair, 10 weeks, or `r format(as.Date(study_dates$studyend_date), "%e %B %Y")`.
 
-## Additional variables
-
-
 
 The supplementary materials provide further details of the codelists and data sources used for all variables in the study.
 
@@ -445,7 +494,7 @@ The supplementary materials provide further details of the codelists and data so
 
 We estimated Kaplan-Meier cumulative incidence curves separately in the boosted and unboosted groups, and the risk difference and risk ratio at `r label_number(accuracy=1)(max(postbaselinecuts)/7)` weeks. 
 
-We used Cox models, stratified by recruitment day, NHS region, and brand of second vaccine dose, to estimate hazard ratios (HRs) comparing boosted with unboosted people, overall and separately for days 1-28 and 29-70. As we were not able to match on all potential confounders, these models included the following additional covariates: sex (male or female); English Index of Multiple Deprivation (IMD, grouped by quintile); ethnicity (Black, Mixed, South Asian, White, Other, as per the UK census); prior morbidity count (diabetes, BMI \> 40kg/m^2^, chronic heart disease, chronic kidney disease, chronic liver disease, chronic respiratory disease or severe asthma, chronic neurological disease); learning disabilities; severe mental illness; the number of SARS-CoV-2 tests in the 6 months prior to the study start date; elective in-hospital episode at the time of recruitment.A robust variance estimator was used to account for inclusion of some people in both the boosted and unboosted groups. Booster vaccine effectiveness was calculated as one minus the hazard ratio, expressed as a percentage.
+We used Cox models, stratified by recruitment day, NHS region, and brand of second vaccine dose, to estimate hazard ratios (HRs) comparing boosted with unboosted people, overall and separately for days 1-28 and 29-70, and also for days 1-7, 8-14, 15-28, 29-42, and 43-70. As we were not able to match on all potential confounders, these models included the following additional covariates: sex (male or female); English Index of Multiple Deprivation (IMD, grouped by quintile); ethnicity (Black, Mixed, South Asian, White, Other, as per the UK census); prior morbidity count (diabetes, BMI \> 40kg/m^2^, chronic heart disease, chronic kidney disease, chronic liver disease, chronic respiratory disease or severe asthma, chronic neurological disease); learning disabilities; severe mental illness; the number of SARS-CoV-2 tests in the 6 months prior to the study start date; elective in-hospital episode at the time of recruitment.A robust variance estimator was used to account for inclusion of some people in both the boosted and unboosted groups. Booster vaccine effectiveness was calculated as one minus the hazard ratio, expressed as a percentage.
 
 <!-- [The primary estimand is the average treatment effect in the recruited population. To estimate this, expected cumulative incidence rates are estimated for each participant assuming treatment was received by everyone in both treatment groups at time zero. These curves are then averaged over all participants to give the marginal cumulative incidence. This is repeated assuming nobody is treated in either group, and their difference taken. Calculating standard errors for these quantities is challenging, whether approached analytically (due to complex variance components) or computationally (via bootstrapping, due to the large sample sizes involved) and are therefore not reported. ] -->
 
@@ -483,11 +532,11 @@ As expected, the matching factors has similar distributions in the boosted and u
 
 ### Main analysis
 
-There were `r label_number(1, big.mark=",")(filter(incidences, treatment=="pfizer", outcome=="postest", fup_period=="All") %>% pull(events))` positive SARS-CoV-2 tests, 
-`r label_number(1, big.mark=",")(filter(incidences, treatment=="pfizer", outcome=="covidadmitted", fup_period=="All") %>% pull(events))` COVID-19 hospital admissions, 
-`r label_number(1, big.mark=",")(filter(incidences, treatment=="pfizer", outcome=="coviddeath", fup_period=="All") %>% pull(events))` COVID-19 deaths, 
-and `r label_number(1, big.mark=",")(filter(incidences, treatment=="pfizer", outcome=="noncoviddeath", fup_period=="All") %>% pull(events))` non-COVID-19 deaths 
-across `r label_number(1, big.mark=",")((filter(matchsummary, treatment=="pfizer") %>% pull(fup_years)) *365.25/7)` person-weeks of follow-up. 
+There were `r label_number(1, big.mark=",")(filter(km70, treatment=="pfizer", outcome=="postest") %>% pull(cml.events))` positive SARS-CoV-2 tests,
+`r label_number(1, big.mark=",")(filter(km70, treatment=="pfizer", outcome=="covidadmitted") %>% pull(cml.events))` COVID-19 hospital admissions, 
+`r label_number(1, big.mark=",")(filter(km70, treatment=="pfizer", outcome=="coviddeath") %>% pull(cml.event))` COVID-19 deaths, 
+and `r label_number(1, big.mark=",")(filter(km70, treatment=="pfizer", outcome=="noncoviddeath") %>% pull(cml.events))` non-COVID-19 deaths 
+across `r label_number(1, big.mark=",")((filter(km70, treatment=="pfizer", outcome="coviddeath") %>% pull(cml.atrisk)) /7)` person-weeks of follow-up. 
 The 10-week risk of positive SARS-CoV-2 test was `r km70 %>% filter(treatment=="pfizer", outcome=="postest", subgroup=="none") %>% pull(risk_1) %>% (label_number(0.1, scale=1000))` per 1000 in the boosted group 
 and `r km70 %>% filter(treatment=="pfizer", outcome=="postest", subgroup=="none") %>% pull(risk_0) %>% (label_number(0.1, scale=1000))` in the unboosted group, 
 representing a risk difference of `r km70 %>% filter(treatment=="pfizer", outcome=="postest", subgroup=="none") %>% pull(kmrd) %>% (label_number(0.1, scale=1000))` per 1000. 
@@ -511,7 +560,7 @@ Estimated effectiveness for narrower time periods are provided in supplementary 
 
 Estimated booster effectiveness was similar between subgroups defined by primary vaccine course. For those who had received BNT162b2, estimated booster effectiveness was `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 test, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3) %>% pull(ve_display)` for COVID-19 death, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3) %>% pull(ve_display)` for non-COVID-19 death. Corresponding estimates of booster effectiveness for ChAdOx1-S recipients were `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup_level=="az-az", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup_level=="az-az", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup_level=="az-az", model==3) %>% pull(ve_display)`, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup_level=="az-az", model==3) %>% pull(ve_display)` respectively.
 
-Amongst people classified as clinically extremely vulnerable estimated booster effectiveness was `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 test, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for COVID-19 death. For people who not classified as clinically extremely vulnerable estimated booster effectiveness was slightly higher, at `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="cev-FALSE", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="cev-FALSE", model==3) %>% pull(ve_display)`, and `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="cev-FALSE", model==3) %>% pull(ve_display)`, respectively. Estimated booster effectiveness for non-COVID-19 death was similar for those who were and were not classified as clinically extremely vulnerable: `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="cev-FALSE", model==3) %>% pull(ve_display)` respectively.
+Amongst people classified as clinically extremely vulnerable estimated booster effectiveness was `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 test, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for COVID-19 death. For people who were not classified as clinically extremely vulnerable estimated booster effectiveness was slightly higher at `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="cev-FALSE", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="cev-FALSE", model==3) %>% pull(ve_display)`, and `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="cev-FALSE", model==3) %>% pull(ve_display)`, respectively. Estimated booster effectiveness for non-COVID-19 death was similar for those who were and were not classified as clinically extremely vulnerable: `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="cev-FALSE", model==3) %>% pull(ve_display)` respectively.
 
 Amongst people aged $\geq$ 65 years estimated booster effectiveness was `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="age65plus-TRUE", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 test, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="age65plus-TRUE", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="age65plus-TRUE", model==3) %>% pull(ve_display)` for COVID-19 death, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="age65plus-TRUE", model==3) %>% pull(ve_display)` for non-COVID-19 death.  Corresponding effectiveness was slightly lower in people aged 18-64 years: `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)`, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)` respectively.
 
@@ -647,10 +696,14 @@ table1 %>%
 
 ```{r table-incidence, echo=FALSE, warning=FALSE, message=FALSE}
 
-incidences %>%
-  left_join(kmdiff %>% filter(time = postbaselinecuts[-1] -1)) %>%
+incidence_table <- 
+  incidence %>%
+  left_join(
+    kmdiff %>% filter(time == postbaselinecuts[-1] -1),
+    by = c("treatment", "outcome", "subgroup", )
+  ) %>%
   filter(
-    fup_period == "All",
+    #fup_period == "All",
     outcome %in% outcomes,
     treatment == "pfizer"
   ) %>%
@@ -669,8 +722,10 @@ incidences %>%
   mutate(
     risk_1=if_else(risk_1<0.001, "<0.001", label_number(0.001)(risk_1)),
     risk_0=if_else(risk_0<0.001, "<0.001", label_number(0.001)(risk_0)),
-  ) %>%
+  )
+
   gt(
+    incidence_table
    #groupname_col = c("treatment_descr"),
   ) %>%
   cols_label(
