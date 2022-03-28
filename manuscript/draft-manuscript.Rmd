@@ -531,7 +531,7 @@ As expected, the matching factors has similar distributions in the boosted and u
 There were `r label_number(1, big.mark=",")(filter(incidences, treatment=="pfizer", outcome=="postest", fup_period=="All") %>% pull(events))` positive SARS-CoV-2 tests,
 `r label_number(1, big.mark=",")(filter(incidences, treatment=="pfizer", outcome=="covidadmitted", fup_period=="All") %>% pull(events))` COVID-19 hospital admissions, 
 `r label_number(1, big.mark=",")(filter(incidences, treatment=="pfizer", outcome=="coviddeath", fup_period=="All") %>% pull(events))` COVID-19 deaths, 
-and `r label_number(1, big.mark=",")(filter(incidences, treatment=="pfizer", outcome=="noncovidadmitted", fup_period=="All") %>% pull(events))` non-COVID-19 deaths 
+and `r label_number(1, big.mark=",")(filter(incidences, treatment=="pfizer", outcome=="noncoviddeath", fup_period=="All") %>% pull(events))` non-COVID-19 deaths 
 across `r label_number(1, big.mark=",")((filter(incidences, treatment=="pfizer", outcome=="coviddeath", fup_period=="All") %>% pull(yearsatrisk)) * 365.25/7)` person-weeks of follow-up. 
 The 10-week risk of positive SARS-CoV-2 test was `r km70 %>% filter(treatment=="pfizer", outcome=="postest", subgroup=="none") %>% pull(risk_1) %>% (label_number(0.1, scale=1000))` per 1000 in the boosted group 
 and `r km70 %>% filter(treatment=="pfizer", outcome=="postest", subgroup=="none") %>% pull(risk_0) %>% (label_number(0.1, scale=1000))` in the unboosted group, 
