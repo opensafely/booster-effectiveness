@@ -1,0 +1,21 @@
+treatment,treatment_descr,criteria,n,n_exclude,pct_exclude,pct_all,pct_step,crit,stage
+pfizer,BNT162b2,Aged 18+ and recieved booster dose between 16 September and 1 December 2021 inclusive,7339110,NA,NA,1,NA,c0,Boosted
+pfizer,BNT162b2,with homologous primary vaccination course of BNT162b2 or ChAdOx1-S,7297579,41531,0.005658860543035872,0.9943411394569641,0.9943411394569641,c1,NA
+pfizer,BNT162b2,and not a HSC worker,6893215,404364,0.05541070538599171,0.939243995525343,0.9445892946140083,c2,NA
+pfizer,BNT162b2,"and not a care/nursing home resident, end-of-life or housebound",6621675,271540,0.039392359008097094,0.9022449588574092,0.9606076409919029,c3,NA
+pfizer,BNT162b2,with no missing demographic information,6104287,517388,0.07813551707083177,0.8317475824725341,0.9218644829291682,c4,Eligible (people)
+pfizer,BNT162b2,and no evidence of SARS-CoV-2 infection within 90 days of boosting,5946510,157777,0.025846917092856216,0.810249471666183,0.9741530829071438,c5,NA
+pfizer,BNT162b2,and not in hospital when boosted,5458344,488166,0.08209285782753245,0.7437337769838577,0.9179071421724675,c6,NA
+pfizer,BNT162b2,"and not boosted at an unusual time given region, priority group, and second dose date",5095279,363065,0.0665155952061651,0.6942638821328472,0.9334844047938349,c7,Eligible (context)
+pfizer,BNT162b2,and successfully matched to an unboosted control,4352417,742862,0.14579417535330252,0.5930442519597063,0.8542058246466975,c8,Matched
+pfizer,BNT162b2,and also selected as a control in an earlier trial,1714615,2637802,0.6060545209707617,0.23362710192380276,0.3939454790292382,c9,NA
+moderna,mRNA-1273,Aged 18+ and recieved booster dose between 16 September and 1 December 2021 inclusive,1804661,NA,NA,1,NA,c0,Boosted
+moderna,mRNA-1273,with homologous primary vaccination course of BNT162b2 or ChAdOx1-S,1777044,27617,0.015303151118132435,0.9846968488818676,0.9846968488818676,c1,NA
+moderna,mRNA-1273,and not a HSC worker,1756799,20245,0.011392514760467383,0.9734786754963952,0.9886074852395326,c2,NA
+moderna,mRNA-1273,"and not a care/nursing home resident, end-of-life or housebound",1742150,14649,0.008338461030544758,0.9653613614967022,0.9916615389694552,c3,NA
+moderna,mRNA-1273,with no missing demographic information,1570007,172143,0.0988106649829234,0.8699733634183927,0.9011893350170767,c4,Eligible (people)
+moderna,mRNA-1273,and no evidence of SARS-CoV-2 infection within 90 days of boosting,1508550,61457,0.039144411458038084,0.8359187681232099,0.960855588541962,c5,NA
+moderna,mRNA-1273,and not in hospital when boosted,1406804,101746,0.06744622319445825,0.7795392043159353,0.9325537768055417,c6,NA
+moderna,mRNA-1273,"and not boosted at an unusual time given region, priority group, and second dose date",1257660,149144,0.10601618988857012,0.6968954280055922,0.8939838101114299,c7,Eligible (context)
+moderna,mRNA-1273,and successfully matched to an unboosted control,1257367,293,2.3297234546697837e-4,0.6967330706431845,0.9997670276545331,c8,Matched
+moderna,mRNA-1273,and also selected as a control in an earlier trial,227390,1029977,0.8191538349582899,0.12600150388355486,0.18084616504171017,c9,NA
