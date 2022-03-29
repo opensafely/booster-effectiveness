@@ -34,8 +34,8 @@ library('scales')
 source(here("lib", "functions", "utility.R"))
 
 # where are the outputs (ie the inputs for this manuscript!) saved?
-#output_dir_os <- here("output", "manuscript-objects")
-output_dir_os <- here("released_output", "manuscript-objects")
+#output_dir_os <- here("output", "release-objects")
+output_dir_os <- here("released_output", "release-objects")
 
 # where should we put the objects created within this rmd script?
 output_dir_rmd <- here("manuscript", "figures")
@@ -54,13 +54,12 @@ study_dates <-
 
 postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 
-cohortsummary <- read_csv(fs::path(output_dir_os, "cohortsummary.csv"))
 matchsummary <- read_csv(fs::path(output_dir_os, "matchsummary.csv"))
 matchsummary_treated <- read_csv(fs::path(output_dir_os, "matchsummary_treated.csv")) %>% filter(treated == 1L)
 matchsummary_control <- read_csv(fs::path(output_dir_os, "matchsummary_treated.csv")) %>% filter(treated == 0L)
 matchflowchart <- read_csv(fs::path(output_dir_os, "matchflowchart.csv"))
 matchcoverage <- read_csv(fs::path(output_dir_os, "matchcoverage.csv"))
-incidences <- read_csv(fs::path(output_dir_os, "none", "incidence.csv")) %>% mutate(events=events_1+events_0)
+incidence <- read_csv(fs::path(output_dir_os, "none", "incidence.csv")) %>% mutate(events=events_1+events_0, yearsatrisk=yearsatrisk_1+yearsatrisk_0)
 
 ```
 
@@ -92,6 +91,26 @@ incidences <- read_csv(fs::path(output_dir_os, "none", "incidence.csv")) %>% mut
     ) %>% 
     set_names(., .)
 
+  
+# incidence <- 
+#   bind_rows(
+#     read_csv(fs::path(output_dir_os, "none", "incidence.csv")),
+#     read_csv(fs::path(output_dir_os, "vax12_type", "incidence.csv")),
+#     read_csv(fs::path(output_dir_os, "cev", "incidence.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+#     read_csv(fs::path(output_dir_os, "age65plus", "incidence.csv")) %>% mutate(subgroup_level=as.character(subgroup_level))
+#   ) %>%
+#   filter(
+#     outcome %in% outcomes
+#   ) %>%
+#   mutate(
+#     subgroup_descr = fct_inorder(subgroup_descr),
+#     subgroup_level = fct_inorder(subgroup_level),
+#     subgroup_level_descr = fct_inorder(fct_explicit_na(subgroup_level_descr, "All")),
+#     treatment_descr = fct_inorder(treatment_descr),
+#     outcome_descr = fct_inorder(outcome_descr),
+#     outcome_descr_wrap = fct_relabel(outcome_descr, ~str_wrap(., width=15)),
+#     #model_name = fct_inorder(str_wrap(model_name, 15)),
+#   )
 
 km <- 
   bind_rows(
@@ -99,42 +118,141 @@ km <-
     read_csv(fs::path(output_dir_os, "vax12_type", "km.csv")),
     read_csv(fs::path(output_dir_os, "cev", "km.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
     read_csv(fs::path(output_dir_os, "age65plus", "km.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
-    read_csv(fs::path(output_dir_os, "prior_covid_infection", "km.csv")) %>% mutate(subgroup_level=as.character(subgroup_level))
+    read_csv(fs::path(output_dir_os, "prior_covid_infection", "km.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
   ) %>%
   filter(
     outcome %in% outcomes
   ) %>%
   mutate(
+    treatment = fct_inorder(treatment),
+    treatment_descr = fct_inorder(treatment_descr),
+    outcome = fct_inorder(outcome),
+    outcome_descr = fct_inorder(outcome_descr),
+    outcome_descr_wrap = fct_relabel(outcome_descr, ~str_wrap(., width=15)),
+    subgroup = fct_inorder(subgroup),
     subgroup_descr = fct_inorder(subgroup_descr),
+    subgroup_variable = fct_inorder(subgroup_variable),
+    subgroup_variable_descr = fct_inorder(subgroup_variable_descr),
     subgroup_level = fct_inorder(subgroup_level),
     subgroup_level_descr = fct_inorder(fct_explicit_na(subgroup_level_descr, "All")),
-    treatment_descr = fct_inorder(treatment_descr),
-    outcome_descr = fct_inorder(outcome_descr),
-    outcome_descr_wrap = fct_relabel(outcome_descr, ~str_wrap(., width=12)),
     #model_name = fct_inorder(str_wrap(model_name, 15)),
+    treated = (treated_descr=="Boosted")*1L
+  ) %>%
+  group_by(treatment, treated_descr, outcome, subgroup) %>%
+  mutate(
+    cml.risk = cumsum(n.risk),
+    cml.event = cumsum(replace_na(n.event, 0)),
   )
-# 
-# cmlinc <- read_csv(fs::path(output_dir_os, "cmlinc.csv")) %>%
-#   mutate(
-#     treatment_descr = fct_inorder(treatment_descr),
-#     outcome_descr = fct_inorder(outcome_descr),
-#     model_name = fct_inorder(str_wrap(model_name, 15)),
-#     inc_CI_to = paste0(label_number(0.1, scale=1000)(1-survival.ul), " to ", label_number(0.1, scale=1000)(1-survival.ll))
-#   )
 
-# riskdiff <- read_csv(fs::path(output_dir_os, "riskdiff.csv")) %>%
+groupvariables <- c("treatment", "treatment_descr", "outcome", "outcome_descr", "outcome_descr_wrap", "subgroup", "subgroup_descr", "subgroup_variable", "subgroup_variable_descr", "subgroup_level", "subgroup_level_descr")
+
+
+km_incidence <-
+  km %>%
+  mutate(
+    n.atrisk = n.risk,
+    cml.atrisk = cumsum(replace_na(n.atrisk, 0)),
+    cml.event = cumsum(replace_na(n.event, 0)),
+    cml.censor = cumsum(replace_na(n.censor, 0)),
+    rate = n.event/n.atrisk,
+    cml.rate = cml.event / cml.atrisk,
+    risk = 1 - surv,
+  ) %>%
+  select(
+    treated,
+    all_of(groupvariables),
+    time, interval,
+    surv, risk, n.atrisk, n.event, n.censor, rate, cml.atrisk, cml.event, cml.censor, cml.rate
+  )
+
+
+kmconstrast <- function(data, cuts=NULL){
+
+  if(is.null(cuts)){cuts <- unique(data$time)}
+
+  data %>%
+    filter(time!=0) %>%
+    mutate(
+      period_start = cut(time, cuts, right=TRUE, label=cuts[-length(cuts)]),
+      period_end = cut(time, cuts, right=TRUE, label=cuts[-1]),
+      period = cut(time, cuts, right=TRUE, label=paste0(cuts[-length(cuts)]+1, " - ", cuts[-1]))
+    ) %>%
+    group_by(across(all_of(groupvariables))) %>%
+    group_by(
+      treated, period_start, period_end, period,
+      .add = TRUE
+    ) %>%
+    summarise(
+      interval = last(time) - first(time) + 1,
+      time = last(time),
+      cml.atrisk = last(cml.atrisk),
+      cml.event = last(cml.event),
+      cml.censor = last(cml.censor),
+      cml.rate = last(cml.rate),
+      persontime = sum(n.atrisk),
+      n.atrisk = first(n.atrisk),
+      n.event = sum(n.event, na.rm=TRUE),
+      n.censor = sum(n.censor, na.rm=TRUE),
+      surv = last(surv),
+      risk = last(risk),
+      rate = n.event/persontime,
+    ) %>%
+    pivot_wider(
+      id_cols = c(groupvariables, "period_start", "period_end", "period",  "interval", "time"),
+      names_from = treated,
+      names_glue = "{.value}_{treated}",
+      values_from = c(surv, risk, n.atrisk, n.event, n.censor, rate, cml.atrisk, cml.event, cml.censor, cml.rate)
+    ) %>%
+    mutate(
+      kmrr = risk_1 / risk_0,
+      kmrd = risk_1 - risk_0,
+      irr = rate_1 / rate_0,
+      ird = rate_1 - rate_0,
+      cmlirr = cml.rate_1 / cml.rate_0,
+      cmlird = cml.rate_1 - cml.rate_0
+    ) %>%
+    mutate(
+      kmrd_display = label_number(accuracy=0.1, scale=1000, big.mark =",")(kmrd),
+      kmrd_inv_display = label_number(accuracy=0.1, scale=1000, big.mark =",")(-kmrd),
+    ) %>%
+    mutate(
+      cml.events = cml.event_0 + cml.event_1,
+      cml.atrisk = cml.atrisk_0 + cml.atrisk_1
+    )
+}
+
+kmtreated_daily <- kmconstrast(km_incidence)
+kmtreated_cuts <- kmconstrast(km_incidence, postbaselinecuts)
+kmtreated_overall <- kmconstrast(km_incidence, c(0,last(postbaselinecuts)))
+
+km70 <- kmtreated_daily %>% filter(time==max(postbaselinecuts))
+
+# 
+# incidence <- 
+#   bind_rows(
+#     read_csv(fs::path(output_dir_os, "none", "incidence.csv")),
+#     read_csv(fs::path(output_dir_os, "vax12_type", "incidence.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+#     #read_csv(fs::path(output_dir_os, "cev", "incidence.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+#     #read_csv(fs::path(output_dir_os, "age65plus", "incidence.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
+#     #read_csv(fs::path(output_dir_os, "prior_covid_infection", "incidence.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
+#   ) %>%
+#   filter(
+#     outcome %in% outcomes
+#   ) %>%
 #   mutate(
+#     subgroup_descr = fct_inorder(subgroup_descr),
+#     subgroup_level = fct_inorder(subgroup_level),
+#     #subgroup_level_descr = fct_inorder(fct_explicit_na(subgroup_level_descr, "All")),
 #     treatment_descr = fct_inorder(treatment_descr),
 #     outcome_descr = fct_inorder(outcome_descr),
-#     model_name = fct_inorder(str_wrap(model_name, 15)),
-#     diff_CI_to = paste0(label_number(0.01, scale=1000)(diff.ll), " to ", label_number(0.01, scale=1000)(diff.ul))
+#     outcome_descr_wrap = fct_relabel(outcome_descr, ~str_wrap(., width=15)),
 #   )
 
 
 hazards <- 
   bind_rows(
     read_csv(fs::path(output_dir_os, "none", "effects.csv")),
-    read_csv(fs::path(output_dir_os, "vax12_type", "effects.csv")),
+    read_csv(fs::path(output_dir_os, "vax12_type", "effects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
     read_csv(fs::path(output_dir_os, "cev", "effects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
     read_csv(fs::path(output_dir_os, "age65plus", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
     read_csv(fs::path(output_dir_os, "prior_covid_infection", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
@@ -153,7 +271,7 @@ hazards <-
     #model_name = fct_inorder(str_wrap(model_name, 15)),
     hr_display = paste0(label_number(accuracy=0.01)(hr), " (", label_number(accuracy=0.01)(hr.ll), "-", label_number(accuracy=0.01)(hr.ul), ")"),
     ve_display = paste0(label_percent(accuracy=0.1)(ve), " (", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
-    
+    ve_display95 = paste0(label_percent(accuracy=0.1)(ve), " (95% CI ", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
   )
 
 overallhazards <- 
@@ -178,11 +296,12 @@ overallhazards <-
     #model_name = fct_inorder(str_wrap(model_name, 15)),
     hr_display = paste0(label_number(accuracy=0.01)(hr), " (", label_number(accuracy=0.01)(hr.ll), "-", label_number(accuracy=0.01)(hr.ul), ")"),
     ve_display = paste0(label_percent(accuracy=0.1)(ve), " (", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
+    ve_display95 = paste0(label_percent(accuracy=0.1)(ve), " (95% CI ", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
   )
 
 
-meta28hazards <- 
-  # derive directly from hazards as meta28effects table needs to be re-run
+meta2hazards <- 
+  # derive directly from hazards as meta2effects table needs to be re-run
   bind_rows(
     read_csv(fs::path(output_dir_os, "none", "effects.csv")),
     read_csv(fs::path(output_dir_os, "vax12_type", "effects.csv")),
@@ -227,82 +346,46 @@ meta28hazards <-
   mutate(
     hr_display = paste0(label_number(accuracy=0.01)(hr), " (", label_number(accuracy=0.01)(hr.ll), "-", label_number(accuracy=0.01)(hr.ul), ")"),
     ve_display = paste0(label_percent(accuracy=0.1)(ve), " (", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
+    ve_display95 = paste0(label_percent(accuracy=0.1)(ve), " (95% CI ", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
   )
 
-
-
-meta42hazards <- 
-  # derive directly from hazards as meta28effects table needs to be re-run
-  bind_rows(
-    read_csv(fs::path(output_dir_os, "none", "effects.csv")),
-    read_csv(fs::path(output_dir_os, "vax12_type", "effects.csv")),
-    read_csv(fs::path(output_dir_os, "cev", "effects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
-    read_csv(fs::path(output_dir_os, "age65plus", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
-    read_csv(fs::path(output_dir_os, "prior_covid_infection", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level)),
-  ) %>%
-  filter(
-    outcome %in% outcomes
-  ) %>%
-  mutate(
-    period = (term_right>42) + 1,
-    subgroup_descr = fct_inorder(subgroup_descr),
-    subgroup_level = fct_inorder(subgroup_level),
-    subgroup_level_descr = fct_inorder(fct_explicit_na(subgroup_level_descr, "All")),
-    treatment_descr = fct_inorder(treatment_descr),
-    outcome_descr = fct_inorder(outcome_descr),
-    outcome_descr_wrap = fct_relabel(outcome_descr, ~str_wrap(., width=15)),
-  ) %>%
-  group_by(
-    treatment, treatment_descr, outcome, outcome_descr, outcome_descr_wrap, subgroup, subgroup_variable, subgroup_descr, subgroup_level, subgroup_level_descr, model, model_descr, period, 
-  ) %>%
-  summarise(
-    term_left = min(term_left),
-    term_right = max(term_right),
-    term_midpoint = (term_left+term_right)/2,
-    estimate = weighted.mean(estimate, robust.se^-2),
-    std.error = sqrt(1/sum(std.error^-2)),
-    robust.se = sqrt(1/sum(robust.se^-2)),
-    statistic = estimate/robust.se,
-    p.value = 2 * pmin(pnorm(statistic), pnorm(-statistic)),
-    conf.low = estimate + qnorm(0.025)*robust.se,
-    conf.high = estimate + qnorm(0.975)*robust.se,
-    hr = exp(estimate),
-    hr.ll = exp(conf.low),
-    hr.ul = exp(conf.high),
-    ve = 1-hr,
-    ve.ll = 1-hr.ul,
-    ve.ul = 1-hr.ll
-  ) %>%
-  ungroup() %>%
-  mutate(
-    hr_display = paste0(label_number(accuracy=0.01)(hr), " (", label_number(accuracy=0.01)(hr.ll), "-", label_number(accuracy=0.01)(hr.ul), ")"),
-    ve_display = paste0(label_percent(accuracy=0.1)(ve), " (", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
-  )
-
+# meta2hazards <- 
+#   bind_rows(
+#     read_csv(fs::path(output_dir_os, "none", "meta2effects.csv")),
+#     read_csv(fs::path(output_dir_os, "vax12_type", "meta2effects.csv")),
+#     read_csv(fs::path(output_dir_os, "cev", "meta2effects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+#     read_csv(fs::path(output_dir_os, "age65plus", "meta2effects.csv")) %>% mutate(subgroup_level=as.character(subgroup_level)),
+#   ) %>%
+#   filter(
+#     outcome %in% outcomes
+#   ) %>%
+#   mutate(
+#     subgroup_descr = fct_inorder(subgroup_descr),
+#     subgroup_level = fct_inorder(subgroup_level),
+#     subgroup_level_descr = fct_inorder(fct_explicit_na(subgroup_level_descr, "All")),
+#     treatment_descr = fct_inorder(treatment_descr),
+#     outcome_descr = fct_inorder(outcome_descr),
+#     outcome_descr_wrap = fct_relabel(outcome_descr, ~str_wrap(., width=20)),
+#     #model_name = fct_inorder(str_wrap(model_name, 15)),
+#     hr_display = paste0(label_number(accuracy=0.01)(hr), " (", label_number(accuracy=0.01)(hr.ll), "-", label_number(accuracy=0.01)(hr.ul), ")"),
+#     ve_display = paste0(label_percent(accuracy=0.1)(ve), " (", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
+#   )
 
 hazards3 <- hazards %>% filter(model==3)
+
 
 ```
 
 \newpage
 
-<!-- TODO -->
+&nbsp; &nbsp; &nbsp;
 
-<!-- * full description of booster eligiblity over time -->
+&nbsp; &nbsp; &nbsp;
 
-<!-- * figure 1 chart with SMD / %-point differences -->
-
-<!-- * check for moderna references and remove if necessary -->
-
-<!-- * check final recruitment day and include in results -->
-
-<!-- * check if rolling average restrictions are ever used (need to output dataset) -->
-
-<!-- * references -->
+&nbsp; &nbsp; &nbsp;
 
 
-
-#### Table 0: Inclusion criteria
+### Table 0: Inclusion criteria
 
 ```{r flowchart, echo=FALSE, warning=FALSE, message=FALSE}
 
@@ -316,7 +399,7 @@ matchflowchart %>%
     pct_all
   ) %>%
   pivot_wider(
-    id_cols = c(stage, criteria),
+    id_cols = c(stage, criteria, treatment),
     names_from = treatment,
     values_from = c(n, n_exclude, pct_all)
   ) %>%
@@ -326,17 +409,21 @@ matchflowchart %>%
     criteria = "",
     
     n_pfizer = "N",
-    #n_moderna = "N",
+    n_moderna = "N",
 
     n_exclude_pfizer = "N excluded",
-    #n_exclude_moderna = "N excluded",
+    n_exclude_moderna = "N excluded",
     
     pct_all_pfizer = "% remaining",
-    #pct_all_moderna = "% remaining",
+    pct_all_moderna = "% remaining",
   ) %>%
   tab_spanner(
     label = "BNT162b2",
     columns = ends_with("pfizer")
+  ) %>%
+   tab_spanner(
+    label = "ChAdOx1-S",
+    columns = ends_with("moderna")
   ) %>%
   # tab_spanner(
   #   label = "mRNA-1273",
@@ -361,12 +448,19 @@ matchflowchart %>%
   )
 ```
 
+\newpage 
+&nbsp; &nbsp; &nbsp;
 
-#### Table 1a: Participant characteristics for Pfizer boosting
+&nbsp; &nbsp; &nbsp;
+
+&nbsp; &nbsp; &nbsp;
+
+
+### Table 1a: Participant characteristics for BNT162b2 boosting
 
 Participant characteristics as on the day of recruitment into the treatment or control group.
 
-```{r table1, echo=FALSE, warning=FALSE, message=FALSE}
+```{r table1a, echo=FALSE, warning=FALSE, message=FALSE}
 table1_body <- read_csv(fs::path(output_dir_os, "matchtable1.csv")) %>% filter(treatment=="pfizer")
 table1_by <- read_csv(fs::path(output_dir_os, "matchtable1by.csv")) %>% filter(treatment=="pfizer")
 
@@ -416,13 +510,19 @@ table1 %>%
   cols_hide(c("variable", "var_label", "order"))
 ```
 
+\newpage 
+&nbsp; &nbsp; &nbsp;
+
+&nbsp; &nbsp; &nbsp;
+
+&nbsp; &nbsp; &nbsp;
 
 
-#### Table 1b: Participant characteristics for Moderna boosting
+### Table 1b: Participant characteristics for mRA-1273 boosting
 
 Participant characteristics as on the day of recruitment into the treatment or control group.
 
-```{r table1, echo=FALSE, warning=FALSE, message=FALSE}
+```{r table1b, echo=FALSE, warning=FALSE, message=FALSE}
 table1_body <- read_csv(fs::path(output_dir_os, "matchtable1.csv")) %>% filter(treatment=="moderna")
 table1_by <- read_csv(fs::path(output_dir_os, "matchtable1by.csv")) %>% filter(treatment=="moderna")
 
@@ -474,57 +574,81 @@ table1 %>%
 
 
 \newpage
+&nbsp; &nbsp; &nbsp;
 
-
-#### Table 2a: Follow-up and outcomes for Pfizer boosting
+### Table 2a: Follow-up and outcomes for BNT162b2 boosting
 
 Total follow-up and incidence rates for each outcome, by treatment group. 
 
-```{r table2, echo=FALSE, warning=FALSE, message=FALSE}
-incidences %>%
+Counts in the underlying risk table has been rounded up to the nearest 6, so numbers may not add up exactly.
+
+```{r table2a, echo=FALSE, warning=FALSE, message=FALSE}
+
+format_ratio = function(numer,denom, width=7){
+  paste0(
+    replace_na(scales::comma_format(accuracy=1)(numer), "--"),
+    " / ",
+    str_pad(replace_na(scales::comma_format(accuracy=1)(denom),"--"), width=width, pad=" ")
+  )
+}
+
+
+km70_table <- 
+  kmtreated_overall %>%
   filter(
-    fup_period == "All",
-    outcome %in% c("postest", "covidadmitted", "coviddeath", "noncoviddeath"),
-    treatment == "pfizer"
+    #fup_period == "All",
+    outcome %in% outcomes,
+    treatment == "pfizer",
+    #subgroup == "none",
   ) %>%
-  left_join(
-    matchsummary %>% select(treatment, n_eligible, prop_matched_eligible),
-    by=c("treatment")
-  ) %>%
+  ungroup() %>%
   mutate(
-    treatment_descr = paste0(
-      #treatment_descr, " - ",
-      label_number(1, big.mark=",")(n_eligible), " eligible, ",
-      label_number(1, big.mark=",")(n_1), " matched (",
-      label_percent(0.1)(prop_matched_eligible), ")."
-    ),
+    n.atrisk = label_number(accuracy=1, big.mark = ",")(n.atrisk_1),
+    q_0 = format_ratio(cml.event_0, cml.atrisk_0/365.25),
+    q_1 = format_ratio(cml.event_1, cml.atrisk_1/365.25),
+    risk_1=label_number(accuracy=0.01, scale=1000)(risk_1),
+    risk_0=label_number(accuracy=0.01, scale=1000)(risk_0),
+    kmrr = label_number(accuracy=0.001)(kmrr),
+    kmrd = label_number(accuracy=0.01, scale=1000)(kmrd)
   ) %>%
+  group_by(treatment, outcome, subgroup_variable_descr, subgroup_level_descr) %>%
+  mutate(
+    subgroup_level_descr=if_else(row_number()==1, subgroup_level_descr, as.factor("")),
+    subgroup_level_descr=if_else(subgroup_variable_descr!="Main analysis", subgroup_level_descr, as.factor(""))
+  ) %>%
+  group_by(treatment, outcome, subgroup_variable_descr) %>%
+  mutate(
+    subgroup_variable_descr=if_else(row_number()==1, subgroup_variable_descr, as.factor(""))
+  ) %>% 
+  ungroup() %>%
   select(
-    treatment_descr, 
     outcome_descr,
+    subgroup_variable_descr,
+    subgroup_level_descr,
+    n.atrisk,
     q_1,
-    rate_1,
+    risk_1,
     q_0, 
-    rate_0,
-    rrECI
-  ) %>%
-  mutate(
-    rate_1=if_else(rate_1<0.001, "<0.001", label_number(0.001)(rate_1)),
-    rate_0=if_else(rate_0<0.001, "<0.001", label_number(0.001)(rate_0)),
-  ) %>%
+    risk_0,
+    kmrr,
+    kmrd
+  ) 
+
   gt(
-   groupname_col = c("treatment_descr"),
+    km70_table,
+   groupname_col = c("outcome_descr"),
   ) %>%
   cols_label(
-    #treatment_descr = "Treatment",
-    outcome_descr = "Outcome",
-
+    subgroup_variable_descr = "Subgroup",
+    subgroup_level_descr = "",
+    #fup_period = "Days since booster",
     q_0 = "Events / person-years",
     q_1   = "Events / person-years",
-
-    rate_0 = "Incidence rate",
-    rate_1 = "Incidence rate",
-    rrECI = "Incidence rate ratio (95% CI)"
+    n.atrisk = "N per group",
+    risk_0 = "Cumulative risk, per 1000 people",
+    risk_1 = "Cumulative risk, per 1000 people",
+    kmrr = "Risk ratio",
+    kmrd = "Risk difference, per 1000 people"
   ) %>%
   tab_spanner(
     label = "Boosted",
@@ -534,9 +658,13 @@ incidences %>%
     label = "Unboosted",
     columns = ends_with("0")
   ) %>%
+  tab_spanner(
+    label = "Boosted versus unboosted",
+    columns = starts_with("km")
+  ) %>%
   fmt_missing(
     everything(),
-    missing_text="--"
+    missing_text=""
   ) %>%
   cols_align(
     align = "right",
@@ -544,60 +672,91 @@ incidences %>%
   ) 
 
 
+
+
 ```
 \newpage
+&nbsp; &nbsp; &nbsp;
+
+&nbsp; &nbsp; &nbsp;
+
+&nbsp; &nbsp; &nbsp;
 
 
-
-#### Table 2b: Follow-up and outcomes for Moderna boosting
+### Table 2b: Follow-up and outcomes for mRNA-1273 boosting
 
 Total follow-up and incidence rates for each outcome, by treatment group. 
 
-```{r table2, echo=FALSE, warning=FALSE, message=FALSE}
-incidences %>%
+Counts in the underlying risk table has been rounded up to the nearest 6, so numbers may not add up exactly.
+
+```{r table2b, echo=FALSE, warning=FALSE, message=FALSE}
+
+format_ratio = function(numer,denom, width=7){
+  paste0(
+    replace_na(scales::comma_format(accuracy=1)(numer), "--"),
+    " / ",
+    str_pad(replace_na(scales::comma_format(accuracy=1)(denom),"--"), width=width, pad=" ")
+  )
+}
+
+
+km70_table <- 
+  kmtreated_overall %>%
   filter(
-    fup_period == "All",
-    outcome %in% c("postest", "covidadmitted", "coviddeath", "noncoviddeath"),
-    treatment == "moderna"
+    #fup_period == "All",
+    outcome %in% outcomes,
+    treatment == "moderna",
+    #subgroup == "none",
   ) %>%
-  left_join(
-    matchsummary %>% select(treatment, n_eligible, prop_matched_eligible),
-    by=c("treatment")
-  ) %>%
+  ungroup() %>%
   mutate(
-    treatment_descr = paste0(
-      #treatment_descr, " - ",
-      label_number(1, big.mark=",")(n_eligible), " eligible, ",
-      label_number(1, big.mark=",")(n_1), " matched (",
-      label_percent(0.1)(prop_matched_eligible), ")."
-    ),
+    n.atrisk = label_number(accuracy=1, big.mark = ",")(n.atrisk_1),
+    q_0 = format_ratio(cml.event_0, cml.atrisk_0/365.25),
+    q_1 = format_ratio(cml.event_1, cml.atrisk_1/365.25),
+    risk_1=label_number(accuracy=0.01, scale=1000)(risk_1),
+    risk_0=label_number(accuracy=0.01, scale=1000)(risk_0),
+    kmrr = label_number(accuracy=0.001)(kmrr),
+    kmrd = label_number(accuracy=0.01, scale=1000)(kmrd)
   ) %>%
+  group_by(treatment, outcome, subgroup_variable_descr, subgroup_level_descr) %>%
+  mutate(
+    subgroup_level_descr=if_else(row_number()==1, subgroup_level_descr, as.factor("")),
+    subgroup_level_descr=if_else(subgroup_variable_descr!="Main analysis", subgroup_level_descr, as.factor(""))
+  ) %>%
+  group_by(treatment, outcome, subgroup_variable_descr) %>%
+  mutate(
+    subgroup_variable_descr=if_else(row_number()==1, subgroup_variable_descr, as.factor(""))
+  ) %>% 
+  ungroup() %>%
   select(
-    treatment_descr, 
+    #treatment_descr, 
     outcome_descr,
+    subgroup_variable_descr,
+    subgroup_level_descr,
+    n.atrisk,
     q_1,
-    rate_1,
+    risk_1,
     q_0, 
-    rate_0,
-    rrECI
-  ) %>%
-  mutate(
-    rate_1=if_else(rate_1<0.001, "<0.001", label_number(0.001)(rate_1)),
-    rate_0=if_else(rate_0<0.001, "<0.001", label_number(0.001)(rate_0)),
-  ) %>%
+    risk_0,
+    kmrr,
+    kmrd
+  ) 
+
   gt(
-   groupname_col = c("treatment_descr"),
+    km70_table,
+   groupname_col = c("outcome_descr"),
   ) %>%
   cols_label(
-    #treatment_descr = "Treatment",
-    outcome_descr = "Outcome",
-
+    subgroup_variable_descr = "Subgroup",
+    subgroup_level_descr = "",
+    #fup_period = "Days since booster",
     q_0 = "Events / person-years",
     q_1   = "Events / person-years",
-
-    rate_0 = "Incidence rate",
-    rate_1 = "Incidence rate",
-    rrECI = "Incidence rate ratio (95% CI)"
+    n.atrisk = "N per group",
+    risk_0 = "Cumulative risk, per 1000 people",
+    risk_1 = "Cumulative risk, per 1000 people",
+    kmrr = "Risk ratio",
+    kmrd = "Risk difference, per 1000 people"
   ) %>%
   tab_spanner(
     label = "Boosted",
@@ -607,9 +766,13 @@ incidences %>%
     label = "Unboosted",
     columns = ends_with("0")
   ) %>%
+  tab_spanner(
+    label = "Boosted versus unboosted",
+    columns = starts_with("km")
+  ) %>%
   fmt_missing(
     everything(),
-    missing_text="--"
+    missing_text=""
   ) %>%
   cols_align(
     align = "right",
@@ -617,15 +780,23 @@ incidences %>%
   ) 
 
 
+
+
 ```
+
+
 \newpage
+&nbsp; &nbsp; &nbsp;
+
+&nbsp; &nbsp; &nbsp;
+
+&nbsp; &nbsp; &nbsp;
 
 
-## Table 3a: Estimated Pfizer booster effectiveness (5 period)
+### Table 3a: Estimated Pfizer booster effectiveness (5 period)
 
 Main and subgroup analyses
-```{r table_effects, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
-
+```{r table_effectsa, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
 
 
 bind_rows(
@@ -675,11 +846,16 @@ bind_rows(
 ```
 
 \newpage
+&nbsp; &nbsp; &nbsp;
 
-## Table 3a: Estimated Moderna booster effectiveness (5 period)
+&nbsp; &nbsp; &nbsp;
+
+&nbsp; &nbsp; &nbsp;
+
+### Table 3b: Estimated Moderna booster effectiveness (5 period)
 
 Main and subgroup analyses
-```{r table_effects, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
+```{r table_effectsb, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
 
 
 
@@ -731,12 +907,17 @@ bind_rows(
 
 \newpage
 
+&nbsp; &nbsp; &nbsp;
 
-#### Figure 1: Booster vaccination uptake, treatment group eligibility and matching success
+&nbsp; &nbsp; &nbsp;
+
+&nbsp; &nbsp; &nbsp;
+
+### Figure 1a: Pfizer booster vaccination uptake, treatment group eligibility and matching success
 
 Cumulative booster vaccination over the duration of the study period, by matching eligibility and matching success. Separately by primary vaccination course.
 
-```{r, vaxdate, echo=FALSE, message=FALSE, warning=FALSE, out.width='60%', out.height='50%', results='asis', out.extra=''}
+```{r, vaxdatea, echo=FALSE, message=FALSE, warning=FALSE, out.width='60%', out.height='50%', results='asis', out.extra=''}
 #read_rds(fs::path(output_dir_os, "descriptive", "vaxdate", "plot_vaxdate_stack.rds"))
 
 xmin <- min(matchcoverage$vax3_date )
@@ -750,7 +931,7 @@ data_coverage <- matchcoverage  %>%
   mutate(
     status_descr = fct_inorder(status_descr)
   ) %>%
-  #filter(treatment=="pfizer") %>%
+  filter(treatment=="pfizer") %>%
   mutate(
     # vax12_type = fct_case_when(
     #   vax12_type == "pfizer-pfizer" ~ "BNT162b2",
@@ -802,7 +983,116 @@ ggplot(data_coverage) +
   geom_text(data=data_annotate, mapping=aes(x = xpos, y = (ypos), label = status_descr, colour=status_descr), hjust=0, show.legend = FALSE)+
   facet_wrap(vars(course))+
   scale_x_date(
-    breaks = unique(lubridate::ceiling_date(matchcoverage$vax3_date, "1 month")),
+    breaks = unique(lubridate::ceiling_date(data_coverage$vax3_date, "1 month")),
+    limits = c(lubridate::floor_date((xmin), "1 month"), NA),
+    labels = scales::label_date("%d/%m"),
+    expand = expansion(add=1),
+  )+
+  scale_y_continuous(
+    labels = scales::label_number(accuracy = 1, big.mark=","),
+    expand = expansion(c(0, NA))
+  )+
+  scale_fill_brewer(type="qual", palette="Set2", direction = -1)+
+  scale_colour_brewer(type="qual", palette="Set2", direction = -1)+
+  labs(
+    x="Date",
+    y="Cumulative booster vaccines",
+    colour=NULL,
+    fill=NULL,
+    alpha=NULL
+  ) +
+  theme_minimal()+
+  theme(
+    axis.line.x.bottom = element_line(),
+    axis.text.x.top=element_text(hjust=0),
+    strip.text.y.right = element_text(angle = 0),
+    axis.ticks.x=element_line(),
+    legend.position = "none"
+  )+
+  NULL
+cat("  \n\n")
+```
+
+
+\newpage
+
+&nbsp; &nbsp; &nbsp;
+
+&nbsp; &nbsp; &nbsp;
+
+&nbsp; &nbsp; &nbsp;
+
+### Figure 1b: Moderna booster vaccination uptake, treatment group eligibility and matching success
+
+Cumulative booster vaccination over the duration of the study period, by matching eligibility and matching success. Separately by primary vaccination course.
+
+```{r, vaxdateb, echo=FALSE, message=FALSE, warning=FALSE, out.width='60%', out.height='50%', results='asis', out.extra=''}
+#read_rds(fs::path(output_dir_os, "descriptive", "vaxdate", "plot_vaxdate_stack.rds"))
+
+xmin <- min(matchcoverage$vax3_date )
+xmax <- max(matchcoverage$vax3_date )+1
+data_coverage <- matchcoverage  %>%
+  mutate(
+    status = factor(status, levels=c("ineligible", "unmatched", "matched")),
+    status_descr = fct_relabel(status, str_to_title)
+  ) %>%
+  arrange(status) %>%
+  mutate(
+    status_descr = fct_inorder(status_descr)
+  ) %>%
+  filter(treatment=="moderna") %>%
+  mutate(
+    # vax12_type = fct_case_when(
+    #   vax12_type == "pfizer-pfizer" ~ "BNT162b2",
+    #   vax12_type == "az-az" ~ "ChAdOx1-S",
+    #   vax12_type == "moderna-moderna" ~ "mRNA-1273",
+    #   TRUE ~ NA_character_
+    # ),
+    course = fct_case_when(
+      #vax12_type=="pfizer-pfizer" & treatment=="pfizer" ~ "2× BNT162b2  / 1× BNT162b2",
+      #vax12_type=="az-az" & treatment=="pfizer" ~ "2× ChAdOx1-S / 1× BNT162b2",
+      vax12_type=="pfizer-pfizer" & treatment=="moderna" ~ "2× BNT162b2 / 1× mRNA-1273",
+      vax12_type=="az-az" & treatment=="moderna" ~ "2× ChAdOx1-S / 1× mRNA-1273",
+      TRUE ~ NA_character_
+    )
+  )
+
+data_annotate <- 
+  data_coverage %>%
+  filter(vax12_type=="pfizer-pfizer") %>%
+  group_by(status_descr, course) %>%
+  summarise(
+    xpos = first(lubridate::floor_date((vax3_date), "1 month")),
+    ypos= max(cumuln)
+  ) %>%
+  ungroup() %>%
+  arrange(desc(status_descr)) %>%
+  mutate(
+    ypos=(cumsum(ypos) + lag(cumsum(ypos), 1, 0))/2
+  ) %>%
+  mutate(
+    course="2× ChAdOx1-S / 1× mRNA-1273"
+  )
+  
+  
+ggplot(data_coverage) +
+  geom_col(
+    aes(
+      x=vax3_date+0.5,
+      y=cumuln,
+      group=status_descr,
+      fill=status_descr,
+      colour=NULL
+    ),
+    position=position_stack(),
+    alpha=0.5,
+    width=1
+  )+
+  geom_rect(xmin=xmin, xmax= xmax+1, ymin=0, ymax=6, fill="grey", colour="transparent")+
+  geom_text(data=data_annotate, mapping=aes(x = xpos, y = (ypos), label = status_descr, colour=status_descr), hjust=0, show.legend = FALSE)+
+  facet_wrap(vars(course))+
+  scale_x_date(
+    breaks = unique(lubridate::ceiling_date(data_coverage$vax3_date, "1 month")),
     limits = c(lubridate::floor_date((xmin), "1 month"), NA),
     labels = scales::label_date("%d/%m"),
     expand = expansion(add=1),
@@ -834,11 +1124,17 @@ cat("  \n\n")
 
 \newpage
 
-#### Figure 2a: Estimated booster effectiveness (5 period)
+&nbsp; &nbsp; &nbsp;
+
+&nbsp; &nbsp; &nbsp;
+
+&nbsp; &nbsp; &nbsp;
+
+### Figure 2: Estimated booster effectiveness (5 period)
 
 For each outcome based on the fully adjusted model, the period-specific hazard ratios for boosting with BNT162b2 versus not boosting is shown, stratified by primary course. 
 
-```{r plot_effects, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
+```{r plot_effects, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=9.5, out.width='90%', results='asis'}
 
 formatpercent100 <- function(x,accuracy){
   formatx <- scales::label_percent(accuracy, suffix="")(x)
@@ -860,9 +1156,12 @@ formatpercent100 <- function(x,accuracy){
     filter(
       model==3, 
       outcome %in% outcomes,
-      treatment %in% c("pfizer"),
-      subgroup_variable %in% c("none", "vax12_type")
-    )
+      #treatment %in% c("pfizer"),
+      subgroup_variable %in% c("none", "vax12_type", "cev", "age65plus", "prior_covid_infection")
+    ) %>%
+    mutate(
+      subgroup_level_descr=fct_relabel(subgroup_level_descr, ~str_wrap(., width=10))
+    ) 
   
   
   plot_hazards <-
@@ -870,20 +1169,25 @@ formatpercent100 <- function(x,accuracy){
     filter(
       model==3,
       outcome %in% outcomes,
-      treatment %in% c("pfizer"),
-      subgroup_variable %in% c("none", "vax12_type")
+      #treatment %in% c("pfizer"),
+      subgroup_variable %in% c("none", "vax12_type", "cev", "age65plus", "prior_covid_infection")
+    ) %>%
+    ungroup() %>%
+    mutate(
+      subgroup_level_descr_wrap=fct_relabel(subgroup_level_descr, ~str_wrap(.x, width=10))
     ) %>%
     ggplot()+
-    geom_point(aes(y=hr, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
-    geom_linerange(aes(ymin=hr.ll, ymax=hr.ul, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
-    geom_point(data = overallhazards_plotdata, mapping = aes(y=hr, x=max(postbaselinecuts+14)), colour="darkgrey") +
-    geom_linerange(data = overallhazards_plotdata, mapping = aes(ymin=hr.ll, ymax=hr.ul, x=max(postbaselinecuts+14)), colour="darkgrey") +
-    geom_rect(data = overallhazards_plotdata, ymin=-Inf, ymax=Inf, xmin=max(postbaselinecuts+14)-7, xmax=max(postbaselinecuts+14)+7, fill="grey95", alpha=0.5, colour="transparent") +
+    #geom_rect(data = overallhazards_plotdata, ymin=-Inf, ymax=Inf, xmin=max(postbaselinecuts+14)-7, xmax=max(postbaselinecuts+14)+7, fill="grey95", alpha=0.5, colour="transparent") +
+    geom_point(aes(y=hr, x=term_midpoint, colour=treatment_descr), position = position_dodge(width = 1.8))+
+    geom_linerange(aes(ymin=hr.ll, ymax=hr.ul, x=term_midpoint, colour=treatment_descr), position = position_dodge(width = 1.8))+
+    #geom_point(data = overallhazards_plotdata, mapping = aes(y=hr, x=max(postbaselinecuts+14), colour=treatment_descr),  position = position_dodge(width = 1.8)) +
+    #geom_linerange(data = overallhazards_plotdata, mapping = aes(ymin=hr.ll, ymax=hr.ul, x=max(postbaselinecuts+14), colour=treatment_descr),  position = position_dodge(width = 1.8)) +
+    
     geom_hline(aes(yintercept=1), colour='grey')+
-    facet_grid(rows=vars(outcome_descr_wrap), cols=vars(subgroup_level_descr), switch="y")+
+    facet_grid(rows=vars(subgroup_level_descr_wrap), cols=vars(outcome_descr_wrap), switch="y")+
     scale_y_log10(
       breaks=y_breaks,
-      limits = c(0.01, 1.5),
+      limits = c(0.05, 1.5),
       oob = scales::oob_keep,
       sec.axis = sec_axis(
         ~(1-.),
@@ -892,8 +1196,8 @@ formatpercent100 <- function(x,accuracy){
         labels = function(x){formatpercent100(x, 1)}
       )
     )+
-    scale_x_continuous(breaks=c(postbaselinecuts, max(postbaselinecuts+14)), labels=c(postbaselinecuts, "Overall"), limits=c(min(postbaselinecuts), max(postbaselinecuts+14)+14), expand = c(0, 0))+
-    scale_colour_brewer(type="qual", palette="Set2", guide=guide_legend(ncol=1))+
+    scale_x_continuous(breaks=c(postbaselinecuts), labels=c(postbaselinecuts), limits=c(min(postbaselinecuts), max(postbaselinecuts)), expand = c(0, 0))+
+    scale_colour_brewer(type="qual", palette="Set2", guide=guide_legend(ncol=2))+
     labs(
       y="Hazard ratio",
       x="Days since booster dose",
@@ -918,7 +1222,8 @@ formatpercent100 <- function(x,accuracy){
       plot.caption.position = "plot",
       plot.caption = element_text(hjust = 0, face= "italic"),
   
-      legend.position = "none"
+      legend.position = "bottom",
+      legend.direction = "horizontal"
      ) +
     NULL
   
@@ -928,250 +1233,256 @@ formatpercent100 <- function(x,accuracy){
 
 \newpage
 
+&nbsp; &nbsp; &nbsp;
 
-#### Figure 2b: Estimated booster effectiveness (2 period split at 28 days)
+&nbsp; &nbsp; &nbsp;
 
-For each outcome based on the fully adjusted model, the period-specific hazard ratios for boosting with BNT162b2 versus not boosting is shown, stratified by primary course.
+&nbsp; &nbsp; &nbsp;
 
-```{r plot_effects28, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
+<!-- #### Figure 2b: Estimated booster effectiveness (2 period split at 28 days) -->
 
-formatpercent100 <- function(x,accuracy){
-  formatx <- scales::label_percent(accuracy, suffix="")(x)
+<!-- For each outcome based on the fully adjusted model, the period-specific hazard ratios for boosting with BNT162b2 versus not boosting is shown, stratified by primary course. -->
 
-  if_else(
-    formatx==scales::label_percent(accuracy, suffix="")(1),
-    paste0(">",scales::label_percent(1, suffix="")((100-accuracy)/100)),
-    formatx
-  )
-}
- ## hazard ratio
+<!-- ```{r plot_effects28, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'} -->
 
-  y_breaks <- c(0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2)
+<!-- formatpercent100 <- function(x,accuracy){ -->
+<!--   formatx <- scales::label_percent(accuracy, suffix="")(x) -->
 
-  
-  overallhazards_plotdata <- 
-    overallhazards %>%
-    filter(
-      model==3, 
-      outcome %in% outcomes,
-      treatment %in% c("pfizer"),
-      subgroup_variable %in% c("none", "vax12_type")
-    )
-  
-  postbaselinecuts28 <- c(0,28,70)
-  
-  plot_hazards <-
-    meta28hazards %>%
-    filter(
-      model==3,
-      outcome %in% outcomes,
-      treatment %in% c("pfizer"),
-      subgroup_variable %in% c("none", "vax12_type")
-    ) %>%
-    ggplot()+
-    geom_point(aes(y=hr, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
-    geom_linerange(aes(ymin=hr.ll, ymax=hr.ul, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
-    geom_point(data = overallhazards_plotdata, mapping = aes(y=hr, x=max(postbaselinecuts28+14)), colour="darkgrey") +
-    geom_linerange(data = overallhazards_plotdata, mapping = aes(ymin=hr.ll, ymax=hr.ul, x=max(postbaselinecuts28+14)), colour="darkgrey") +
-    geom_rect(data = overallhazards_plotdata, ymin=-Inf, ymax=Inf, xmin=max(postbaselinecuts28+14)-7, xmax=max(postbaselinecuts28+14)+7, fill="grey95", alpha=0.5, colour="transparent") +
-    geom_hline(aes(yintercept=1), colour='grey')+
-    facet_grid(rows=vars(outcome_descr_wrap), cols=vars(subgroup_level_descr), switch="y")+
-    scale_y_log10(
-      breaks=y_breaks,
-      limits = c(0.01, 1.5),
-      oob = scales::oob_keep,
-      sec.axis = sec_axis(
-        ~(1-.),
-        name="Effectiveness (%)",
-        breaks = 1-(y_breaks),
-        labels = function(x){formatpercent100(x, 1)}
-      )
-    )+
-    scale_x_continuous(breaks=c(postbaselinecuts28, max(postbaselinecuts28+14)), labels=c(postbaselinecuts28, "Overall"), limits=c(min(postbaselinecuts28), max(postbaselinecuts28+14)+14), expand = c(0, 0))+
-    scale_colour_brewer(type="qual", palette="Set2", guide=guide_legend(ncol=1))+
-    labs(
-      y="Hazard ratio",
-      x="Days since booster dose",
-      colour=NULL
-     ) +
-    theme_minimal()+
-    theme(
-      panel.border = element_blank(),
-      axis.line.y = element_line(colour = "black"),
-      axis.line.y.right = element_blank(),
-  
-      panel.grid.minor.x = element_blank(),
-      panel.grid.minor.y = element_blank(),
-      strip.background = element_blank(),
-      strip.placement = "outside",
-      strip.text.y.left = element_text(angle = 0),
-  
-      panel.spacing = unit(0.8, "lines"),
-  
-      plot.title = element_text(hjust = 0),
-      plot.title.position = "plot",
-      plot.caption.position = "plot",
-      plot.caption = element_text(hjust = 0, face= "italic"),
-  
-      legend.position = "none"
-     ) +
-    NULL
-  plot_hazards
-  
-```
+<!--   if_else( -->
+<!--     formatx==scales::label_percent(accuracy, suffix="")(1), -->
+<!--     paste0(">",scales::label_percent(1, suffix="")((100-accuracy)/100)), -->
+<!--     formatx -->
+<!--   ) -->
+<!-- } -->
+<!--  ## hazard ratio -->
+
+<!--   y_breaks <- c(0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2) -->
 
 
-\newpage 
+<!--   overallhazards_plotdata <-  -->
+<!--     overallhazards %>% -->
+<!--     filter( -->
+<!--       model==3,  -->
+<!--       outcome %in% outcomes, -->
+<!--       treatment %in% c("pfizer"), -->
+<!--       subgroup_variable %in% c("none", "vax12_type") -->
+<!--     ) -->
+
+<!--   postbaselinecuts28 <- c(0,28,70) -->
+
+<!--   plot_hazards <- -->
+<!--     meta28hazards %>% -->
+<!--     filter( -->
+<!--       model==3, -->
+<!--       outcome %in% outcomes, -->
+<!--       treatment %in% c("pfizer"), -->
+<!--       subgroup_variable %in% c("none", "vax12_type") -->
+<!--     ) %>% -->
+<!--     ggplot()+ -->
+<!--     geom_point(aes(y=hr, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+ -->
+<!--     geom_linerange(aes(ymin=hr.ll, ymax=hr.ul, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+ -->
+<!--     geom_point(data = overallhazards_plotdata, mapping = aes(y=hr, x=max(postbaselinecuts28+14)), colour="darkgrey") + -->
+<!--     geom_linerange(data = overallhazards_plotdata, mapping = aes(ymin=hr.ll, ymax=hr.ul, x=max(postbaselinecuts28+14)), colour="darkgrey") + -->
+<!--     geom_rect(data = overallhazards_plotdata, ymin=-Inf, ymax=Inf, xmin=max(postbaselinecuts28+14)-7, xmax=max(postbaselinecuts28+14)+7, fill="grey95", alpha=0.5, colour="transparent") + -->
+<!--     geom_hline(aes(yintercept=1), colour='grey')+ -->
+<!--     facet_grid(rows=vars(outcome_descr_wrap), cols=vars(subgroup_level_descr), switch="y")+ -->
+<!--     scale_y_log10( -->
+<!--       breaks=y_breaks, -->
+<!--       limits = c(0.01, 1.5), -->
+<!--       oob = scales::oob_keep, -->
+<!--       sec.axis = sec_axis( -->
+<!--         ~(1-.), -->
+<!--         name="Effectiveness (%)", -->
+<!--         breaks = 1-(y_breaks), -->
+<!--         labels = function(x){formatpercent100(x, 1)} -->
+<!--       ) -->
+<!--     )+ -->
+<!--     scale_x_continuous(breaks=c(postbaselinecuts28, max(postbaselinecuts28+14)), labels=c(postbaselinecuts28, "Overall"), limits=c(min(postbaselinecuts28), max(postbaselinecuts28+14)+14), expand = c(0, 0))+ -->
+<!--     scale_colour_brewer(type="qual", palette="Set2", guide=guide_legend(ncol=1))+ -->
+<!--     labs( -->
+<!--       y="Hazard ratio", -->
+<!--       x="Days since booster dose", -->
+<!--       colour=NULL -->
+<!--      ) + -->
+<!--     theme_minimal()+ -->
+<!--     theme( -->
+<!--       panel.border = element_blank(), -->
+<!--       axis.line.y = element_line(colour = "black"), -->
+<!--       axis.line.y.right = element_blank(), -->
+
+<!--       panel.grid.minor.x = element_blank(), -->
+<!--       panel.grid.minor.y = element_blank(), -->
+<!--       strip.background = element_blank(), -->
+<!--       strip.placement = "outside", -->
+<!--       strip.text.y.left = element_text(angle = 0), -->
+
+<!--       panel.spacing = unit(0.8, "lines"), -->
+
+<!--       plot.title = element_text(hjust = 0), -->
+<!--       plot.title.position = "plot", -->
+<!--       plot.caption.position = "plot", -->
+<!--       plot.caption = element_text(hjust = 0, face= "italic"), -->
+
+<!--       legend.position = "none" -->
+<!--      ) + -->
+<!--     NULL -->
+<!--   plot_hazards -->
+
+<!-- ``` -->
 
 
-#### Figure 2c: Estimated booster effectiveness (2 period split at 42 days)
-
-For each outcome based on the fully adjusted model, the period-specific hazard ratios for boosting with BNT162b2 versus not boosting is shown, stratified by primary course.
-
-```{r plot_effects42, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
-
-formatpercent100 <- function(x,accuracy){
-  formatx <- scales::label_percent(accuracy, suffix="")(x)
-
-  if_else(
-    formatx==scales::label_percent(accuracy, suffix="")(1),
-    paste0(">",scales::label_percent(1, suffix="")((100-accuracy)/100)),
-    formatx
-  )
-}
- ## hazard ratio
-
-  y_breaks <- c(0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2)
-
-  
-  overallhazards_plotdata <- 
-    overallhazards %>%
-    filter(
-      model==3, 
-      outcome %in% outcomes,
-      treatment %in% c("pfizer"),
-      subgroup_variable %in% c("none", "vax12_type")
-    )
-  
-  postbaselinecuts42 <- c(0,42,70)
-  
-  plot_hazards <-
-    meta42hazards %>%
-    filter(
-      model==3,
-      outcome %in% outcomes,
-      treatment %in% c("pfizer"),
-      subgroup_variable %in% c("none", "vax12_type")
-    ) %>%
-    ggplot()+
-    geom_point(aes(y=hr, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
-    geom_linerange(aes(ymin=hr.ll, ymax=hr.ul, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+
-    geom_point(data = overallhazards_plotdata, mapping = aes(y=hr, x=max(postbaselinecuts42+14)), colour="darkgrey") +
-    geom_linerange(data = overallhazards_plotdata, mapping = aes(ymin=hr.ll, ymax=hr.ul, x=max(postbaselinecuts42+14)), colour="darkgrey") +
-    geom_rect(data = overallhazards_plotdata, ymin=-Inf, ymax=Inf, xmin=max(postbaselinecuts42+14)-7, xmax=max(postbaselinecuts42+14)+7, fill="grey95", alpha=0.5, colour="transparent") +
-    geom_hline(aes(yintercept=1), colour='grey')+
-    facet_grid(rows=vars(outcome_descr_wrap), cols=vars(subgroup_level_descr), switch="y")+
-    scale_y_log10(
-      breaks=y_breaks,
-      limits = c(0.01, 1.5),
-      oob = scales::oob_keep,
-      sec.axis = sec_axis(
-        ~(1-.),
-        name="Effectiveness (%)",
-        breaks = 1-(y_breaks),
-        labels = function(x){formatpercent100(x, 1)}
-      )
-    )+
-    scale_x_continuous(breaks=c(postbaselinecuts42, max(postbaselinecuts42+14)), labels=c(postbaselinecuts42, "Overall"), limits=c(min(postbaselinecuts42), max(postbaselinecuts42+14)+14), expand = c(0, 0))+
-    scale_colour_brewer(type="qual", palette="Set2", guide=guide_legend(ncol=1))+
-    labs(
-      y="Hazard ratio",
-      x="Days since booster dose",
-      colour=NULL
-     ) +
-    theme_minimal()+
-    theme(
-      panel.border = element_blank(),
-      axis.line.y = element_line(colour = "black"),
-      axis.line.y.right = element_blank(),
-  
-      panel.grid.minor.x = element_blank(),
-      panel.grid.minor.y = element_blank(),
-      strip.background = element_blank(),
-      strip.placement = "outside",
-      strip.text.y.left = element_text(angle = 0),
-  
-      panel.spacing = unit(0.8, "lines"),
-  
-      plot.title = element_text(hjust = 0),
-      plot.title.position = "plot",
-      plot.caption.position = "plot",
-      plot.caption = element_text(hjust = 0, face= "italic"),
-  
-      legend.position = "none"
-     ) +
-    NULL
-
-  plot_hazards
-  
-```
-
-\newpage
+<!-- \newpage  -->
 
 
-## Figure 3: Kaplan-Meier incidence curves
+<!-- #### Figure 2c: Estimated booster effectiveness (2 period split at 42 days) -->
 
-```{r plot_km, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
+<!-- For each outcome based on the fully adjusted model, the period-specific hazard ratios for boosting with BNT162b2 versus not boosting is shown, stratified by primary course. -->
 
-plot_km <- km %>%
-  filter(
-    outcome %in% outcomes,
-    treatment=="pfizer",
-    subgroup_variable %in% c("none", "vax12_type")
-  ) %>%
-    ggplot()+
-    geom_step(aes(x=time, y=(1-surv)*1000, group=treated_descr, colour=treated_descr))+
-    geom_rect(aes(xmin=time, xmax=leadtime, ymin=(1-surv.ll)*1000, ymax=(1-surv.ul)*1000, group=treated_descr, fill=treated_descr), alpha=0.1)+
-    geom_hline(aes(yintercept=0), colour='black')+
-    facet_grid(rows=vars(outcome_descr_wrap), cols=vars(subgroup_level_descr), switch="y", scales="free_y")+
-    scale_x_continuous(
-      breaks = seq(0,7*max(postbaselinecuts),by=14),
-      expand = expansion(0)
-    )+
-    scale_y_continuous(
-      expand = expansion(0),
-      #limits = c(0L,NA)
-    )+
-    scale_colour_brewer(type="qual", palette="Set1", na.value="grey")+
-    scale_fill_brewer(type="qual", palette="Set1", guide="none", na.value="grey")+
-    labs(
-      x=NULL,
-      y="Cumulative incidence\nper 1000",
-      colour=NULL
-    )+
-    theme_minimal()+
-    theme(
-      legend.position=c(0.05,0.85),
-      legend.justification = c(0,0),
-      legend.direction = "vertical",
-      axis.text.x.top=element_text(hjust=0),
+<!-- ```{r plot_effects42, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'} -->
 
-      strip.placement = "outside",
-      strip.background = element_blank(),
-      strip.text.y.left = element_text(angle = 0),
+<!-- formatpercent100 <- function(x,accuracy){ -->
+<!--   formatx <- scales::label_percent(accuracy, suffix="")(x) -->
 
-      panel.border = element_blank(),
-      axis.line.y = element_line(colour = "black"),
-      axis.line.x.top = element_line(colour = "black"),
-      panel.grid.minor.x = element_blank(),
-      panel.grid.minor.y = element_blank(),
+<!--   if_else( -->
+<!--     formatx==scales::label_percent(accuracy, suffix="")(1), -->
+<!--     paste0(">",scales::label_percent(1, suffix="")((100-accuracy)/100)), -->
+<!--     formatx -->
+<!--   ) -->
+<!-- } -->
+<!--  ## hazard ratio -->
 
-      panel.spacing = unit(0.8, "lines"),
-
-    )+
-    NULL
-
-plot_km
+<!--   y_breaks <- c(0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2) -->
 
 
-```
+<!--   overallhazards_plotdata <-  -->
+<!--     overallhazards %>% -->
+<!--     filter( -->
+<!--       model==3,  -->
+<!--       outcome %in% outcomes, -->
+<!--       treatment %in% c("pfizer"), -->
+<!--       subgroup_variable %in% c("none", "vax12_type") -->
+<!--     ) -->
+
+<!--   postbaselinecuts42 <- c(0,42,70) -->
+
+<!--   plot_hazards <- -->
+<!--     meta42hazards %>% -->
+<!--     filter( -->
+<!--       model==3, -->
+<!--       outcome %in% outcomes, -->
+<!--       treatment %in% c("pfizer"), -->
+<!--       subgroup_variable %in% c("none", "vax12_type") -->
+<!--     ) %>% -->
+<!--     ggplot()+ -->
+<!--     geom_point(aes(y=hr, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+ -->
+<!--     geom_linerange(aes(ymin=hr.ll, ymax=hr.ul, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+ -->
+<!--     geom_point(data = overallhazards_plotdata, mapping = aes(y=hr, x=max(postbaselinecuts42+14)), colour="darkgrey") + -->
+<!--     geom_linerange(data = overallhazards_plotdata, mapping = aes(ymin=hr.ll, ymax=hr.ul, x=max(postbaselinecuts42+14)), colour="darkgrey") + -->
+<!--     geom_rect(data = overallhazards_plotdata, ymin=-Inf, ymax=Inf, xmin=max(postbaselinecuts42+14)-7, xmax=max(postbaselinecuts42+14)+7, fill="grey95", alpha=0.5, colour="transparent") + -->
+<!--     geom_hline(aes(yintercept=1), colour='grey')+ -->
+<!--     facet_grid(rows=vars(outcome_descr_wrap), cols=vars(subgroup_level_descr), switch="y")+ -->
+<!--     scale_y_log10( -->
+<!--       breaks=y_breaks, -->
+<!--       limits = c(0.01, 1.5), -->
+<!--       oob = scales::oob_keep, -->
+<!--       sec.axis = sec_axis( -->
+<!--         ~(1-.), -->
+<!--         name="Effectiveness (%)", -->
+<!--         breaks = 1-(y_breaks), -->
+<!--         labels = function(x){formatpercent100(x, 1)} -->
+<!--       ) -->
+<!--     )+ -->
+<!--     scale_x_continuous(breaks=c(postbaselinecuts42, max(postbaselinecuts42+14)), labels=c(postbaselinecuts42, "Overall"), limits=c(min(postbaselinecuts42), max(postbaselinecuts42+14)+14), expand = c(0, 0))+ -->
+<!--     scale_colour_brewer(type="qual", palette="Set2", guide=guide_legend(ncol=1))+ -->
+<!--     labs( -->
+<!--       y="Hazard ratio", -->
+<!--       x="Days since booster dose", -->
+<!--       colour=NULL -->
+<!--      ) + -->
+<!--     theme_minimal()+ -->
+<!--     theme( -->
+<!--       panel.border = element_blank(), -->
+<!--       axis.line.y = element_line(colour = "black"), -->
+<!--       axis.line.y.right = element_blank(), -->
+
+<!--       panel.grid.minor.x = element_blank(), -->
+<!--       panel.grid.minor.y = element_blank(), -->
+<!--       strip.background = element_blank(), -->
+<!--       strip.placement = "outside", -->
+<!--       strip.text.y.left = element_text(angle = 0), -->
+
+<!--       panel.spacing = unit(0.8, "lines"), -->
+
+<!--       plot.title = element_text(hjust = 0), -->
+<!--       plot.title.position = "plot", -->
+<!--       plot.caption.position = "plot", -->
+<!--       plot.caption = element_text(hjust = 0, face= "italic"), -->
+
+<!--       legend.position = "none" -->
+<!--      ) + -->
+<!--     NULL -->
+
+<!--   plot_hazards -->
+
+<!-- ``` -->
+
+<!-- \newpage -->
+
+
+<!-- ## Figure 3: Kaplan-Meier incidence curves -->
+
+<!-- ```{r plot_km, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'} -->
+
+<!-- plot_km <- km %>% -->
+<!--   filter( -->
+<!--     outcome %in% outcomes, -->
+<!--     #treatment=="pfizer", -->
+<!--     subgroup_variable %in% c("none", "vax12_type") -->
+<!--   ) %>% -->
+<!--     ggplot()+ -->
+<!--     geom_step(aes(x=time, y=(1-surv)*1000, group=paste0(treated_descr,treatment_descr), alpha=treated_descr, colour=treatment_descr))+ -->
+<!--     geom_rect(aes(xmin=time, xmax=time+1, ymin=(1-surv.ll)*1000, ymax=(1-surv.ul)*1000, group=treated_descr, fill=treatment_descr), alpha=0.1)+ -->
+<!--     geom_hline(aes(yintercept=0), colour='black')+ -->
+<!--     facet_grid(rows=vars(subgroup_level_descr), cols=vars(outcome_descr_wrap), switch="y", scales="free_y")+ -->
+<!--     scale_x_continuous( -->
+<!--       breaks = seq(0,7*max(postbaselinecuts),by=14), -->
+<!--       expand = expansion(0) -->
+<!--     )+ -->
+<!--     scale_y_continuous( -->
+<!--       expand = expansion(0), -->
+<!--       #limits = c(0L,NA) -->
+<!--     )+ -->
+<!--     scale_colour_brewer(type="qual", palette="Set2", na.value="grey")+ -->
+<!--     scale_fill_brewer(type="qual", palette="Set2", guide="none", na.value="grey")+ -->
+<!--     labs( -->
+<!--       x=NULL, -->
+<!--       y="Cumulative incidence\nper 1000", -->
+<!--       colour=NULL, -->
+<!--       alpha=NULL -->
+<!--     )+ -->
+<!--     theme_minimal()+ -->
+<!--     theme( -->
+<!--       legend.position="bottom", -->
+<!--       legend.justification = c(0,0), -->
+<!--       legend.direction = "horizontal", -->
+<!--       axis.text.x.top=element_text(hjust=0), -->
+
+<!--       strip.placement = "outside", -->
+<!--       strip.background = element_blank(), -->
+<!--       strip.text.y.left = element_text(angle = 0), -->
+
+<!--       panel.border = element_blank(), -->
+<!--       axis.line.y = element_line(colour = "black"), -->
+<!--       axis.line.x.top = element_line(colour = "black"), -->
+<!--       panel.grid.minor.x = element_blank(), -->
+<!--       panel.grid.minor.y = element_blank(), -->
+
+<!--       panel.spacing = unit(0.8, "lines"), -->
+
+<!--     )+ -->
+<!--     NULL -->
+
+<!-- plot_km -->
+
+
+<!-- ``` -->
