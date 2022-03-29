@@ -571,7 +571,6 @@ study = StudyDefinition(
     name = "emergencyhosp",
     n = 4,
     index_date = "index_date",
-    with_these_diagnoses = codelists.covid_emergency,
     discharged_to = codelists.discharged_to_hospital
   ),
   
