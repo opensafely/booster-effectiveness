@@ -209,9 +209,9 @@ format_ratio = function(numer,denom, width=7){
 
 threshold <- 5
 
-incidence_rate_rounded <- local({
+local({
 
-  unredacted_treated <-
+  incidence_treated <-
     data_seqtrialcox %>%
     group_by(treated, fup_period) %>%
     summarise(
@@ -223,7 +223,7 @@ incidence_rate_rounded <- local({
     ungroup()
 
 
-  unredacted_all <-
+  incidence_all <-
     data_seqtrialcox %>%
     group_by(treated) %>%
     summarise(
@@ -234,10 +234,10 @@ incidence_rate_rounded <- local({
     ) %>%
     ungroup()
 
-  unredacted <-
+  incidence <-
     bind_rows(
-      unredacted_treated,
-      unredacted_all
+      incidence_treated,
+      incidence_all
     ) %>%
     mutate(
       fup_period = fct_explicit_na(fup_period, na_level="All")
@@ -246,8 +246,8 @@ incidence_rate_rounded <- local({
       treated, fup_period
     )
 
-  unredacted_wide <-
-    unredacted %>%
+  incidence_rate_unrounded <<-
+    incidence %>%
     pivot_wider(
       id_cols =c(fup_period),
       names_from = treated,
@@ -261,8 +261,8 @@ incidence_rate_rounded <- local({
       rrECI = paste0(rrE, " ", rrCI)
     )
 
-  rounded <-
-    unredacted_wide %>%
+  incidence_rate_rounded <<-
+    incidence_rate_unrounded %>%
     mutate(
       n_0 = ceiling_any(n_0, threshold+1),
       n_1 = ceiling_any(n_1, threshold+1),
@@ -282,8 +282,6 @@ incidence_rate_rounded <- local({
       q_1 = format_ratio(events_1, yearsatrisk_1),
     )
 
-  rounded
-
 })
 
 write_csv(incidence_rate_rounded, fs::path(output_dir, "report_incidence.csv"))
@@ -292,7 +290,7 @@ write_csv(incidence_rate_rounded, fs::path(output_dir, "report_incidence.csv"))
 ## kaplan meier cumulative risk differences ----
 
 
-dat_surv <-
+data_surv <-
   data_seqtrialcox %>%
   group_by(patient_id, treated) %>%
   summarise(
@@ -315,7 +313,7 @@ dat_surv <-
   )
 
 data_surv_rounded <-
-  dat_surv %>%
+  data_surv %>%
   mutate(
     # Use ceiling not round. This is slightly biased upwards,
     # but means there's no disclosure risk at the boundaries (0 and 1) where masking would otherwise be threshold/2
@@ -326,7 +324,7 @@ data_surv_rounded <-
     cml.censor = ceiling_any(cumsum(replace_na(n.censor, 0)), threshold+1),
     n.event = c(NA, diff(cml.event)),
     n.censor = c(NA, diff(cml.censor)),
-    n.risk = ceiling_any(max(n.risk, na.rm=TRUE), threshold+1) - (cml.event + cml.censor)
+    n.risk = lag(ceiling_any(max(n.risk, na.rm=TRUE), threshold+1) - (cml.event + cml.censor))
   ) %>%
   select(treated, treated_descr, time, interval, surv, surv.ll, surv.ul, n.risk, n.event, n.censor)
 
@@ -360,6 +358,76 @@ plot_km
 
 ggsave(filename=fs::path(output_dir, "report_kmplot.svg"), plot_km, width=20, height=15, units="cm")
 ggsave(filename=fs::path(output_dir, "report_kmplot.png"), plot_km, width=20, height=15, units="cm")
+
+
+
+## incidence via km risk table ----
+
+km_incidence <-
+  data_surv %>%
+  mutate(
+    n.atrisk = n.risk,
+    cml.atrisk = cumsum(replace_na(n.atrisk, 0)),
+    cml.event = cumsum(replace_na(n.event, 0)),
+    cml.censor = cumsum(replace_na(n.censor, 0)),
+    rate = n.event/n.atrisk,
+    cml.rate = cml.event / cml.atrisk,
+    risk = 1 - surv,
+  ) %>%
+  select(
+    treated,
+    time, interval,
+    surv, risk, n.atrisk,  n.event, n.censor, rate, cml.atrisk, cml.event, cml.censor, cml.rate
+  )
+
+kmdiff <- function(data, cuts=NULL){
+
+  if(is.null(cuts)){cuts <- unique(data$time)}
+
+  data %>%
+    filter(time!=0) %>%
+    mutate(
+      period_start = cut(time, cuts, right=TRUE, label=cuts[-length(cuts)]),
+      period_end = cut(time, cuts, right=TRUE, label=cuts[-1]),
+      period = cut(time, cuts, right=TRUE, label=paste0(cuts[-length(cuts)]+1, " - ", cuts[-1]))
+    ) %>%
+    group_by(treated, period_start, period_end, period) %>%
+    summarise(
+      interval = last(time) - first(time) + 1,
+      cml.atrisk = last(cml.atrisk),
+      cml.event = last(cml.event),
+      cml.censor = last(cml.censor),
+      cml.rate = last(cml.rate),
+      persontime = sum(n.atrisk),
+      n.atrisk = first(n.atrisk),
+      n.event = sum(n.event, na.rm=TRUE),
+      n.censor = sum(n.censor, na.rm=TRUE),
+      surv = last(surv),
+      risk = last(risk),
+      rate = n.event/persontime,
+    ) %>%
+    ungroup() %>%
+    pivot_wider(
+      id_cols= c("period_start", "period_end", "period",  "interval"),
+      names_from=treated,
+      names_glue="{.value}_{treated}",
+      values_from=c(surv, risk, n.atrisk, n.event, n.censor, rate, cml.atrisk, cml.event, cml.censor, cml.rate)
+    ) %>%
+    mutate(
+      kmrr = risk_1 / risk_0,
+      kmrd = risk_1 - risk_0,
+      irr = rate_1 / rate_0,
+      ird = rate_1 - rate_0,
+      cmlirr = cml.rate_1 / cml.rate_0,
+      cmlird = cml.rate_1 - cml.rate_0
+    )
+}
+
+kmdiff0 <- kmdiff(km_incidence)
+kmdiffcuts <- kmdiff(km_incidence, postbaselinecuts)
+kmdiffall <- kmdiff(km_incidence, c(0,last(postbaselinecuts)))
+
+
 
 ## Cumulative incidence function (accountign for competing risks ----
 
