@@ -84,6 +84,7 @@ incidence <- read_csv(fs::path(output_dir_os, "none", "incidence.csv")) %>% muta
     c(
       "postest",
       #"covidemergency",
+      "covidadmittedproxy1",
       "covidadmitted",
       #"covidcc",
       "coviddeath",
@@ -300,7 +301,7 @@ overallhazards <-
   )
 
 
-meta2hazards <- 
+meta28hazards <- 
   # derive directly from hazards as meta2effects table needs to be re-run
   bind_rows(
     read_csv(fs::path(output_dir_os, "none", "effects.csv")),
@@ -348,8 +349,8 @@ meta2hazards <-
     ve_display = paste0(label_percent(accuracy=0.1)(ve), " (", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
     ve_display95 = paste0(label_percent(accuracy=0.1)(ve), " (95% CI ", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
   )
-
-# meta2hazards <- 
+# 
+# meta28hazards <-
 #   bind_rows(
 #     read_csv(fs::path(output_dir_os, "none", "meta2effects.csv")),
 #     read_csv(fs::path(output_dir_os, "vax12_type", "meta2effects.csv")),
@@ -370,8 +371,8 @@ meta2hazards <-
 #     hr_display = paste0(label_number(accuracy=0.01)(hr), " (", label_number(accuracy=0.01)(hr.ll), "-", label_number(accuracy=0.01)(hr.ul), ")"),
 #     ve_display = paste0(label_percent(accuracy=0.1)(ve), " (", label_percent(accuracy=0.1, suffix="")(ve.ll), "-", label_percent(accuracy=0.1, suffix="")(ve.ul), ")"),
 #   )
-
-hazards3 <- hazards %>% filter(model==3)
+# 
+# hazards3 <- hazards %>% filter(model==3)
 
 
 ```
@@ -1130,7 +1131,7 @@ cat("  \n\n")
 
 &nbsp; &nbsp; &nbsp;
 
-### Figure 2: Estimated booster effectiveness (5 period)
+### Figure 2a: Estimated booster effectiveness (5 period)
 
 For each outcome based on the fully adjusted model, the period-specific hazard ratios for boosting with BNT162b2 versus not boosting is shown, stratified by primary course. 
 
@@ -1239,99 +1240,104 @@ formatpercent100 <- function(x,accuracy){
 
 &nbsp; &nbsp; &nbsp;
 
-<!-- #### Figure 2b: Estimated booster effectiveness (2 period split at 28 days) -->
+#### Figure 2b: Estimated booster effectiveness (2 period split at 28 days)
 
-<!-- For each outcome based on the fully adjusted model, the period-specific hazard ratios for boosting with BNT162b2 versus not boosting is shown, stratified by primary course. -->
+For each outcome based on the fully adjusted model, the period-specific hazard ratios for boosting with BNT162b2 versus not boosting is shown, stratified by primary course.
 
-<!-- ```{r plot_effects28, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'} -->
+```{r plot_effects28, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
 
-<!-- formatpercent100 <- function(x,accuracy){ -->
-<!--   formatx <- scales::label_percent(accuracy, suffix="")(x) -->
+formatpercent100 <- function(x,accuracy){
+  formatx <- scales::label_percent(accuracy, suffix="")(x)
 
-<!--   if_else( -->
-<!--     formatx==scales::label_percent(accuracy, suffix="")(1), -->
-<!--     paste0(">",scales::label_percent(1, suffix="")((100-accuracy)/100)), -->
-<!--     formatx -->
-<!--   ) -->
-<!-- } -->
-<!--  ## hazard ratio -->
+  if_else(
+    formatx==scales::label_percent(accuracy, suffix="")(1),
+    paste0(">",scales::label_percent(1, suffix="")((100-accuracy)/100)),
+    formatx
+  )
+}
+ ## hazard ratio
 
-<!--   y_breaks <- c(0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2) -->
-
-
-<!--   overallhazards_plotdata <-  -->
-<!--     overallhazards %>% -->
-<!--     filter( -->
-<!--       model==3,  -->
-<!--       outcome %in% outcomes, -->
-<!--       treatment %in% c("pfizer"), -->
-<!--       subgroup_variable %in% c("none", "vax12_type") -->
-<!--     ) -->
-
-<!--   postbaselinecuts28 <- c(0,28,70) -->
-
-<!--   plot_hazards <- -->
-<!--     meta28hazards %>% -->
-<!--     filter( -->
-<!--       model==3, -->
-<!--       outcome %in% outcomes, -->
-<!--       treatment %in% c("pfizer"), -->
-<!--       subgroup_variable %in% c("none", "vax12_type") -->
-<!--     ) %>% -->
-<!--     ggplot()+ -->
-<!--     geom_point(aes(y=hr, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+ -->
-<!--     geom_linerange(aes(ymin=hr.ll, ymax=hr.ul, x=term_midpoint, colour=model_descr), position = position_dodge(width = 1.8))+ -->
-<!--     geom_point(data = overallhazards_plotdata, mapping = aes(y=hr, x=max(postbaselinecuts28+14)), colour="darkgrey") + -->
-<!--     geom_linerange(data = overallhazards_plotdata, mapping = aes(ymin=hr.ll, ymax=hr.ul, x=max(postbaselinecuts28+14)), colour="darkgrey") + -->
-<!--     geom_rect(data = overallhazards_plotdata, ymin=-Inf, ymax=Inf, xmin=max(postbaselinecuts28+14)-7, xmax=max(postbaselinecuts28+14)+7, fill="grey95", alpha=0.5, colour="transparent") + -->
-<!--     geom_hline(aes(yintercept=1), colour='grey')+ -->
-<!--     facet_grid(rows=vars(outcome_descr_wrap), cols=vars(subgroup_level_descr), switch="y")+ -->
-<!--     scale_y_log10( -->
-<!--       breaks=y_breaks, -->
-<!--       limits = c(0.01, 1.5), -->
-<!--       oob = scales::oob_keep, -->
-<!--       sec.axis = sec_axis( -->
-<!--         ~(1-.), -->
-<!--         name="Effectiveness (%)", -->
-<!--         breaks = 1-(y_breaks), -->
-<!--         labels = function(x){formatpercent100(x, 1)} -->
-<!--       ) -->
-<!--     )+ -->
-<!--     scale_x_continuous(breaks=c(postbaselinecuts28, max(postbaselinecuts28+14)), labels=c(postbaselinecuts28, "Overall"), limits=c(min(postbaselinecuts28), max(postbaselinecuts28+14)+14), expand = c(0, 0))+ -->
-<!--     scale_colour_brewer(type="qual", palette="Set2", guide=guide_legend(ncol=1))+ -->
-<!--     labs( -->
-<!--       y="Hazard ratio", -->
-<!--       x="Days since booster dose", -->
-<!--       colour=NULL -->
-<!--      ) + -->
-<!--     theme_minimal()+ -->
-<!--     theme( -->
-<!--       panel.border = element_blank(), -->
-<!--       axis.line.y = element_line(colour = "black"), -->
-<!--       axis.line.y.right = element_blank(), -->
-
-<!--       panel.grid.minor.x = element_blank(), -->
-<!--       panel.grid.minor.y = element_blank(), -->
-<!--       strip.background = element_blank(), -->
-<!--       strip.placement = "outside", -->
-<!--       strip.text.y.left = element_text(angle = 0), -->
-
-<!--       panel.spacing = unit(0.8, "lines"), -->
-
-<!--       plot.title = element_text(hjust = 0), -->
-<!--       plot.title.position = "plot", -->
-<!--       plot.caption.position = "plot", -->
-<!--       plot.caption = element_text(hjust = 0, face= "italic"), -->
-
-<!--       legend.position = "none" -->
-<!--      ) + -->
-<!--     NULL -->
-<!--   plot_hazards -->
-
-<!-- ``` -->
+  y_breaks <- c(0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2)
 
 
-<!-- \newpage  -->
+  overallhazards_plotdata <-
+    overallhazards %>%
+    filter(
+      model==3,
+      outcome %in% outcomes,
+      #treatment %in% c("pfizer"),
+      subgroup_variable %in% c("none", "vax12_type", "cev", "age65plus", "prior_covid_infection")
+    ) %>% mutate(
+      subgroup_level_descr_wrap=fct_relabel(subgroup_level_descr, ~str_wrap(.x, width=10))
+    )
+
+  postbaselinecuts28 <- c(0,28,70)
+
+  plot_hazards <-
+    meta28hazards %>%
+    filter(
+      model==3,
+      outcome %in% outcomes,
+      #treatment %in% c("pfizer"),
+      subgroup_variable %in% c("none", "vax12_type", "cev", "age65plus", "prior_covid_infection")
+    ) %>%
+    mutate(
+      subgroup_level_descr_wrap=fct_relabel(subgroup_level_descr, ~str_wrap(.x, width=10))
+    ) %>%
+    ggplot()+
+    geom_point(aes(y=hr, x=term_midpoint, colour=treatment_descr), position = position_dodge(width = 1.8))+
+    geom_linerange(aes(ymin=hr.ll, ymax=hr.ul, x=term_midpoint, colour=treatment_descr), position = position_dodge(width = 1.8))+
+    geom_point(data = overallhazards_plotdata, mapping = aes(y=hr, x=max(postbaselinecuts28+14), colour=treatment_descr), position = position_dodge(width = 1.8)) +
+    geom_linerange(data = overallhazards_plotdata, mapping = aes(ymin=hr.ll, ymax=hr.ul, x=max(postbaselinecuts28+14), colour=treatment_descr), position = position_dodge(width = 1.8)) +
+    geom_rect(data = overallhazards_plotdata, ymin=-Inf, ymax=Inf, xmin=max(postbaselinecuts28+14)-7, xmax=max(postbaselinecuts28+14)+7, fill="grey95", alpha=0.4, colour="transparent") +
+    geom_hline(aes(yintercept=1), colour='grey')+
+    facet_grid(rows=vars(subgroup_level_descr_wrap), cols=vars(outcome_descr_wrap), switch="y")+
+    scale_y_log10(
+      breaks=y_breaks,
+      limits = c(0.05, 1.5),
+      oob = scales::oob_keep,
+      sec.axis = sec_axis(
+        ~(1-.),
+        name="Effectiveness (%)",
+        breaks = 1-(y_breaks),
+        labels = function(x){formatpercent100(x, 1)}
+      )
+    )+
+    scale_x_continuous(breaks=c(postbaselinecuts28, max(postbaselinecuts28+14)), labels=c(postbaselinecuts28, ""), limits=c(min(postbaselinecuts28), max(postbaselinecuts28+14)+14), expand = c(0, 0))+
+    scale_colour_brewer(type="qual", palette="Set2", guide=guide_legend(ncol=1))+
+    labs(
+      y="Hazard ratio",
+      x="Days since booster dose",
+      colour=NULL
+     ) +
+    theme_minimal()+
+    theme(
+      panel.border = element_blank(),
+      axis.line.y = element_line(colour = "black"),
+      axis.line.y.right = element_blank(),
+
+      panel.grid.minor.x = element_blank(),
+      panel.grid.minor.y = element_blank(),
+      strip.background = element_blank(),
+      strip.placement = "outside",
+      strip.text.y.left = element_text(angle = 0),
+
+      panel.spacing = unit(0.8, "lines"),
+
+      plot.title = element_text(hjust = 0),
+      plot.title.position = "plot",
+      plot.caption.position = "plot",
+      plot.caption = element_text(hjust = 0, face= "italic"),
+
+      legend.position = "bottom"
+     ) +
+    NULL
+  plot_hazards
+
+```
+
+
+\newpage
 
 
 <!-- #### Figure 2c: Estimated booster effectiveness (2 period split at 42 days) -->

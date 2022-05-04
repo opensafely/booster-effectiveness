@@ -1,8 +1,7 @@
 ---
 title: "Effectiveness of BNT162b2 booster doses in England: an observational study in OpenSAFELY-TPP"
 output:
-  html_document:
-    self_contained: yes
+  word_document: default
   pdf_document:
     toc: no
   bookdown::html_document2:
@@ -10,7 +9,8 @@ output:
     toc: no
   rtf_document:
     toc: no
-  word_document: default
+  html_document:
+    self_contained: yes
 bibliography: references.bib
 csl: vancouver.csl
 link-citations: yes
@@ -224,6 +224,7 @@ kmconstrast <- function(data, cuts=NULL){
 
 kmtreated_daily <- kmconstrast(km_incidence)
 kmtreated_cuts <- kmconstrast(km_incidence, postbaselinecuts)
+kmtreated_28 <- kmconstrast(km_incidence, c(0,28, last(postbaselinecuts)))
 kmtreated_overall <- kmconstrast(km_incidence, c(0,last(postbaselinecuts)))
 
 km70 <- kmtreated_daily %>% filter(time==max(postbaselinecuts))
@@ -301,6 +302,8 @@ overallhazards <-
   )
 
 
+test<- read_csv(fs::path(output_dir_os, "prior_covid_infection", "effects.csv"))  %>% mutate(subgroup_level=as.character(subgroup_level))
+
 meta2hazards <- 
   # derive directly from hazards as meta2effects table needs to be re-run
   bind_rows(
@@ -324,6 +327,12 @@ meta2hazards <-
   ) %>%
   group_by(
     treatment, treatment_descr, outcome, outcome_descr, outcome_descr_wrap, subgroup, subgroup_variable, subgroup_descr, subgroup_level, subgroup_level_descr, model, model_descr, period, 
+  ) %>%
+  mutate(
+    # set prior if no events
+    std.error = if_else(is.na(estimate), 100, std.error),
+    robust.se = if_else(is.na(estimate), 100, robust.se),
+    estimate = replace_na(estimate, 0),
   ) %>%
   summarise(
     term_left = min(term_left),
@@ -377,7 +386,7 @@ hazards3 <- hazards %>% filter(model==3)
 
 ```
 
-William J Hulme^1^, Elizabeth J Williamson^2^, Elsie Horne^3,4^, Amelia Green^1^, Linda Nab^1^, Ruth Keogh^2^, Edward PK Parker^2^, Venexia Walker^3,4^, Helen Curtis^1^, Milan Wiedemann^1^, Christine Cunningham^1^, Alex J Walker^1^, Louis Fisher^1^, Christopher T Rentsch^2^, Anna Schultze^2^, Krishnan Bhaskaran^2^, Helen I McDonald^2^, John Tazare^2^, Laurie Tomlinson^2^, Tom Palmer^3,4^, Brian MacKenna^1^, Richard Croker^1^, Caroline E Morton^1^, Colm Andrews^1^, Robin Parks^1^, Lisa Hopcroft^1^, Jon Massey^1^, Jessica Morley^1^, Amir Mehrkar^1^, Seb Bacon^1^, Dave Evans^1^, Peter Inglesby^1^, George Hickman^1^, Simon Davy^1^, Tom Ward^1^, Rosalind M Eggo^2^, Angel YS Wong^2^, Rohini Mathur^2^, Kevin Wing^2^, Harriet Forbes^2^, Daniel Grint^2^, Viyasaan Mahalingasivam^2^, Bang Zheng^2^, Ian J Douglas^2^, Stephen JW Evans^2^, Liam Smeeth^2^, Chris Bates^5^, Jonathan Cockburn^5^, John Parry^5^, Frank Hester^5^, Sam Harper^5^, Jonathan AC Sterne^3,4^\*, Miguel A Hernán^6,7^\*, Ben Goldacre^1^\*.
+William J Hulme^1^, Elizabeth J Williamson^2^, Elsie Horne^3,4^, Amelia Green^1^, Linda Nab^1^, Ruth Keogh^2^, Edward PK Parker^2^, Venexia Walker^3,4^, Helen Curtis^1^, Milan Wiedemann^1^, Christine Cunningham^1^, Alex J Walker^1^, Louis Fisher^1^, Christopher T Rentsch^2^, Anna Schultze^2^, Krishnan Bhaskaran^2^, Helen I McDonald^2^, John Tazare^2^, Laurie Tomlinson^2^, Tom Palmer^3,4^, Brian MacKenna^1^, Richard Croker^1^, Caroline E Morton^1^, Colm Andrews^1^, Robin Parks^1^, Lisa Hopcroft^1^, Jon Massey^1^, Jessica Morley^1^, Amir Mehrkar^1^, Seb Bacon^1^, Dave Evans^1^, Peter Inglesby^1^, George Hickman^1^, Simon Davy^1^, Tom Ward^1^, Rosalind M Eggo^2^, Angel YS Wong^2^, Rohini Mathur^2^, Kevin Wing^2^, Harriet Forbes^2^, Daniel Grint^2^, Viyasaan Mahalingasivam^2^, Bang Zheng^2^, Ian J Douglas^2^, Stephen JW Evans^2^, Liam Smeeth^2^, Chris Bates^5^, Jonathan AC Sterne^3,4^\*, Miguel A Hernán^6,7^\*, Ben Goldacre^1^\*.
 
 1\. The DataLab, Nuffield Department of Primary Care Health Sciences, University of Oxford, OX26GG, UK
 
@@ -393,8 +402,7 @@ William J Hulme^1^, Elizabeth J Williamson^2^, Elsie Horne^3,4^, Amelia Green^1^
 
 7\. Departments of Epidemiology and Biostatistics, Harvard T.H. Chan School of Public Health, Boston, MA 02115
 
-\* equal contribution.
-\newpage
+\* equal contribution. \newpage
 
 ## Abstract
 
@@ -406,15 +414,17 @@ The UK COVID-19 vaccination programme delivered its first "booster" doses in Sep
 
 *Methods*
 
-We used the OpenSAFELY-TPP database, covering 40% of English primary care practices in England and linked to national coronavirus surveillance, hospital episodes, and death registry data, to estimate the effectiveness of BNT162b2 in eligible adults between `r format(as.Date(study_dates$pfizerstart_date), "%e %B")` and `r format(as.Date(study_dates$pfizerend_date), "%e %B %Y")`, a period when the Delta variant of SARS-CoV-2 was dominant. Follow up was for up to 10 weeks. Each booster recipient was matched with an unboosted control on factors relating to booster priority status and prior immunisation. Additional factors were adjusted for in a Cox model to estimate hazard ratios. Outcomes were positive SARS-CoV-2 test, COVID-19 hospital admission, COVID-19 death and non-COVID-9 death. Booster effectiveness was defined as 1 minus the hazard ratio.
+We used the OpenSAFELY-TPP database, covering 40% of English primary care practices and linked to national coronavirus surveillance, hospital episodes, and death registry data, to estimate the effectiveness of BNT162b2 in eligible adults between `r format(as.Date(study_dates$pfizerstart_date), "%e %B")` and `r format(as.Date(study_dates$pfizerend_date), "%e %B %Y")` when the Delta variant of SARS-CoV-2 was dominant. Follow up was for up to 10 weeks. Each booster recipient was matched with an unboosted control on factors relating to booster priority status and prior immunisation. Additional factors were adjusted for in a Cox model to estimate hazard ratios (HRs). Outcomes were positive SARS-CoV-2 test, COVID-19 hospital admission, COVID-19 death and non-COVID-9 death. Booster effectiveness was defined as 1-HR.
 
 *Results*
 
-We matched `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` BNT162b2 booster recipients to unboosted controls. Estimated booster effectiveness comparing a BNT162b2 booster dose to two doses only was `r filter(overallhazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3) %>% pull(ve_display95)` for positive SARS-CoV-2 test, `r filter(overallhazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3) %>% pull(ve_display)` for COVID-19 death, and `r filter(overallhazards, subgroup=="none", outcome=="noncoviddeath", treatment=="pfizer", model==3) %>% pull(ve_display)` for non-COVID-19 death. Estimated effectiveness was similar in those receiving a BNT162b2 or ChAdOx1-S two-dose primary vaccination course, but slightly lower in those classified as clinically extremely vulnerable (`r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 test, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for COVID-19 death) and in those aged 18-65 years (`r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)`, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)` respectively). Period-specific effects were also estimated, showing some evidence of waning booster effectiveness against positive SARS-CoV-2 tests (`r filter(hazards, outcome=="postest", treatment=="pfizer", term_right==28, subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)` at 15-28 days versus `r filter(hazards, outcome=="postest", treatment=="pfizer", term_right==70, subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)` at 43-70 days after boosting).
+We matched `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` BNT162b2 booster recipients to unboosted controls. Estimated effectiveness of a BNT162b2 booster dose compared with two doses only was `r filter(overallhazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3) %>% pull(ve_display95)` for positive SARS-CoV-2 test, `r filter(overallhazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3) %>% pull(ve_display)` for COVID-19 death, and `r filter(overallhazards, subgroup=="none", outcome=="noncoviddeath", treatment=="pfizer", model==3) %>% pull(ve_display)` for non-COVID-19 death. Estimated effectiveness was similar among those who had received a BNT162b2 or ChAdOx1-S two-dose primary vaccination course, but slightly lower in those classified as clinically extremely vulnerable (`r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 test, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for COVID-19 death) and in those aged 18-65 years (`r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)`, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)` respectively).
+
+<!-- Period-specific effects were also estimated, showing some evidence of waning booster effectiveness against positive SARS-CoV-2 tests (`r filter(hazards, outcome=="postest", treatment=="pfizer", term_right==28, subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)` at 15-28 days versus `r filter(hazards, outcome=="postest", treatment=="pfizer", term_right==70, subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)` at 43-70 days after boosting). -->
 
 *Conclusion*
 
-We estimated high protection of BNT162b2 boosting against positive SARS-CoV-2 test, COVID-19 hospital admission, and COVID-19 death.
+BNT162b2 boosting was strongly protective against positive SARS-CoV-2 test, COVID-19 hospital admission, and COVID-19 death.
 
 **Keywords** COVID-19; Booster vaccine effectiveness; Target trial; EHR data
 
@@ -448,35 +458,35 @@ We estimated high protection of BNT162b2 boosting against positive SARS-CoV-2 te
 
 # Introduction
 
-In mid-September 2021, the national COVID-19 vaccination programme in England administered its first booster doses in adults who had already received their two-dose primary vaccination course @NHSEnglandNHS. Eligibility was initially restricted to those at highest risk of severe disease, then progressively extended. By 15 December 2021 every adult was eligible @NHSEnglandNHSb. Booster doses were initially available no earlier than six months after dose two, but this was reduced to three months on 8 December 2021, following concerns over the emergence of the Omicron variant @NHSEnglandNHSa1 @NHSEnglandNHSa2. Vaccine prioritisation schedules were guided by recommendations from the Joint Committee for Vaccine and Immunisation (JCVI) expert working group @covid19.
+In mid-September 2021 the national COVID-19 vaccination programme in England administered its first booster doses in adults who had already received their two-dose primary vaccination course @NHSEnglandNHS. Eligibility was initially restricted to those at highest risk of severe disease, then progressively extended. By 15 December 2021 every adult was eligible @NHSEnglandNHSb. Booster doses were initially available no earlier than six months after dose two, but this was reduced to three months on 8 December 2021, following concerns over the emergence of the Omicron variant @NHSEnglandNHSa1 @NHSEnglandNHSa2. Vaccine prioritisation schedules were guided by recommendations from the Joint Committee for Vaccine and Immunisation (JCVI) expert working group @covid19.
 
 <!-- https://www.england.nhs.uk/2021/09/nhs-begins-covid-19-booster-vaccination-campaign/ -->
+
 <!-- 13 december 30-39 become eligible (https://www.england.nhs.uk/2021/12/nhs-to-roll-out-life-saving-booster-jab-to-people-aged-30-plus/) -->
+
 <!-- 15 december everyone eligible https://www.england.nhs.uk/2021/12/nhs-booster-bookings-open-to-every-eligible-adult/ -->
 
 <!-- In most cases, BNT162b2 and half-dose mRNA-1273 vaccines were used for boosting, and administered regardless of the first and second dose brand. BNT162b2 was used from 16 September 2021, and mRNA-1273 from 29 October 2021 onwards. This provides an opportunity to investigate booster effectiveness of two different brands administered in overlapping periods and community contexts, as well as in subgroups defined by prior immunological and other clinical factors.-->
 
-We aimed to emulate a target trial assessing the effectiveness of booster vaccination with BNT162b2 against COVID-19 outcomes @dagan2021 @barda2021, by comparing fully vaccinated adults who did and did not receive a booster vaccine dose. We used the OpenSAFELY-TPP linked primary care database covering around 40% of English residents. Recruitment and follow-up covers an era where the Delta variant is dominant.
+We aimed to emulate a target trial assessing the effectiveness of booster vaccination with BNT162b2 against COVID-19 outcomes @dagan2021 @barda2021, by comparing fully vaccinated adults who did and did not receive a booster vaccine dose. We used the OpenSAFELY-TPP linked primary care database covering around 40% of English residents. The Delta SARS-CoV-2 variant was dominant during recruitment and follow-up.
 
 # Methods
 
 ## Data source
 
-All data were linked, stored and analysed securely within the OpenSAFELY platform: <https://opensafely.org/>. With the approval of NHS England, primary care records managed by the GP software provider TPP were linked, using NHS numbers, to A&E attendance and in-patient hospital spell records via NHS Digital's Hospital Episode Statistics (HES), national coronavirus testing records via the Second Generation Surveillance System (SGSS), and national death registry records from the Office for National Statistics (ONS). COVID-19 vaccination history is available in the GP record directly via the National Immunisation Management System (NIMS). 
+All data were linked, stored and analysed securely within the OpenSAFELY platform: <https://opensafely.org/>. With the approval of NHS England, primary care records managed by the GP software provider TPP were linked, using NHS numbers, to A&E attendance and in-patient hospital spell records via NHS Digital's Hospital Episode Statistics (HES), national coronavirus testing records via the Second Generation Surveillance System (SGSS), and national death registry records from the Office for National Statistics (ONS). COVID-19 vaccination history is available in the GP record directly via the National Immunisation Management System (NIMS).
 
 ## Eligibility criteria
 
-We included adults aged $\ge$ 18 years who were eligible for booster vaccination between `r format(as.Date(study_dates$pfizerstart_date), "%e %B")` and `r format(as.Date(study_dates$pfizerend_date), "%e %B %Y")` inclusive (the "recruitment period"). On each day within this period, eligibility for the study was determined as follows: registered at a GP practice using TPP's SystmOne clinical information system; received a two-dose primary vaccination course of either BNT162b2 or ChAdOx1-S (mixed dosing and Moderna mRNA-1273 were not considered due to small numbers); not a health or social care worker, not resident in a care or nursing home; not medically housebound or receiving end-of-life care; no evidence of SARS-CoV-2 infection or COVID-19 disease within the previous 90 days; not undergoing an unplanned hospital admission; complete information on sex, ethnicity, deprivation, and NHS region.
+We included adults aged $\ge$ 18 years who were eligible for booster vaccination between `r format(as.Date(study_dates$pfizerstart_date), "%e %B")` and `r format(as.Date(study_dates$pfizerend_date), "%e %B %Y")` inclusive (the "recruitment period"). On each day within this period, eligibility for the study was determined as follows: registered at a GP practice using TPP's SystmOne clinical information system; received a two-dose primary vaccination course of either BNT162b2 or ChAdOx1-S (mixed dosing and Moderna mRNA-1273 were not considered due to small numbers); not a health or social care worker; not resident in a care or nursing home; not medically housebound or receiving end-of-life care; no evidence of SARS-CoV-2 infection or COVID-19 disease within the previous 90 days; not undergoing an unplanned hospital admission; complete information on sex, ethnicity, deprivation, and NHS region (East of England, Midlands, London, North East and Yorkshire, North West, South East, South West).
 
- 
-Additionally, if the rolling weekly average count of BNT162b2 booster doses within strata defined by region, JCVI priority group, and the week of second dose was below 50 then recruitment did not occur for that stratum on that day. This helped to ensure that recruitment was restricted to those eligible and able to receive a booster dose in line with national prioritisation schedules at the time of potential recruitment.
+Additionally, on days when the rolling weekly average count of BNT162b2 booster doses within strata defined by region, JCVI priority group, and the week of second dose was below 50, recruitment did not occur within the stratum. This helped to ensure that recruitment was restricted to those eligible and able to receive a booster dose in line with national prioritisation schedules.
 
-## Matching and treatment groups
+## Matching, treatment groups, and follow up
 
-On each day of the recruitment period, each eligible person receiving a booster dose was recruited to the treatment group and matched, if possible, with an eligible unboosted control person. Pairs were matched on: primary course vaccine brand; date of second vaccine dose, within 7 days; NHS region (East of England, Midlands, London, North East and Yorkshire, North West, South East, South West); evidence of prior SARS-CoV-2 infection (positive SARS-CoV-2 test, "probable" infection documented in primary care, or COVID-19 hospital admission); clinical risk groups used for prioritisation (clinically extremely vulnerable, clinically at-risk, neither); age, within 3 years; and age groups used by JCVI for prioritisation. 
-<!-- The matching and exclusion criteria jointly ensure that treatment groups are also matched within JCVI priority group. -->
+On each day of the recruitment period, each eligible person receiving a booster dose was recruited to the treatment group and matched, if possible, with an eligible unboosted control person. Pairs were matched on: primary course vaccine brand; date of second vaccine dose, within 7 days; NHS region; evidence of prior SARS-CoV-2 infection (positive SARS-CoV-2 test, "probable" infection documented in primary care, or COVID-19 hospital admission); clinical risk groups used for prioritisation (clinically extremely vulnerable, clinically at-risk, neither); age within 3 years; and age groups used by JCVI for prioritisation. <!-- The matching and exclusion criteria jointly ensure that treatment groups are also matched within JCVI priority group. --> People selected as controls were not eligible to be included again as a control, but were eligible for subsequent inclusion in the booster group. Any unmatched boosted people were excluded.
 
-People selected as controls were not eligible to be included again as a control, but were eligible for subsequent inclusion in the booster group. Any unmatched boosted people were excluded. 
+Each person was followed from the day of recruitment (i.e., time zero) until the earliest of outcome, death, practice de-registration, booster receipt by the control in the matching pair, 10 weeks, or `r format(as.Date(study_dates$studyend_date), "%e %B %Y")`.
 
 ## Outcomes
 
@@ -486,22 +496,15 @@ Four outcomes were considered: positive SARS-CoV-2 test; COVID-19 hospital admis
 
 <!--# COVID-19 A&E attendances were identified using HES emergency care records with U07.1 ("COVID-19, virus identified") or U07.2 ("COVID-19, virus not identified") ICD-10 diagnosis codes @emergenc. -->
 
-## Follow-up
-
-Each person was followed from the day of recruitment (i.e., time zero) until the earliest of outcome, death, practice de-registration, booster receipt by the control in the matching pair, 10 weeks, or `r format(as.Date(study_dates$studyend_date), "%e %B %Y")`.
-
-
 ## Statistical Analysis
 
-We estimated Kaplan-Meier cumulative incidence curves separately in the boosted and unboosted groups, and compared groups using the 10-week risk difference and risk ratio. 
+We estimated Kaplan-Meier cumulative incidence curves separately in the boosted and unboosted groups, and estimated the 10-week risk differences based on these. We used Cox models, stratified by recruitment day, NHS region, and two-dose primary vaccine course, to estimate hazard ratios (HRs) comparing boosted with unboosted people, overall and separately for days 1-28 and 29-70. We also estimated HRs within shorter time periods (days 1-7, 8-14, 15-28, 29-42, and 43-70).
 
-We used Cox models, stratified by recruitment day, NHS region, and two-dose primary vaccine course, to estimate hazard ratios (HRs) comparing boosted with unboosted people, overall and separately for days 1-28 and 29-70, and also for days 1-7, 8-14, 15-28, 29-42, and 43-70. As we were not able to match on all potential confounders, these models included the following additional covariates: sex (male or female); English Index of Multiple Deprivation (IMD, grouped by quintile); ethnicity (Black, Mixed, South Asian, White, Other, as per the UK census); prior morbidity count (diabetes, BMI \> 40kg/m^2^, chronic heart disease, chronic kidney disease, chronic liver disease, chronic respiratory disease or severe asthma, chronic neurological disease); learning disabilities; severe mental illness; the number of SARS-CoV-2 tests in the 6 months prior to the study start date; elective in-hospital episode at the time of recruitment.A robust variance estimator was used to account for inclusion of some people in both the boosted and unboosted groups. Booster vaccine effectiveness was calculated as one minus the hazard ratio, expressed as a percentage.
+As we were not able to match on all potential confounders, these models included the following additional covariates: sex (male or female); English Index of Multiple Deprivation (IMD, grouped by quintile); ethnicity (Black, Mixed, South Asian, White, Other, as per the UK census); prior morbidity count (diabetes, BMI \> 40kg/m^2^, chronic heart disease, chronic kidney disease, chronic liver disease, chronic respiratory disease or severe asthma, chronic neurological disease); learning disabilities; severe mental illness; the number of SARS-CoV-2 tests in the 6 months prior to the study start date; elective in-hospital episode at baseline. There were no missing values in these covariates, because they were defined by the presence or absence of clinical codes or events. A robust variance estimator was used to account for inclusion of some people in both the boosted and unboosted groups.
+
+Booster vaccine effectiveness was calculated as 1-HR, expressed as a percentage. We also estimated booster effectiveness separately in the following subgroups: primary vaccine course; age (18-64 or $\ge$ 65 years); clinically extremely vulnerable or not; evidence of prior SARS-CoV-2 infection or not.
 
 <!-- [The primary estimand is the average treatment effect in the recruited population. To estimate this, expected cumulative incidence rates are estimated for each participant assuming treatment was received by everyone in both treatment groups at time zero. These curves are then averaged over all participants to give the marginal cumulative incidence. This is repeated assuming nobody is treated in either group, and their difference taken. Calculating standard errors for these quantities is challenging, whether approached analytically (due to complex variance components) or computationally (via bootstrapping, due to the large sample sizes involved) and are therefore not reported. ] -->
-
-We also estimated booster effectiveness separately in the following subgroups: primary vaccine course; age (18-64 or $\ge$ 65 years); clinically extremely vulnerable or not; evidence of prior SARS-CoV-2 infection or not.
-
-
 
 <!-- ## Missing data -->
 
@@ -521,87 +524,67 @@ We have developed a publicly available website <https://opensafely.org/> through
 
 ## Study population and matching
 
-`r label_number(1, big.mark=",")(filter(matchflowchart, crit=="c0", treatment=="pfizer") %>% pull(n))` adults registered at a TPP practice received a BNT162b2 booster vaccination during the recruitment period, with `r label_number(1, big.mark=",")(filter(matchflowchart, treatment=="pfizer", crit=="c7") %>% pull(n))` (`r label_percent(0.1)(filter(matchflowchart, treatment=="pfizer", crit=="c7") %>% pull(pct_all))`) eligible for inclusion in the treatment group, of whom `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` (`r label_percent(0.1)(filter(matchsummary, treatment=="pfizer") %>% pull(prop_matched_eligible))`) were matched with unboosted controls (Figure 1).
+`r label_number(1, big.mark=",")(filter(matchflowchart, crit=="c0", treatment=="pfizer") %>% pull(n))` adults registered at a TPP practice received a BNT162b2 booster vaccination during the recruitment period, with `r label_number(1, big.mark=",")(filter(matchflowchart, treatment=="pfizer", crit=="c7") %>% pull(n))` (`r label_percent(0.1)(filter(matchflowchart, treatment=="pfizer", crit=="c7") %>% pull(pct_all))`) eligible for inclusion in the treatment group, of whom `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` (`r label_percent(0.1)(filter(matchsummary, treatment=="pfizer") %>% pull(prop_matched_eligible))`) were matched with unboosted controls (Figure 1). 1,714,615 people were matched as controls then rematched in the booster group, resulting in 6,990,219 people included in the study in total.
 
 <!-- For mRNA-1273, this was `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="moderna") %>% pull(n))` (`r label_percent(0.1)(filter(matchsummary, treatment=="moderna") %>% pull(prop_matched_eligible))`) and `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="moderna") %>% pull(fup_years))` person-years of follow-up (Table 2).  -->
 
-As expected, the matching factors has similar distributions in the boosted and unboosted groups at the start of follow up (Table 1), and the proportion of people with prior comorbidities was generally similar between the groups. However, unboosted controls had higher levels of deprivation, higher rates of learning disabilities and severe mental illness, and lower SARS-CoV-2 testing frequency, though the standardised mean difference was consistently below 0.1 (Supplementary Figure S2).
-
-
+As expected, the matching factors were identically distributed in the boosted and unboosted groups at the start of follow up (Table 1), and the proportion of people with prior morbidities was generally similar between the groups. However, unboosted controls had higher levels of deprivation, higher rates of learning disabilities and severe mental illness, and lower SARS-CoV-2 testing frequency, though the standardised mean difference was consistently below 0.1 (Supplementary Figure S2).
 
 ## Estimated booster effectiveness
 
 ### Main analysis
 
-There were `r label_number(1, big.mark=",")(filter(incidence, treatment=="pfizer", outcome=="postest", fup_period=="All") %>% pull(events))` positive SARS-CoV-2 tests,
-`r label_number(1, big.mark=",")(filter(incidence, treatment=="pfizer", outcome=="covidadmitted", fup_period=="All") %>% pull(events))` COVID-19 hospital admissions, 
-`r label_number(1, big.mark=",")(filter(incidence, treatment=="pfizer", outcome=="coviddeath", fup_period=="All") %>% pull(events))` COVID-19 deaths, 
-and `r label_number(1, big.mark=",")(filter(incidence, treatment=="pfizer", outcome=="noncoviddeath", fup_period=="All") %>% pull(events))` non-COVID-19 deaths 
-across `r label_number(1, big.mark=",")((filter(incidence, treatment=="pfizer", outcome=="coviddeath", fup_period=="All") %>% pull(yearsatrisk)) * 365.25/7)` person-weeks of follow-up. 
+There were `r label_number(1, big.mark=",")(filter(incidence, treatment=="pfizer", outcome=="postest", fup_period=="All") %>% pull(events))` positive SARS-CoV-2 tests, `r label_number(1, big.mark=",")(filter(incidence, treatment=="pfizer", outcome=="covidadmitted", fup_period=="All") %>% pull(events))` COVID-19 hospital admissions, `r label_number(1, big.mark=",")(filter(incidence, treatment=="pfizer", outcome=="coviddeath", fup_period=="All") %>% pull(events))` COVID-19 deaths, and `r label_number(1, big.mark=",")(filter(incidence, treatment=="pfizer", outcome=="noncoviddeath", fup_period=="All") %>% pull(events))` non-COVID-19 deaths across `r label_number(1, big.mark=",")((filter(incidence, treatment=="pfizer", outcome=="coviddeath", fup_period=="All") %>% pull(yearsatrisk)) * 365.25/7)` person-weeks of follow-up. The rate of increase in the cumulative incidence of positive SARS-CoV-2 tests in boosted people tapered substantially around 7 days after boosting, something not observed in unboosted controls (Figure 2). Similar patterns were not observed for more severe outcomes, and there were differences in the cumulative incidence between the groups apparent in the first few days.
 
-The 10-week risk of positive SARS-CoV-2 test was `r km70 %>% filter(treatment=="pfizer", outcome=="postest", subgroup=="none") %>% pull(risk_1) %>% (label_number(0.1, scale=1000))` per 1000 in the boosted group 
-and `r km70 %>% filter(treatment=="pfizer", outcome=="postest", subgroup=="none") %>% pull(risk_0) %>% (label_number(0.1, scale=1000))` in the unboosted group, 
-representing a risk difference of `r km70 %>% filter(treatment=="pfizer", outcome=="postest", subgroup=="none") %>% pull(kmrd) %>% (label_number(0.1, scale=1000))` per 1000, .
-For COVID-19 hospital admission, this was `r km70 %>% filter(treatment=="pfizer", outcome=="covidadmitted", subgroup=="none") %>% pull(risk_1) %>% (label_number(0.1, scale=1000))` 
-and `r km70 %>% filter(treatment=="pfizer", outcome=="covidadmitted", subgroup=="none") %>% pull(risk_0) %>% (label_number(0.1, scale=1000))` 
-respectively (`r km70 %>% filter(treatment=="pfizer", outcome=="covidadmitted", subgroup=="none") %>% pull(kmrd) %>% (label_number(0.1, scale=-1000))` fewer events in the boosted group). 
-For COVID-19 death it was `r km70 %>% filter(treatment=="pfizer", outcome=="coviddeath", subgroup=="none") %>% pull(risk_1) %>% (label_number(0.1, scale=1000))` 
-and `r km70 %>% filter(treatment=="pfizer", outcome=="coviddeath", subgroup=="none") %>% pull(risk_0) %>% (label_number(0.1, scale=1000))` 
-(`r km70 %>% filter(treatment=="pfizer", outcome=="coviddeath", subgroup=="none") %>% pull(kmrd) %>% (label_number(0.1, scale=-1000))` fewer events), 
-and for non-COVID-19 death it was `r km70 %>% filter(treatment=="pfizer", outcome=="noncoviddeath", subgroup=="none") %>% pull(risk_1) %>% (label_number(0.1, scale=1000))` 
-and `r km70 %>% filter(treatment=="pfizer", outcome=="noncoviddeath", subgroup=="none") %>% pull(risk_0) %>% (label_number(0.1, scale=1000))` 
-(`r km70 %>% filter(treatment=="pfizer", outcome=="noncoviddeath", subgroup=="none") %>% pull(kmrd) %>% (label_number(0.1, scale=-1000))` fewer events) respectively  (Table 2).
-
-The rate of increase in the cumulative incidence of positive SARS-CoV-2 tests in boosted people tapered substantially around 7 days after boosting, something not observed in unboosted controls (Figure 2). Similar patterns were not observed for more severe outcomes, with differences in the cumulative incidence between the groups apparent in the first few days. 
+The 10-week risk of positive SARS-CoV-2 test was `r km70 %>% filter(treatment=="pfizer", outcome=="postest", subgroup=="none") %>% pull(risk_1) %>% (label_number(0.1, scale=1000))` and `r km70 %>% filter(treatment=="pfizer", outcome=="postest", subgroup=="none") %>% pull(risk_0) %>% (label_number(0.1, scale=1000))` per 1000 in the boosted group and unboosted groups respectively (risk difference `r km70 %>% filter(treatment=="pfizer", outcome=="postest", subgroup=="none") %>% pull(kmrd) %>% (label_number(0.1, scale=1000))` per 1000). Corresponding 10-week risks per 1000 were `r km70 %>% filter(treatment=="pfizer", outcome=="covidadmitted", subgroup=="none") %>% pull(risk_1) %>% (label_number(0.1, scale=1000))` and `r km70 %>% filter(treatment=="pfizer", outcome=="covidadmitted", subgroup=="none") %>% pull(risk_0) %>% (label_number(0.1, scale=1000))` for COVID-19 hospital admission (risk difference `r km70 %>% filter(treatment=="pfizer", outcome=="covidadmitted", subgroup=="none") %>% pull(kmrd) %>% (label_number(0.1, scale=1000))`), `r km70 %>% filter(treatment=="pfizer", outcome=="coviddeath", subgroup=="none") %>% pull(risk_1) %>% (label_number(0.1, scale=1000))` and `r km70 %>% filter(treatment=="pfizer", outcome=="coviddeath", subgroup=="none") %>% pull(risk_0) %>% (label_number(0.1, scale=1000))` for COVID-19 death (`r km70 %>% filter(treatment=="pfizer", outcome=="coviddeath", subgroup=="none") %>% pull(kmrd) %>% (label_number(0.1, scale=1000))`), and `r km70 %>% filter(treatment=="pfizer", outcome=="noncoviddeath", subgroup=="none") %>% pull(risk_1) %>% (label_number(0.1, scale=1000))` and `r km70 %>% filter(treatment=="pfizer", outcome=="noncoviddeath", subgroup=="none") %>% pull(risk_0) %>% (label_number(0.1, scale=1000))` for non-COVID-19 death (`r km70 %>% filter(treatment=="pfizer", outcome=="noncoviddeath", subgroup=="none") %>% pull(kmrd) %>% (label_number(0.1, scale=1000))`).
 
 The overall (days 1-70) estimated booster effectiveness comparing the boosted and unboosted groups was `r filter(overallhazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3) %>% pull(ve_display95)` for positive SARS-CoV-2 test, `r filter(overallhazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3) %>% pull(ve_display)` for COVID-19 death, and `r filter(overallhazards, subgroup=="none", outcome=="noncoviddeath", treatment=="pfizer", model==3) %>% pull(ve_display)` for non-COVID-19 death (Table 3). Estimated booster effectiveness against COVID-19 outcomes was generally lower during days 1-28 than days 29-70: `r filter(meta2hazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` and `r filter(meta2hazards, subgroup=="none", outcome=="postest", treatment=="pfizer", model==3, term_right==70) %>% pull(ve_display)` for respectively positive SARS-CoV-2 test; `r filter(meta2hazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` and `r filter(meta2hazards, subgroup=="none", outcome=="covidadmitted", treatment=="pfizer", model==3, term_right==70) %>% pull(ve_display)` respectively for COVID-19 hospital admission; `r filter(meta2hazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` and `r filter(meta2hazards, subgroup=="none", outcome=="coviddeath", treatment=="pfizer", model==3, term_right==70) %>% pull(ve_display)` respectively for COVID-19 death; and `r filter(meta2hazards, subgroup=="none", outcome=="noncoviddeath", treatment=="pfizer", model==3, term_right==28) %>% pull(ve_display)` and `r filter(meta2hazards, subgroup=="none", outcome=="noncoviddeath", treatment=="pfizer", model==3, term_right==70) %>% pull(ve_display)` for non-COVID-19 death.
 
 ### Subgroup analyses
 
-Outcomes were broadly similar between subgroups defined by primary vaccine course. For those who had received BNT162b2, estimated booster effectiveness was `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 test, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3) %>% pull(ve_display)` for COVID-19 death, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3) %>% pull(ve_display)` for non-COVID-19 death. Corresponding estimates of booster effectiveness for ChAdOx1-S recipients were `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup_level=="az-az", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup_level=="az-az", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup_level=="az-az", model==3) %>% pull(ve_display)`, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup_level=="az-az", model==3) %>% pull(ve_display)` respectively.
+Outcomes were broadly similar between subgroups defined by primary vaccine course. For those who had received BNT162b2, estimated booster effectiveness was `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 test, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3) %>% pull(ve_display)` for COVID-19 death, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup_level=="pfizer-pfizer", model==3) %>% pull(ve_display)` for non-COVID-19 death. Corresponding estimates for ChAdOx1-S recipients were `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup_level=="az-az", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup_level=="az-az", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup_level=="az-az", model==3) %>% pull(ve_display)`, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup_level=="az-az", model==3) %>% pull(ve_display)` respectively.
 
-Amongst people classified as clinically extremely vulnerable, estimated booster effectiveness was `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 test, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for COVID-19 death, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for non-COVID-19 death. For people who were not classified as clinically extremely vulnerable, estimated booster effectiveness was similar for positive SARS-CoV-2 tests (`r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="cev-FALSE", model==3) %>% pull(ve_display)` and non-COVID-19 death (`r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="cev-FALSE", model==3) %>% pull(ve_display)`), but higher for COVID-19 hospital admission and death (`r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="cev-FALSE", model==3) %>% pull(ve_display)` and `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="cev-FALSE", model==3) %>% pull(ve_display)` respectively). 
+Among people classified as clinically extremely vulnerable, estimated booster effectiveness was `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 test, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, and `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` for COVID-19 death. Among people not classified as clinically extremely vulnerable estimated booster effectiveness was slightly higher, at `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="cev-FALSE", model==3) %>% pull(ve_display)` , `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="cev-FALSE", model==3) %>% pull(ve_display)` and `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="cev-FALSE", model==3) %>% pull(ve_display)` respectively. Estimated booster effectiveness for non-COVID-19 death was similar for those who were and were not classified as clinically extremely vulnerable: `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="cev-TRUE", model==3) %>% pull(ve_display)` and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="cev-FALSE", model==3) %>% pull(ve_display)` respectively.
 
-Amongst people aged $\ge$ 65 years, estimated booster effectiveness was `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="age65plus-TRUE", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 test, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="age65plus-TRUE", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="age65plus-TRUE", model==3) %>% pull(ve_display)` for COVID-19 death, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="age65plus-TRUE", model==3) %>% pull(ve_display)` for non-COVID-19 death.  Corresponding effectiveness was similar in people aged 18-64 years for positive SARS-CoV-2 tests (`r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)`), but slightly lower for more severe outcomes: `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)` for COVID-19 death, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)` for non-COVID-19 death.
+Among people aged $\ge$ 65 years, estimated booster effectiveness was `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="age65plus-TRUE", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 test, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="age65plus-TRUE", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="age65plus-TRUE", model==3) %>% pull(ve_display)` for COVID-19 death, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="age65plus-TRUE", model==3) %>% pull(ve_display)` for non-COVID-19 death. Corresponding effectiveness appeared lower in people aged 18-64 years: `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 tests, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)` for COVID-19 death, and `r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="age65plus-FALSE", model==3) %>% pull(ve_display)` for non-COVID-19 death.
 
-Outcomes were similar for COVID-19-related events when comparing people with or without evidence of prior SARS-CoV-2 infection. Estimated booster effectiveness for those with evidence of prior infection was `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="prior_covid_infection-TRUE", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 test, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="prior_covid_infection-TRUE", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="prior_covid_infection-TRUE", model==3) %>% pull(ve_display)` for COVID-19 death. Corresponding estimates in people with no evidence of prior infection were `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="prior_covid_infection-FALSE", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="prior_covid_infection-FALSE", model==3) %>% pull(ve_display)`, and `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="prior_covid_infection-FALSE", model==3) %>% pull(ve_display)`, respectively. For non-COVID-19, estimated booster effectiveness was slightly lower in those with prior evidence of SARS-CoV-2 infection (`r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="prior_covid_infection-TRUE", model==3) %>% pull(ve_display)`) than in those without (`r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="prior_covid_infection-FALSE", model==3) %>% pull(ve_display)`).
+Outcomes were similar for COVID-19-related events when comparing people with or without evidence of prior SARS-CoV-2 infection. Estimated booster effectiveness for those with evidence of prior infection was `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="prior_covid_infection-TRUE", model==3) %>% pull(ve_display)` for positive SARS-CoV-2 test, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="prior_covid_infection-TRUE", model==3) %>% pull(ve_display)` for COVID-19 hospital admission, `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="prior_covid_infection-TRUE", model==3) %>% pull(ve_display)` for COVID-19 death. Corresponding estimates in people with no evidence of prior infection were `r filter(overallhazards, outcome=="postest", treatment=="pfizer", subgroup=="prior_covid_infection-FALSE", model==3) %>% pull(ve_display)`, `r filter(overallhazards, outcome=="covidadmitted", treatment=="pfizer", subgroup=="prior_covid_infection-FALSE", model==3) %>% pull(ve_display)`, and `r filter(overallhazards, outcome=="coviddeath", treatment=="pfizer", subgroup=="prior_covid_infection-FALSE", model==3) %>% pull(ve_display)`, respectively. For non-COVID-19 death, estimated booster effectiveness was slightly lower in those with prior evidence of SARS-CoV-2 infection (`r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="prior_covid_infection-TRUE", model==3) %>% pull(ve_display)`) than in those without (`r filter(overallhazards, outcome=="noncoviddeath", treatment=="pfizer", subgroup=="prior_covid_infection-FALSE", model==3) %>% pull(ve_display)`).
 
-Booster effectiveness was also estimated using narrower periods, with effectiveness against positive SARS-CoV-2 tests appearing to wane in later periods (`r filter(hazards, outcome=="postest", treatment=="pfizer", term_right==28, subgroup=="none", model==3) %>% pull(ve_display)` during days 15-28 after boosting versus `r filter(hazards, outcome=="postest", treatment=="pfizer", term_right==70, subgroup=="none", model==3) %>% pull(ve_display)` during days 43-70), a pattern that persisted in primary course subgroup analyses (Figure 3). For more severe outcomes, period-specific effectiveness estimates are less clear due to fewer events, though were broadly similar between different primary course brands.
+When booster effectiveness was estimated within shorter time periods, effectiveness against positive SARS-CoV-2 tests appeared to wane towards the end of follow up (`r filter(hazards, outcome=="postest", treatment=="pfizer", term_right==28, subgroup=="none", model==3) %>% pull(ve_display95)` during days 15-28 versus `r filter(hazards, outcome=="postest", treatment=="pfizer", term_right==70, subgroup=="none", model==3) %>% pull(ve_display)` during days 43-70). This pattern was observed in each subgroup defined by primary course vaccine brand (Figure 3). For more severe outcomes, period-specific effectiveness estimates were imprecisely estimated but broadly similar between primary course vaccine brands.
 
 # Discussion
 
-This observational study investigated the effectiveness of a BNT162b2 booster dose in `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` adults, and their matched controls, in England in the Delta era. We found high protection against all studied outcomes. There were apparent waning protection against positive SARS-CoV-2 tests around 6 weeks after boosting, which is unlikely to be explained by increased transmissibility of the Omicron variant given Omicron was not yet dominant in the UK by the end of the follow-up window @COVID19OmicronDaily. Changing testing behaviours over time between boosted and unboosted people may influence these estimates, if for example persistently unboosted participants, who will contribute more person-time in later follow-up periods, were less likely to get tested.
-
-Protection was similar between 2× BNT162b2 primary course recipients and 2× ChAdOx1-S recipients, except for COVID-19 death in the first 28 days where protected appeared higher for those whose primary course was 2× BNT162b2 than for 2× ChAdOx1-S. For severe outcomes, protection was lower in the clinical extremely vulnerable sub-population than in those who were not vulnerable.
-
-We considered effectiveness in a population where Delta was the predominant circulating variant @COVID19OmicronDaily. Re-running the analysis against a backdrop of the now globally-dominant Omicron variant will be undertaken where valid concurrent comparisons between boosted and unboosted people can be made. Further, mRNA-1273 boosting began later than for BNT162b2 so we did not evaluate effectiveness of this vaccine due to insufficient follow-up. An analysis of mRNA-1273 boosting and comparative effectiveness between mRNA-1273 and BNT162b2 is planned.
+In this observational cohort study based on nearly 7 million adults in England during a period when the Delta variant was dominant @COVID19OmicronDaily, a BNT162b2 booster dose reduced rates of positive SARS-CoV-2 tests by approximately 50% over the first 10 weeks after booster vaccination. There were also substantial reductions in rates of COVID-19 hospitalisation, COVID-19 death, and non-COVID-19 death. Booster effectiveness against these severe outcomes appeared similar regardless of whether the primary vaccine course was with ChAdOx1-S or BNT162b2, and whether there was evidence of prior infection or not. However, protection appeared lower in people classified as clinically extremely vulnerable compared with those not so classified, and lower in those aged under 65 years. Protection against positive SARS-CoV-2 tests appeared to wane from around 6 weeks after booster vaccination.
 
 ### Strengths and Limitations
 
-We used routinely-collected health records with comprehensive coverage of primary care, hospital admissions, COVID-19 testing and vaccination, and death registrations. This provides substantial power to estimate effectiveness of booster doses against severe but rare outcomes such as hospital admission and death, including period-specific effects to investigate waning protection.
+We used routinely-collected electronic health care records with comprehensive coverage of primary care, hospital admissions, COVID-19 testing and vaccination, and death registrations. This enabled us to control for a comprehensive set of potential confounding factors. <!-- provides substantial power to estimate effectiveness of booster doses against severe but rare outcomes such as hospital admission and death, including period-specific effects to investigate waning protection. --> We carefully matched booster recipients with unboosted controls whose characteristics, including prior SARS-CoV-2 infection and COVID-29 disease, were similar at time time of booster vaccination. However, unmeasured confounding remains possible, and is most likely because people with COVID-19 symptoms are unlikely to receive a booster vaccination due to ineligibility but such symptoms are not routinely recorded. <!-- In particular, the apparent protective effect immediately after boosting is biologically implausible, and will be explained in part by the occurrence at baseline of COVID-19 symptoms in the unboosted controls that were not recorded in the health record, and so could not be identified and excluded. Such symptoms are much less likely in booster recipients as symptomatic people and those with a recent positive test, were ineligible for boosting. -->
 
-We carefully matched booster recipients with unboosted controls using characteristics known at baseline to strengthen exchangeability between treatment groups and reduce dependence on modelling assumptions in the estimates of effectiveness. However, despite reasonable balance of important baseline characteristics and additional adjustment for a range of potential confounders, the possibility of unmeasured confounding remains. In particular, the apparent protective effect immediately after boosting is biologically implausible, and will be explained in part by the occurrence at baseline of COVID-19 symptoms in the unboosted controls that were not recorded in the health record, and so could not be identified and excluded. Such symptoms are much less likely in booster recipients as symptomatic people, or those with a recent positive test, were ineligible for boosting.
+More general healthy vaccinee bias was addressed by excluding hospitalised people and other very sick people likely to be near the end of life. This is evidenced here by the apparent premature effectiveness against hospitalisation and COVID-19 death during the first week after boosting. The implausibly strong protection of booster vaccination observed against non-COVID-19 death further suggests this bias was not completely removed, potentially leading to an over-estimation of effectiveness against COVID-19 related outcomes. We are unable to compare our non-COVID-19 death results with other recent studies of booster effectiveness as they were not investigated.
 
-The matching approach is robust but inefficient; a minority of boosted individuals are not retained after matching, and those who are retained are censored when their matched control is boosted, reducing the follow-up duration and therefore statistical power. Millions of eligible participants may be required to obtain precise estimates, particularly when event rates are low, and so extending the approach to smaller subgroups may not be feasible. For instance, due to small numbers, we did not study booster effectiveness in those who had received the mRNA-1273 vaccine as their primary course or those who had received a heterologous primary course, despite many thousands of such recipients in England.
+<!--# An alternative, or complimentary, explanation for the spurious non-COVID-19 booster effect is the possible misattribution of COVID-19 deaths to other causes, which would lead to an under-estimation of effectiveness against COVID-19 death. However, English mortality data is generally considered to be reliable so misattribution of cause of death is unlikely to be a major factor. -->
 
-Positive SARS-CoV-2 test data likely underestimates the true incidence of infection. The mass availability of lateral flow tests in the UK during the study period, whose results are not routinely recorded in COVID-19 surveillance data, means many infections, including symptomatic infections, may be undocumented, despite encouragement to seek a confirmatory PCR test. Potential differences in testing behaviour between boosted and unboosted people also contributes to the unreliability of testing data as a means to assess effectiveness @glasziou2022. SARS-CoV-2 testing was not widely available early in the pandemic so evidence of prior infection is likely to be under-ascertained. We may not have all records of negative tests so counts of number of tests are also incomplete. Hospital admission records are only completed after discharge, so some very long hospital stays commencing within the follow-up period may not have been included.
+We addressed ongoing booster vaccination by censoring follow up for both the booster recipient and their unboosted control when the latter received booster vaccination. We excluded a number of groups, such as health care workers and care home residents, where testing use, vaccination uptake, and infection risk were unusual or had substantial within-group heterogeneity that could not adequately measured and controlled for. The generalisability of our results to these excluded groups is unclear. Due to small numbers, we did not study booster effectiveness in those who had received the mRNA-1273 vaccine as their primary course or those who had received a heterologous primary course.
 
-We excluded a number of groups, such as health care workers and care home residents, where testing use, vaccination uptake, and infection risk were unusual or had substantial within-group heterogeneity that could not adequately measured and controlled for. The generalisability of our results to these excluded groups is unclear.
+<!-- The matching approach is robust but inefficient; a minority of boosted individuals are not retained after matching, and those who are retained are censored when their matched control is boosted, reducing the follow-up duration and therefore statistical power. Millions of eligible participants may be required to obtain precise estimates, particularly when event rates are low, and so extending the approach to smaller subgroups may not be feasible. -->
+
+Positive SARS-CoV-2 test data likely underestimates the true incidence of infection. Despite the mass availability of lateral flow tests in the UK during the study period, many infections, including symptomatic infections, will not be recorded in national data, despite encouragement to seek a confirmatory PCR test. Potential differences in testing behaviour between boosted and unboosted people also contributes to the unreliability of testing data as a means to assess effectiveness @glasziou2022. SARS-CoV-2 testing was not widely available early in the pandemic so prior infection is also likely to be under-ascertained. Hospital admission records are only completed after discharge, so some very long hospital stays commencing within the follow-up period may not have been included.
 
 ### Findings in context
 
 <!-- [ cov-boost trial] -->
 
-A phase III trial assessing BNT162b2 booster efficacy in two-dose BNT162b2 recipients without prior infection reported a relative efficacy of 95.6% (95% CI 89.3-98.6) against Delta infection @PfizerBioNTechAnnounce2021. Observational studies in the UK have provided evidence for increased protection from the booster vaccine against symptomatic COVID-19 infection in comparison to second dose recipients using a test negative design. Andrews et al. reported estimates of relative vaccine effectiveness against symptomatic disease in the 14 days after a BNT162b2 booster dose in those aged over 50 years of 87.4% (95%CI 84.9-89.4) where the primary course was ChAdOx1-S and 84.4% (95%CI 82.8-85.8) for BNT162b2 @andrews2021. A study in Scotland reported comparable estimates of relative vaccine effectiveness for S gene positive symptomatic infection (83% (95%CI 81-84) 6-49 years, 88% (95%CI 86-89) over 50 years) in the 14 days after a BNT162b2 or mRNA-1273 booster dose, but lower estimates for S gene negative symptomatic infection (56% (95%CI 51-60) 6-49 years, 57% (95%CI 52-62) over 50 years) @sheikhSeverityOmicronVariant2021. Elsewhere, a study in Israeli health registry data found strong protection against admission (1 -- risk ratio (95%CI) = 93% (88-97)), severe disease (92% (82-97)), and COVID-19 death (81% (59-97)), with similar results in specific demographic and clinical subgroups @barda2021. 
+A phase III trial in two-dose BNT162b2 recipients without prior infection reported a relative boster vaccination efficacy over a median of 2.5 months of 95.6% (95% CI 89.3-98.6) against Delta infection @PfizerBioNTechAnnounce2021. Observational studies in the UK have used 'test-negative' designs to provide evidence of the effectiveness of booster vaccination against symptomatic COVID-19 infection, in comparison to second dose recipients. Andrews et al. reported estimates of relative vaccine effectiveness in the first 14 days after BNT162b2 booster vaccination of 87.4% (95%CI 84.9-89.4) where the primary course was ChAdOx1-S and 84.4% (95%CI 82.8-85.8) for BNT162b2, in those aged over 50 years @andrews2022. A study in Scotland reported comparable estimates of relative vaccine effectiveness for S gene positive (a surrogate the Delta variant in the latter half of 2021 in the United Kingdom) symptomatic infection (83% (95%CI 81-84) 6-49 years, 88% (95%CI 86-89) over 50 years) in the 14 days after a BNT162b2 or mRNA-1273 booster dose, but lower estimates for S gene negative symptomatic infection (56% (95%CI 51-60) 6-49 years, 57% (95%CI 52-62) over 50 years) @sheikhSeverityOmicronVariant2021. We assessed effectiveness of booster vaccination against test positivity, combining both asymptomatic and symptomatic testing from documented PCR and lateral flow tests, and found substantially lower protection for this outcome compared with symptomatic infection only as previously estimated using test-negative designs in UK data. This provides prima facie evidence that booster vaccination is effective at reducing disease severity but not solely by reducing susceptibility to infection itself. It may also suggest vulnerability of the test-negative case-control design to bias when booster vaccination reduces disease severity @lewnard2018.
 
-Our results broadly agree with these findings and provide important additional insights into effectiveness in specific clinical subgroups, younger age groups, and more severe outcomes over a longer period of follow up. Encouragingly, we found effectiveness was broadly similar irrespective of whether BNT162b2 or ChAdOx1-S was given for the primary vaccination course, and the were only slight reductions in effectiveness in those who were clinically extremely vulnerable. 
+A study in Israeli health registry data using 1:1 matching found strong protection against admission (1--risk ratio (95%CI) = 93% (88-97)), severe disease (92% (82-97)), and COVID-19 death (81% (59-97)), with similar results in specific demographic and clinical subgroups @barda2021. Our study, which also used matching but additionally adjusted for potential confounders not included as matching factors, found slightly lower estimates of effectiveness against hospitalization but higher estimates for death.
 
+Our results also provide important additional insights into effectiveness in clinical subgroups, younger age groups, and more severe outcomes over a longer period of follow up. Encouragingly, we found effectiveness was broadly similar irrespective of whether BNT162b2 or ChAdOx1-S was given for the primary vaccination course, and there were only slight reductions in effectiveness in those who were clinically extremely vulnerable or aged under 65 years. The absence of large discrepancies in booster effectiveness in different subgroups may simplify the coordination of future booster campaigns in the UK, allowing boosting to be prioritised on vulnerability to infection and severe disease without consideration for differential vaccine escape.
 
-<!-- @1050236/technical-briefing-34-14-january-2022.pdf -->
+The analysis will be re-run against a backdrop of the now globally-dominant Omicron variant where valid concurrent comparisons between boosted and unboosted people can be made. An analysis of mRNA-1273 boosting and comparative effectiveness between mRNA-1273 and BNT162b2 is also underway.
 
 ### Conclusion
 
-This study of over 8 million people in England found high protection for BNT162b2 boosting against positive SARS-CoV-2 tests, COVID-19 hospital admission, and death during a period in which the Delta variant was dominant.
+This study of almost 7 million people in England found high protection for BNT162b2 boosting against positive SARS-CoV-2 tests, COVID-19 hospital admission, and death during a period in which the Delta variant was dominant. Some evidence of waning effectiveness against positive SARS-CoV-2 tests suggests a need for careful monitoring of vaccine protection over time.
 
 \newpage
 
@@ -638,7 +621,6 @@ BG is guarantor.
 ## Tables and Figures
 
 #### Table 1: Characteristics (%) of `r label_number(1, big.mark=",")(filter(matchsummary, treatment=="pfizer") %>% pull(n_matched))` boosted people included in the study, and their matched controls, on the day of recruitment.
-
 
 ```{r table-table1, echo=FALSE, warning=FALSE, message=FALSE}
 table1_body <- read_csv(fs::path(output_dir_os, "matchtable1.csv")) %>% filter(treatment=="pfizer")
@@ -690,7 +672,6 @@ table1 %>%
   ) %>%
   cols_hide(c("variable", "var_label", "order"))
 ```
-
 
 \newpage
 
@@ -775,10 +756,7 @@ km70_table <-
 
 ```
 
-
 \newpage
-
-
 
 #### Table 2 (v2): Total events and person-years of follow-up, for each outcome, in the boosted and unboosted groups.
 
@@ -787,14 +765,14 @@ km70_table <-
 format_ratio = function(numer,denom, width=7){
   paste0(
     replace_na(scales::comma_format(accuracy=1)(numer), "--"),
-    " / ",
+    "/",
     str_pad(replace_na(scales::comma_format(accuracy=1)(denom),"--"), width=width, pad=" ")
   )
 }
 
 
 km_table <- 
-  kmtreated_cuts %>%
+  kmtreated_28 %>%
   filter(
     outcome %in% outcomes,
     treatment == "pfizer",
@@ -802,8 +780,8 @@ km_table <-
   ) %>%
   #group_by(across(all_of(groupvariables))) %>%
   mutate(
-    q_0 = format_ratio(cml.event_0, cml.atrisk_0/365.25),
-    q_1 = format_ratio(cml.event_1, cml.atrisk_1/365.25),
+    q_0 = stringr::str_replace(format_ratio(cml.event_0, cml.atrisk_0/365.25),fixed(" "), ""),
+    q_1 = stringr::str_replace(format_ratio(cml.event_1, cml.atrisk_1/365.25),fixed(" "), ""),
   ) %>%
   select(
     #treatment_descr, 
@@ -859,7 +837,7 @@ km_table <-
 
 \newpage
 
-#### Table 3:  Estimated booster vaccine effectiveness ($100 \times (1-\text{hazard ratio})$) for the main and subgroup analyses and for all outcomes.
+#### Table 3: Estimated booster vaccine effectiveness ($100 \times (1-\text{hazard ratio})$) for the main and subgroup analyses and for all outcomes.
 
 ```{r table-effects, echo=FALSE, message=FALSE, warning=FALSE, out.extra='', fig.height=7.5, out.width='90%', results='asis'}
 
@@ -975,7 +953,6 @@ matchflowchart %>%
   )
 ```
 
-
 \newpage
 
 #### Figure 2: Kaplan-Meier estimates of cumulative incidence in matched boosted and unboosted treatment groups, stratified by primary course and without further adjustment for potential confounders.
@@ -1043,7 +1020,6 @@ plot_km <-
 plot_km
 
 ```
-
 
 \newpage
 
@@ -1154,7 +1130,6 @@ formatpercent100 <- function(x,accuracy){
   plot_hazards
   
 ```
-
 
 \newpage
 
