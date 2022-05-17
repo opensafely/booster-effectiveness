@@ -235,11 +235,15 @@ data_processed <- data_extract %>%
 
     prior_tests_cat = cut(prior_covid_test_frequency, breaks=c(0, 1, 2, 3, Inf), labels=c("0", "1", "2", "3+"), right=FALSE),
 
-    prior_covid_infection0 = !is.na(positive_test_0_date) | !is.na(admitted_covid_0_date) | !is.na(primary_care_covid_case_0_date),
+    prior_covid_infection0 = (!is.na(positive_test_0_date)) | (!is.na(admitted_covid_0_date)) | (!is.na(primary_care_covid_case_0_date)),
 
 
     #covidemergency_1_date = pmin(covidemergency_1_date, covidadmitted_1_date, na.rm=TRUE),
 
+    admitted_covid_ccdays_1 = as.numeric(as.character(admitted_covid_ccdays_1)),
+    admitted_covid_ccdays_2 = as.numeric(as.character(admitted_covid_ccdays_2)),
+    admitted_covid_ccdays_3 = as.numeric(as.character(admitted_covid_ccdays_3)),
+    admitted_covid_ccdays_4 = as.numeric(as.character(admitted_covid_ccdays_4)),
 
 
     covidcc_1_date = case_when(

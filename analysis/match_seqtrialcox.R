@@ -348,7 +348,7 @@ local({
       # join time-variant variables
       left_join(data_timevarying_i, by="patient_id") %>%
       mutate(
-        prior_covid_infection = prior_covid_infection0 | !is.na(mostrecent_anycovid)
+        prior_covid_infection = prior_covid_infection0 | (!is.na(mostrecent_anycovid))
       ) %>%
       filter(
         # remove anyone already censored
@@ -514,7 +514,7 @@ data_merged <-
   left_join(data_baseline, by=c("patient_id")) %>%
   # remaining variables that combine both
   mutate(
-    prior_covid_infection = prior_covid_infection0 | !is.na(mostrecent_anycovid),
+    prior_covid_infection = prior_covid_infection0 | (!is.na(mostrecent_anycovid)),
     dayssince_anycovid = tstart - mostrecent_anycovid,
   )
 
