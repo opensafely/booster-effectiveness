@@ -42,20 +42,10 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
     # because date types are not returned consistently by cohort extractor
     mutate(across(ends_with("_date"), ~ as.Date(.))) %>%
     # because of a bug in cohort extractor -- remove once pulled new version
-    mutate(patient_id = as.integer(patient_id)) %>%
-    mutate(
-      admitted_covid_ccdays_1 = as.numeric(as.character(admitted_covid_ccdays_1)),
-      admitted_covid_ccdays_2 = as.numeric(as.character(admitted_covid_ccdays_2)),
-      admitted_covid_ccdays_3 = as.numeric(as.character(admitted_covid_ccdays_3)),
-      admitted_covid_ccdays_4 = as.numeric(as.character(admitted_covid_ccdays_4)),
-    )
+    mutate(patient_id = as.integer(patient_id))
 
   data_custom_dummy <- read_feather(here("lib", "dummydata", "dummyinput.feather")) %>%
     mutate(
-      admitted_covid_ccdays_1 = as.numeric(as.character(admitted_covid_ccdays_1)),
-      admitted_covid_ccdays_2 = as.numeric(as.character(admitted_covid_ccdays_2)),
-      admitted_covid_ccdays_3 = as.numeric(as.character(admitted_covid_ccdays_3)),
-      admitted_covid_ccdays_4 = as.numeric(as.character(admitted_covid_ccdays_4)),
       msoa = sample(factor(c("1", "2")), size=n(), replace=TRUE) # override msoa so matching success more likely
     )
 
@@ -240,6 +230,7 @@ data_processed <- data_extract %>%
 
     #covidemergency_1_date = pmin(covidemergency_1_date, covidadmitted_1_date, na.rm=TRUE),
 
+    # because this value is returned as a factor by the study definition
     admitted_covid_ccdays_1 = as.numeric(as.character(admitted_covid_ccdays_1)),
     admitted_covid_ccdays_2 = as.numeric(as.character(admitted_covid_ccdays_2)),
     admitted_covid_ccdays_3 = as.numeric(as.character(admitted_covid_ccdays_3)),
