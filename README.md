@@ -41,7 +41,7 @@ This study estimates effectiveness of booster doses
 
 ## Manuscript
 
-Not yet drafted.
+Pre-print available on MedRxiv soon.
 
 # About the OpenSAFELY framework
 
