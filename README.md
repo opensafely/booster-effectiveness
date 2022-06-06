@@ -1,6 +1,6 @@
 # Effectiveness of COVID-19 Vaccine booster doses
 
-This study estimates effectiveness of booster doses 
+This study estimates effectiveness of booster doses versus those with two doses only. 
 
 ## Repository navigation
 
