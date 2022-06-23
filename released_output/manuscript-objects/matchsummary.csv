@@ -1,0 +1,2 @@
+treatment,treatment_descr,n,firstrecruitdate,lastrecruitdate,fup_sum,fup_years,fup_mean,fup_median,n_12pfizer,prop_12pfizer,n_12az,prop_12az,age_median,age_Q1,age_Q3,female,n_treated,n_eligible,n_matched,n_unmatched,prop_matched_treated,prop_matched_eligible,prop_eligible_treated
+pfizer,BNT162b2,6853920,2021-09-16,2021-12-01,136226160,372966.8993839836,19.875656558582428,16,2952262,0.430740656441861,3901658,0.569259343558139,67,57,75,0.5435976784088522,4764097,3998664,3426960,571704,0.719330441844488,0.85702624676642,0.8393330362501016

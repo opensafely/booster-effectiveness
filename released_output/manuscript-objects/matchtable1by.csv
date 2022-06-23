@@ -1,0 +1,5 @@
+treatment,treatment_descr,by,by_id,by_chr,by_col,n,N,p
+pfizer,BNT162b2,"Boosted, ineligible",1,"Boosted, ineligible",stat_1,765433,8191057,0.093447402453676
+pfizer,BNT162b2,"Boosted, eligible, unmatched",2,"Boosted, eligible, unmatched",stat_2,571704,8191057,0.06979612032976941
+pfizer,BNT162b2,"Boosted, eligible, matched",3,"Boosted, eligible, matched",stat_3,3426960,8191057,0.4183782386082773
+pfizer,BNT162b2,Control,4,Control,stat_4,3426960,8191057,0.4183782386082773

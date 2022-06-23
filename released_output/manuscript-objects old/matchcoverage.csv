@@ -1,0 +1,835 @@
+treatment,treatment_descr,vax12_type,status,vax3_date,n,cumuln
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-10-29,750,750
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-10-30,930,1680
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-10-31,804,2484
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-01,1206,3690
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-02,1752,5442
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-03,2604,8046
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-04,3282,11328
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-05,3696,15024
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-06,3732,18756
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-07,2892,21648
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-08,4350,25998
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-09,6108,32106
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-10,7680,39786
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-11,11028,50814
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-12,10308,61122
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-13,8424,69546
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-14,7332,76878
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-15,12876,89754
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-16,12738,102492
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-17,14934,117426
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-18,18294,135720
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-19,21954,157674
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-20,18666,176340
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-21,16320,192660
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-22,22548,215208
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-23,23502,238710
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-24,26712,265422
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-25,30402,295824
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-26,33672,329496
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-27,29316,358812
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-28,25710,384522
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-29,28446,412968
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-11-30,33258,446226
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-12-01,35388,481614
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-12-02,38430,520044
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-12-03,37230,557274
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-12-04,41124,598398
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-12-05,27984,626382
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-12-06,31800,658182
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-12-07,36318,694500
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-12-08,36330,730830
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-12-09,41256,772086
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-12-10,43896,815982
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-12-11,50412,866394
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-12-12,39222,905616
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-12-13,49008,954624
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-12-14,49956,1004580
+moderna,mRNA-1273,az-az,"Treated, eligible, matched",2021-12-15,49848,1054428
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-10-29,0,0
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-10-30,0,0
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-10-31,0,0
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-01,0,0
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-02,0,0
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-03,6,6
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-04,0,6
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-05,0,6
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-06,0,6
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-07,0,6
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-08,0,6
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-09,0,6
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-10,0,6
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-11,0,6
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-12,0,6
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-13,0,6
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-14,0,6
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-15,6,12
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-16,0,12
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-17,0,12
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-18,6,18
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-19,0,18
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-20,6,24
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-21,0,24
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-22,6,30
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-23,0,30
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-24,0,30
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-25,6,36
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-26,6,42
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-27,6,48
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-28,6,54
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-29,6,60
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-11-30,0,60
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-12-01,6,66
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-12-02,6,72
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-12-03,6,78
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-12-04,6,84
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-12-05,6,90
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-12-06,0,90
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-12-07,36,126
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-12-08,108,234
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-12-09,192,426
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-12-10,276,702
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-12-11,306,1008
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-12-12,252,1260
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-12-13,588,1848
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-12-14,864,2712
+moderna,mRNA-1273,az-az,"Treated, eligible, unmatched",2021-12-15,1122,3834
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-10-29,1236,1236
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-10-30,882,2118
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-10-31,336,2454
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-01,1164,3618
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-02,924,4542
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-03,1134,5676
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-04,984,6660
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-05,1176,7836
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-06,1206,9042
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-07,798,9840
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-08,1596,11436
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-09,1602,13038
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-10,2088,15126
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-11,1824,16950
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-12,2202,19152
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-13,1692,20844
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-14,1104,21948
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-15,1734,23682
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-16,1662,25344
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-17,1938,27282
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-18,2154,29436
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-19,2328,31764
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-20,1914,33678
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-21,1488,35166
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-22,2082,37248
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-23,2226,39474
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-24,2466,41940
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-25,2892,44832
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-26,3186,48018
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-27,2922,50940
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-28,2442,53382
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-29,2928,56310
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-11-30,3366,59676
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-12-01,3600,63276
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-12-02,3978,67254
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-12-03,3768,71022
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-12-04,4284,75306
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-12-05,2838,78144
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-12-06,3264,81408
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-12-07,3714,85122
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-12-08,3858,88980
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-12-09,4434,93414
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-12-10,4782,98196
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-12-11,5538,103734
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-12-12,4458,108192
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-12-13,5778,113970
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-12-14,5946,119916
+moderna,mRNA-1273,az-az,"Treated, ineligible",2021-12-15,6132,126048
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-10-29,0,0
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-10-30,288,288
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-10-31,78,366
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-01,222,588
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-02,294,882
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-03,744,1626
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-04,1062,2688
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-05,1050,3738
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-06,768,4506
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-07,852,5358
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-08,1488,6846
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-09,2022,8868
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-10,3054,11922
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-11,4596,16518
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-12,4518,21036
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-13,3852,24888
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-14,2988,27876
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-15,5142,33018
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-16,5550,38568
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-17,5508,44076
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-18,5754,49830
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-19,6450,56280
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-20,4884,61164
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-21,3750,64914
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-22,4788,69702
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-23,6120,75822
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-24,6264,82086
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-25,6498,88584
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-26,6804,95388
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-27,5424,100812
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-28,3990,104802
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-29,4644,109446
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-11-30,6066,115512
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-12-01,5544,121056
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-12-02,6102,127158
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-12-03,4668,131826
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-12-04,5112,136938
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-12-05,3006,139944
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-12-06,3432,143376
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-12-07,4224,147600
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-12-08,4320,151920
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-12-09,5394,157314
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-12-10,4662,161976
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-12-11,5760,167736
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-12-12,5436,173172
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-12-13,9582,182754
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-12-14,13080,195834
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, matched",2021-12-15,16068,211902
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-29,0,0
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-30,0,0
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-31,0,0
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-01,0,0
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-02,0,0
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-03,0,0
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-04,0,0
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-05,6,6
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-06,0,6
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-07,0,6
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-08,0,6
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-09,0,6
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-10,0,6
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-11,0,6
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-12,0,6
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-13,0,6
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-14,0,6
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-15,6,12
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-16,0,12
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-17,0,12
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-18,0,12
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-19,0,12
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-20,6,18
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-21,0,18
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-22,0,18
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-23,0,18
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-24,6,24
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-25,0,24
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-26,0,24
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-27,6,30
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-28,0,30
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-29,6,36
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-30,6,42
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-01,0,42
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-02,12,54
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-03,6,60
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-04,6,66
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-05,0,66
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-06,12,78
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-07,0,78
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-08,6,84
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-09,24,108
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-10,30,138
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-11,42,180
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-12,30,210
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-13,48,258
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-14,36,294
+moderna,mRNA-1273,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-15,48,342
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-10-29,654,654
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-10-30,540,1194
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-10-31,336,1530
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-01,1272,2802
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-02,1068,3870
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-03,1260,5130
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-04,888,6018
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-05,972,6990
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-06,1050,8040
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-07,732,8772
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-08,1362,10134
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-09,1344,11478
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-10,1722,13200
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-11,1890,15090
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-12,1950,17040
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-13,1638,18678
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-14,786,19464
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-15,1428,20892
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-16,1308,22200
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-17,1404,23604
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-18,1566,25170
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-19,1716,26886
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-20,1266,28152
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-21,918,29070
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-22,1242,30312
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-23,1560,31872
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-24,1644,33516
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-25,1662,35178
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-26,1614,36792
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-27,1164,37956
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-28,846,38802
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-29,1026,39828
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-11-30,1434,41262
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-12-01,1278,42540
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-12-02,1506,44046
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-12-03,1206,45252
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-12-04,1392,46644
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-12-05,846,47490
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-12-06,1056,48546
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-12-07,1308,49854
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-12-08,1218,51072
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-12-09,1638,52710
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-12-10,1266,53976
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-12-11,1536,55512
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-12-12,1152,56664
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-12-13,1632,58296
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-12-14,2118,60414
+moderna,mRNA-1273,pfizer-pfizer,"Treated, ineligible",2021-12-15,2286,62700
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-09-16,0,0
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-09-17,102,102
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-09-18,0,102
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-09-19,0,102
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-09-20,0,102
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-09-21,0,102
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-09-22,0,102
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-09-23,0,102
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-09-24,378,480
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-09-25,774,1254
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-09-26,534,1788
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-09-27,978,2766
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-09-28,1632,4398
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-09-29,3540,7938
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-09-30,4692,12630
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-01,6246,18876
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-02,11292,30168
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-03,3660,33828
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-04,5316,39144
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-05,6660,45804
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-06,10134,55938
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-07,11730,67668
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-08,13032,80700
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-09,22506,103206
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-10,6690,109896
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-11,10158,120054
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-12,14040,134094
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-13,16620,150714
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-14,21252,171966
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-15,21294,193260
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-16,38736,231996
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-17,11694,243690
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-18,13614,257304
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-19,21396,278700
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-20,29466,308166
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-21,33834,342000
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-22,32838,374838
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-23,50874,425712
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-24,20622,446334
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-25,21132,467466
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-26,27780,495246
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-27,31992,527238
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-28,32190,559428
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-29,32910,592338
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-30,53004,645342
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-10-31,22506,667848
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-01,28602,696450
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-02,35478,731928
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-03,39906,771834
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-04,41214,813048
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-05,39402,852450
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-06,58110,910560
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-07,28518,939078
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-08,32526,971604
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-09,38130,1009734
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-10,40434,1050168
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-11,37086,1087254
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-12,38130,1125384
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-13,57714,1183098
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-14,24738,1207836
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-15,24954,1232790
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-16,32736,1265526
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-17,38286,1303812
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-18,38304,1342116
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-19,37488,1379604
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-20,61692,1441296
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-21,27066,1468362
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-22,29334,1497696
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-23,34806,1532502
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-24,41370,1573872
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-25,39600,1613472
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-26,36990,1650462
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-27,64872,1715334
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-28,31350,1746684
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-29,29334,1776018
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-11-30,39084,1815102
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-12-01,44100,1859202
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-12-02,44376,1903578
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-12-03,43866,1947444
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-12-04,65958,2013402
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-12-05,32436,2045838
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-12-06,33648,2079486
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-12-07,41010,2120496
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-12-08,50556,2171052
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-12-09,53970,2225022
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-12-10,46854,2271876
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-12-11,71052,2342928
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-12-12,46590,2389518
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-12-13,40560,2430078
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-12-14,56010,2486088
+pfizer,BNT162b2,az-az,"Treated, eligible, matched",2021-12-15,62826,2548914
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-09-16,0,0
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-09-17,0,0
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-09-18,0,0
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-09-19,0,0
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-09-20,0,0
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-09-21,0,0
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-09-22,0,0
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-09-23,0,0
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-09-24,6,6
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-09-25,0,6
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-09-26,0,6
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-09-27,6,12
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-09-28,6,18
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-09-29,12,30
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-09-30,6,36
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-01,12,48
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-02,24,72
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-03,12,84
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-04,6,90
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-05,18,108
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-06,18,126
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-07,30,156
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-08,42,198
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-09,162,360
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-10,54,414
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-11,114,528
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-12,294,822
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-13,846,1668
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-14,816,2484
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-15,696,3180
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-16,2058,5238
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-17,558,5796
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-18,966,6762
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-19,1332,8094
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-20,2058,10152
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-21,2076,12228
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-22,2124,14352
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-23,4140,18492
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-24,1296,19788
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-25,2292,22080
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-26,3642,25722
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-27,4956,30678
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-28,6090,36768
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-29,5472,42240
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-30,9852,52092
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-10-31,3144,55236
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-01,4290,59526
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-02,6108,65634
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-03,7464,73098
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-04,9900,82998
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-05,9432,92430
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-06,19890,112320
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-07,6108,118428
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-08,6810,125238
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-09,9066,134304
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-10,10314,144618
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-11,10386,155004
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-12,10524,165528
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-13,23724,189252
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-14,6786,196038
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-15,7284,203322
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-16,10500,213822
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-17,11208,225030
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-18,11478,236508
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-19,9894,246402
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-20,18810,265212
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-21,5688,270900
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-22,6480,277380
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-23,9126,286506
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-24,9552,296058
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-25,10248,306306
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-26,8802,315108
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-27,14568,329676
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-28,5322,334998
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-29,5658,340656
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-11-30,7896,348552
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-12-01,9030,357582
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-12-02,8538,366120
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-12-03,7074,373194
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-12-04,11364,384558
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-12-05,4152,388710
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-12-06,4458,393168
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-12-07,6738,399906
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-12-08,7974,407880
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-12-09,7842,415722
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-12-10,7110,422832
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-12-11,11694,434526
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-12-12,5802,440328
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-12-13,5808,446136
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-12-14,8604,454740
+pfizer,BNT162b2,az-az,"Treated, eligible, unmatched",2021-12-15,10224,464964
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-09-16,216,216
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-09-17,156,372
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-09-18,372,744
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-09-19,96,840
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-09-20,174,1014
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-09-21,546,1560
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-09-22,1314,2874
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-09-23,1686,4560
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-09-24,2154,6714
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-09-25,1980,8694
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-09-26,1056,9750
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-09-27,1554,11304
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-09-28,1962,13266
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-09-29,2514,15780
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-09-30,2580,18360
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-01,2496,20856
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-02,2604,23460
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-03,876,24336
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-04,1332,25668
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-05,1770,27438
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-06,2322,29760
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-07,2334,32094
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-08,2814,34908
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-09,3150,38058
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-10,1254,39312
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-11,1524,40836
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-12,1854,42690
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-13,2430,45120
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-14,2370,47490
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-15,2856,50346
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-16,4362,54708
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-17,1380,56088
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-18,1794,57882
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-19,2694,60576
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-20,3318,63894
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-21,3696,67590
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-22,3960,71550
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-23,5484,77034
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-24,2058,79092
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-25,2532,81624
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-26,3282,84906
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-27,3666,88572
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-28,3702,92274
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-29,3912,96186
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-30,6168,102354
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-10-31,2424,104778
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-01,3114,107892
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-02,3978,111870
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-03,4632,116502
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-04,4800,121302
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-05,4746,126048
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-06,7644,133692
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-07,3300,136992
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-08,3810,140802
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-09,4668,145470
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-10,5046,150516
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-11,4782,155298
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-12,5274,160572
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-13,8760,169332
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-14,3546,172878
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-15,3564,176442
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-16,5046,181488
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-17,5766,187254
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-18,5622,192876
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-19,5808,198684
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-20,9738,208422
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-21,3702,212124
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-22,4374,216498
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-23,5460,221958
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-24,6246,228204
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-25,6738,234942
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-26,6054,240996
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-27,10494,251490
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-28,4488,255978
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-29,4776,260754
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-11-30,6444,267198
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-12-01,7098,274296
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-12-02,7632,281928
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-12-03,7050,288978
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-12-04,9756,298734
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-12-05,4248,302982
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-12-06,4800,307782
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-12-07,6390,314172
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-12-08,8058,322230
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-12-09,8382,330612
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-12-10,7464,338076
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-12-11,11142,349218
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-12-12,6744,355962
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-12-13,6222,362184
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-12-14,8838,371022
+pfizer,BNT162b2,az-az,"Treated, ineligible",2021-12-15,9756,380778
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-09-16,180,180
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-09-17,168,348
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-09-18,990,1338
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-09-19,390,1728
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-09-20,144,1872
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-09-21,1920,3792
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-09-22,6504,10296
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-09-23,9510,19806
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-09-24,14994,34800
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-09-25,19338,54138
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-09-26,10056,64194
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-09-27,13524,77718
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-09-28,16410,94128
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-09-29,24276,118404
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-09-30,26028,144432
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-01,25536,169968
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-02,36504,206472
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-03,16512,222984
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-04,17970,240954
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-05,23028,263982
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-06,31500,295482
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-07,30000,325482
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-08,30660,356142
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-09,45282,401424
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-10,18204,419628
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-11,19404,439032
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-12,23352,462384
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-13,27252,489636
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-14,27396,517032
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-15,25470,542502
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-16,38964,581466
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-17,14106,595572
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-18,15288,610860
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-19,20904,631764
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-20,24768,656532
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-21,27486,684018
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-22,29604,713622
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-23,36120,749742
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-24,16314,766056
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-25,16980,783036
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-26,21774,804810
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-27,23322,828132
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-28,21072,849204
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-29,23844,873048
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-30,33780,906828
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-10-31,13422,920250
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-01,16038,936288
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-02,19974,956262
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-03,20124,976386
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-04,23550,999936
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-05,22110,1022046
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-06,30162,1052208
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-07,15108,1067316
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-08,17088,1084404
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-09,22068,1106472
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-10,24492,1130964
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-11,20658,1151622
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-12,21000,1172622
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-13,31248,1203870
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-14,13668,1217538
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-15,13230,1230768
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-16,16200,1246968
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-17,19254,1266222
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-18,17136,1283358
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-19,15096,1298454
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-20,26988,1325442
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-21,9480,1334922
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-22,7800,1342722
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-23,10470,1353192
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-24,11376,1364568
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-25,12012,1376580
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-26,9414,1385994
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-27,16590,1402584
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-28,6192,1408776
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-29,5184,1413960
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-11-30,7182,1421142
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-12-01,7740,1428882
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-12-02,7422,1436304
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-12-03,6552,1442856
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-12-04,9072,1451928
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-12-05,3354,1455282
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-12-06,3570,1458852
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-12-07,4536,1463388
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-12-08,5502,1468890
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-12-09,6186,1475076
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-12-10,5250,1480326
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-12-11,9030,1489356
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-12-12,6672,1496028
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-12-13,8658,1504686
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-12-14,15588,1520274
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, matched",2021-12-15,21060,1541334
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-09-16,0,0
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-09-17,0,0
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-09-18,6,6
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-09-19,0,6
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-09-20,0,6
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-09-21,0,6
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-09-22,0,6
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-09-23,12,18
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-09-24,24,42
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-09-25,36,78
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-09-26,30,108
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-09-27,60,168
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-09-28,72,240
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-09-29,102,342
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-09-30,132,474
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-01,204,678
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-02,672,1350
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-03,420,1770
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-04,666,2436
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-05,1512,3948
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-06,1920,5868
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-07,2892,8760
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-08,3042,11802
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-09,6762,18564
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-10,2604,21168
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-11,3114,24282
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-12,4806,29088
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-13,5616,34704
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-14,6660,41364
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-15,6360,47724
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-16,12714,60438
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-17,3486,63924
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-18,4674,68598
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-19,7356,75954
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-20,9324,85278
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-21,8880,94158
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-22,9624,103782
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-23,14064,117846
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-24,5478,123324
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-25,6408,129732
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-26,8064,137796
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-27,9072,146868
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-28,10206,157074
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-29,9570,166644
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-30,15756,182400
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-10-31,4776,187176
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-01,7242,194418
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-02,10074,204492
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-03,10560,215052
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-04,12342,227394
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-05,11382,238776
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-06,20442,259218
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-07,7152,266370
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-08,6888,273258
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-09,8916,282174
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-10,9240,291414
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-11,10344,301758
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-12,9702,311460
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-13,18912,330372
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-14,6408,336780
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-15,5688,342468
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-16,8340,350808
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-17,8574,359382
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-18,9222,368604
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-19,7956,376560
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-20,13248,389808
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-21,4308,394116
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-22,4674,398790
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-23,6630,405420
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-24,6264,411684
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-25,7032,418716
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-26,5424,424140
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-27,10818,434958
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-28,3828,438786
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-29,3732,442518
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-11-30,5316,447834
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-01,5682,453516
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-02,5748,459264
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-03,5388,464652
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-04,8754,473406
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-05,2766,476172
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-06,2994,479166
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-07,4416,483582
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-08,5190,488772
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-09,5052,493824
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-10,4158,497982
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-11,6882,504864
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-12,3096,507960
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-13,2886,510846
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-14,4464,515310
+pfizer,BNT162b2,pfizer-pfizer,"Treated, eligible, unmatched",2021-12-15,5106,520416
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-09-16,552,552
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-09-17,558,1110
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-09-18,876,1986
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-09-19,582,2568
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-09-20,846,3414
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-09-21,2808,6222
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-09-22,5928,12150
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-09-23,5442,17592
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-09-24,6234,23826
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-09-25,8988,32814
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-09-26,3498,36312
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-09-27,5064,41376
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-09-28,6312,47688
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-09-29,9042,56730
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-09-30,9288,66018
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-01,8784,74802
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-02,14226,89028
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-03,5166,94194
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-04,5688,99882
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-05,8100,107982
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-06,8928,116910
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-07,7998,124908
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-08,8010,132918
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-09,14598,147516
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-10,4332,151848
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-11,5202,157050
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-12,6744,163794
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-13,7488,171282
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-14,7050,178332
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-15,7260,185592
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-16,11796,197388
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-17,3414,200802
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-18,3996,204798
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-19,5742,210540
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-20,6132,216672
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-21,6240,222912
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-22,6330,229242
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-23,9216,238458
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-24,3192,241650
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-25,3900,245550
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-26,4926,250476
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-27,4890,255366
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-28,4830,260196
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-29,5004,265200
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-30,7392,272592
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-10-31,2400,274992
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-01,3240,278232
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-02,4572,282804
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-03,4356,287160
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-04,4608,291768
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-05,4422,296190
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-06,7416,303606
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-07,2814,306420
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-08,3030,309450
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-09,3954,313404
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-10,4206,317610
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-11,4158,321768
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-12,4146,325914
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-13,6372,332286
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-14,2454,334740
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-15,2454,337194
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-16,3462,340656
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-17,3432,344088
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-18,3114,347202
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-19,3096,350298
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-20,5466,355764
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-21,1734,357498
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-22,1734,359232
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-23,2490,361722
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-24,2460,364182
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-25,2862,367044
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-26,2394,369438
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-27,4206,373644
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-28,1476,375120
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-29,1578,376698
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-11-30,2406,379104
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-12-01,2334,381438
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-12-02,2730,384168
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-12-03,2538,386706
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-12-04,3348,390054
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-12-05,1110,391164
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-12-06,1488,392652
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-12-07,1914,394566
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-12-08,2478,397044
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-12-09,2910,399954
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-12-10,2412,402366
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-12-11,3408,405774
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-12-12,2160,407934
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-12-13,3036,410970
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-12-14,5454,416424
+pfizer,BNT162b2,pfizer-pfizer,"Treated, ineligible",2021-12-15,7914,424338
