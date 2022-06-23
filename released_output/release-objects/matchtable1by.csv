@@ -1,9 +1,0 @@
-treatment,treatment_descr,by,by_id,by_chr,by_col,n,N,p
-pfizer,BNT162b2,"Boosted, ineligible",1,"Boosted, ineligible",stat_1,1009016,10456712,0.09649457688038075
-pfizer,BNT162b2,"Boosted, eligible, unmatched",2,"Boosted, eligible, unmatched",stat_2,742862,10456712,0.07104164291796504
-pfizer,BNT162b2,"Boosted, eligible, matched",3,"Boosted, eligible, matched",stat_3,4352417,10456712,0.4162318901008271
-pfizer,BNT162b2,Control,4,Control,stat_4,4352417,10456712,0.4162318901008271
-moderna,mRNA-1273,"Boosted, ineligible",1,"Boosted, ineligible",stat_1,312348,2827375,0.11047278836376498
-moderna,mRNA-1273,"Boosted, eligible, unmatched",2,"Boosted, eligible, unmatched",stat_2,293,2827375,1.0362969185198284e-4
-moderna,mRNA-1273,"Boosted, eligible, matched",3,"Boosted, eligible, matched",stat_3,1257367,2827375,0.44471179097219155
-moderna,mRNA-1273,Control,4,Control,stat_4,1257367,2827375,0.44471179097219155
