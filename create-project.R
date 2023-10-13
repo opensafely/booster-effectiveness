@@ -231,18 +231,6 @@ actions_list <- splice(
   ),
 
   action(
-    name = "extract_report",
-    run = "cohort-report:v3.0.0 output/input.feather",
-    needs = list("extract"),
-    config = list(output_path = "output/data/reports/extract/"),
-    moderately_sensitive = lst(
-      html = "output/data/reports/extract/*.html",
-      png = "output/data/reports/extract/*.png",
-    )
-  ),
-
-
-  action(
     name = "data_process",
     run = "r:latest analysis/data_process.R",
     needs = list("extract"),
@@ -277,7 +265,7 @@ actions_list <- splice(
     needs = list("data_process"),
     highly_sensitive = lst(
       data = "output/data/data_cohort.rds",
-      feather = "output/data/data_cohort.feather"
+      #feather = "output/data/data_cohort.feather"
     ),
     moderately_sensitive = lst(
       flow = "output/data/flowchart.csv"
@@ -291,18 +279,6 @@ actions_list <- splice(
     needs = list("data_selection"),
     moderately_sensitive = lst(
       cohort = "output/data_properties/data_cohort*.txt"
-    )
-  ),
-
-
-  action(
-    name = "cohort_report",
-    run = "cohort-report:v3.0.0 output/data/data_cohort.feather",
-    needs = list("data_selection"),
-    config = list(output_path = "output/data/reports/cohort/"),
-    moderately_sensitive = lst(
-      html = "output/data/reports/cohort/*.html",
-      png = "output/data/reports/cohort/*.png",
     )
   ),
 

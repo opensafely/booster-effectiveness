@@ -20,12 +20,12 @@ This study estimates effectiveness of booster doses versus those with two doses 
 
 ## R scripts
 
--   [`design.R`](analysis/R/design.R) defines some common design elements used throughout the study, such as follow-up dates, model outcomes, and covariates.
--   [`dummydata.R`](analysis/R/dummydata.R) contains the script used to generate dummy data. This is used instead of the usual dummy data specified in the study definition, because it is then possible to impose some more useful structure in the data, such as ensuring nobody has a first dose of both the Pfizer and Astra-Zeneca vaccines. If the study definition is updated, this script must also be updated to ensure variable names and types match.
--   [`data_process.R`](analysis/R/data_process.R) imports the extracted database data (or dummy data), standardises some variables and derives some new ones.
+-   [`design.R`](analysis/design.R) defines some common design elements used throughout the study, such as follow-up dates, model outcomes, and covariates.
+-   [`dummydata.R`](analysis/dummydata.R) contains the script used to generate dummy data. This is used instead of the usual dummy data specified in the study definition, because it is then possible to impose some more useful structure in the data, such as ensuring nobody has a first dose of both the Pfizer and Astra-Zeneca vaccines. If the study definition is updated, this script must also be updated to ensure variable names and types match.
+-   [`data_process.R`](analysis/data_process.R) imports the extracted database data (or dummy data), standardises some variables and derives some new ones.
 -   [`data_process_long.R`](analysis/data_process_long.R) imports the processed data and creates one-row-per-patient-per-event datasets for the time-varying covariates.
 -   [`data_selection.R`](./analysis/data_selection.R) filters out participants who should not be included in the main analysis, and creates a small table used for the inclusion/exclusion flowchart.
--   [`vax_date.R`](./analysis/R/vax_date.R) plots vaccination counts by JCVI group and region.
+-   [`vax_date.R`](./analysis/vax_date.R) plots vaccination counts by JCVI group and region.
 -   [`match_seqtrialcox.R`](./analysis/match_seqtrialcox.R) runs the matching algorithm to pair boosted people with unboosted people. It outputs a matched dataset (with unmatched boosts dropped) and other matching diagnostics. The script takes one argument:
     -   `treatment`, either _pfizer_ or _moderna_, indicating the brand of the booster vaccine of interest.
 -   [`merge_seqtrialcox.R`](./analysis/merge_seqtrialcox.R) merges in additional covariate information for each trial arm as at the recruitment date, and summarises Table 1 type cohort characteristics, stratified by treatment arm. The script also uses the `treatment` argument to pick up the matching data from the previous script.

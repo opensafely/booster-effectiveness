@@ -1,6 +1,5 @@
 # # # # # # # # # # # # # # # # # # # # #
-# This script:
-# creates metadata for aspects of the study design
+# This script creates study parameters and other metadata to be used throughout the study
 # # # # # # # # # # # # # # # # # # # # #
 
 # Preliminaries ----
@@ -33,11 +32,18 @@ study_dates <- lst(
   firstpossiblevax_date = "2020-06-01", # used to catch "real" vaccination dates (eg not 1900-01-01)
 )
 
-
+# export dates as json so it can be imported by both R and python
 jsonlite::write_json(study_dates, path = here("lib", "design", "study-dates.json"), auto_unbox=TRUE, pretty =TRUE)
 
-# define outcomes ----
+# convert to date format
+study_dates <- map(study_dates, as.Date)
 
+# define outcomes and treatments ----
+
+# look-up table for outcomes
+# - event = short name used for project.yaml parameters
+# - event_var = the name of the variable in the study definition
+# - event_descr = a description of the variable
 events_lookup <- tribble(
   ~event, ~event_var, ~event_descr,
 
@@ -61,11 +67,12 @@ events_lookup <- tribble(
   "emergency", "emergency_date", "A&E attendance",
 )
 
-write_rds(events_lookup, here("lib", "design", "event-variables.rds"))
 
 
-
-treatement_lookup <-
+# look-up table for treatments
+# - treatment = short name used for project.yaml parameters
+# - treatment_descr = a description of the variable
+treatment_lookup <-
   tribble(
     ~treatment, ~treatment_descr,
     "pfizer", "BNT162b2",
@@ -76,15 +83,15 @@ treatement_lookup <-
     "moderna-moderna", "mRNA-1273"
   )
 
-write_rds(treatment_lookup, here("lib", "design", "treatment-lookup.rds"))
-
-
 
 # where to split follow-up time after recruitment
 postbaselinecuts <- c(0,7,14,28,42,70)
-write_rds(postbaselinecuts, here("lib", "design", "postbaselinecuts.rds"))
 
-# what matching variables
+
+
+# define matching variables ----
+
+# exact matching variables to use
 exact_variables <- c(
 
   "jcvi_ageband",
@@ -103,17 +110,20 @@ exact_variables <- c(
 )
 write_rds(exact_variables, here("lib", "design", "exact_variables.rds"))
 
+# caliper variables
 caliper_variables <- c(
   age = 3,
   vax2_day = 7,
   NULL
 )
-write_rds(caliper_variables, here("lib", "design", "caliper_variables.rds"))
-
+# combine
 matching_variables <- c(exact_variables, names(caliper_variables))
-write_rds(matching_variables, here("lib", "design", "matching_variables.rds"))
+
+
+
+# define other bits ----
 
 # cut-off for rolling 7 day average, that determines recruitment period
+# if fewer than `cutoff` people within strata defined by [region, vax-type, JCVI group] are vaccinated on any given day, then we DO NOT recruit those people
 recruitment_period_cutoff <- 50
-write_rds(recruitment_period_cutoff, here("lib", "design", "recruitment_period_cutoff.rds"))
 

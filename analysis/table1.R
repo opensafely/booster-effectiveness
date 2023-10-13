@@ -12,9 +12,10 @@ library('gt')
 library('gtsummary')
 
 ## Import custom user functions from lib
-
+source(here("analysis", "design.R"))
 source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "redaction.R"))
+
 
 ## create output directories ----
 fs::dir_create(here("output", "descriptive", "table1"))
@@ -80,14 +81,6 @@ var_labels <-
 
 ## baseline variables
 tab_summary_baseline <- data_cohort %>%
-  mutate(
-    #TODO can remove once data_process has rerun
-    cev_cv = case_when(
-      cev ~ "Clinically extremely vulnerable",
-      cv ~ "Clinically at-risk",
-      TRUE ~ "Not Clinically at-risk"
-    ),
-  ) %>%
   select(
     all_of(names(var_labels)),
     -age, -stp, -jcvi_group

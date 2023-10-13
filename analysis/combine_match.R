@@ -1,20 +1,9 @@
 # # # # # # # # # # # # # # # # # # # # #
 # This script combines matching info across all treatments
+# so fewer files have to be released
 # # # # # # # # # # # # # # # # # # # # #
 
 # Preliminaries ----
-
-## import command-line arguments ----
-
-args <- commandArgs(trailingOnly=TRUE)
-
-
-if(length(args)==0){
-  # use for interactive testing
-  removeobs <- FALSE
-} else {
-  removeobs <- TRUE
-}
 
 
 ## Import libraries ----
@@ -24,31 +13,20 @@ library('glue')
 library('survival')
 library('gt')
 
-
-## Import custom user functions
+## import study parameters, dates, and functions ----
+source(here("analysis", "design.R"))
 source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "survival.R"))
 
 output_dir <- here("output", "match", "combined")
 fs::dir_create(output_dir)
 
-## import globally defined study dates and convert to "Date"
-study_dates <-
-  jsonlite::read_json(path=here("lib", "design", "study-dates.json")) %>%
-  map(as.Date)
-
-postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
-
-## create lookup for treatment / outcome combinations ----
-
-recode_treatment <- c(`BNT162b2` = "pfizer", `mRNA-1273` = "moderna")
 
 match_metaparams <-
-  tibble(
-    treatment = factor(recode_treatment),
-    treatment_descr = fct_recode(treatment,  !!!recode_treatment),
+  treatment_lookup %>%
+  filter(
+    treatment %in% c("pfizer", "moderna")
   )
-
 
 # combine matching ----
 

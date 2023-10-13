@@ -10,17 +10,11 @@ library('here')
 library('glue')
 library('survival')
 
-## Import custom user functions from lib
+## import study parameters, dates, and functions ----
+source(here("analysis", "design.R"))
 source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "redaction.R"))
 
-args <- commandArgs(trailingOnly=TRUE)
-if(length(args)==0){
-  # use for interactive testing
-  removeobs <- FALSE
-} else {
-  removeobs <- TRUE
-}
 
 ## create output directory ----
 fs::dir_create(here("output", "descriptive", "vaxdate"))
@@ -29,7 +23,6 @@ data_cohort <- read_rds(here::here("output", "data", "data_cohort.rds"))
 
 
 # overall uptake ----
-
 
 cumulvax <- data_cohort %>%
   filter(!is.na(vax3_date), vax3_type %in% c("pfizer", "moderna")) %>%
