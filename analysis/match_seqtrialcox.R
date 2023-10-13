@@ -1,17 +1,16 @@
 
 # # # # # # # # # # # # # # # # # # # # #
 # This script:
-# imports processed data
+# imports processed study cohort data
 # chooses matching sets for each sequential trial
 # outputs matching summary
 #
-# The script must be accompanied by one arguments:
-# `treatment` - the exposure in the regression model, pfizer or moderna
+# The script must be accompanied by one argument:
+# `treatment` - the exposure in the regression model, "pfizer" or "moderna"
 
 # # # # # # # # # # # # # # # # # # # # #
 
 # Preliminaries ----
-
 
 # import command-line arguments ----
 
@@ -36,33 +35,29 @@ library('glue')
 library('survival')
 library('MatchIt')
 
-## Import custom user functions from lib
-
+## import study parameters, dates, and functions ----
+source(here("analysis", "design.R"))
 source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "survival.R"))
 source(here("lib", "functions", "redaction.R"))
 
-postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
-matching_variables <- read_rds(here("lib", "design", "matching_variables.rds"))
-exact_variables <- read_rds(here("lib", "design", "exact_variables.rds"))
-caliper_variables <- read_rds(here("lib", "design", "caliper_variables.rds"))
-
 if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
+  # overwrite value set in design to ensure enough matches
   recruitment_period_cutoff <- 0.1
-} else{
-  recruitment_period_cutoff <- read_rds(here("lib", "design", "recruitment_period_cutoff.rds"))
 }
 
-
-# create output directories ----
-
+## create output directories ----
 output_dir <- here("output", "match", treatment)
 fs::dir_create(output_dir)
 
+
+
 ## create special log file ----
+## this creates a separate log file to send info to, to make it easier to view important info, without having to view in the metadata/...log files
+
 cat(glue("## script info for {treatment} ##"), "  \n", file = fs::path(output_dir, glue("match_log.txt")), append = FALSE)
 
-## functions to pass additional log info to seperate file
+## functions to pass additional log info to separate file
 logoutput <- function(...){
   cat(..., file = fs::path(output_dir, glue("match_log.txt")), sep = "\n  ", append = TRUE)
   cat("\n", file = fs::path(output_dir, glue("match_log.txt")), sep = "\n  ", append = TRUE)
@@ -85,13 +80,6 @@ logoutput_table <- function(x){
   cat("\n", file = fs::path(output_dir, glue("match_log.txt")), sep = "\n  ", append = TRUE)
 }
 
-## import globally defined study dates and convert to "Date"
-study_dates <-
-  jsonlite::read_json(path=here("lib", "design", "study-dates.json")) %>%
-  map(as.Date)
-
-## import metadata ----
-events <- read_rds(here("lib", "design", "event-variables.rds"))
 
 # Prepare data ----
 
@@ -99,7 +87,6 @@ events <- read_rds(here("lib", "design", "event-variables.rds"))
 data_cohort <- read_rds(here("output", "data", "data_cohort.rds"))
 
 logoutput_datasize(data_cohort)
-
 
 
 ### rolling average of boosting per strata ----
@@ -118,7 +105,6 @@ select_recruitment_period <- function(index, x, min_x){
 
 # which variables to stratify by when determining "typical" vaccination periods
 rolling_variables <- c("jcvi_group", "vax12_type", "region")
-
 rolling_window <- 7
 
 # daily vaccination counts within "rolling" strata
@@ -129,7 +115,7 @@ data_rollingstrata_vaxcount <-
   summarise(
     n=n()
   ) %>%
-  # make implicit counts explicit
+  # make implicit zero counts explicit
   complete(
     vax3_date = full_seq(c(.$vax3_date - rolling_window+1), 1), # go X days before to
     fill = list(n=0)
@@ -149,6 +135,7 @@ data_rollingstrata_vaxcount <-
 
 write_rds(data_rollingstrata_vaxcount, fs::path(output_dir, "match_data_rollingstrata_vaxcount.rds"), compress="gz")
 
+# fixed variables
 data_nontimevarying <-
   data_cohort %>%
   select(
@@ -167,6 +154,7 @@ data_nontimevarying <-
 
 if(removeobjects) rm(data_rollingstrata_vaxcount)
 
+# time-varying variables
 data_timevarying <-
   read_rds(here("output", "data", "data_long_timevarying.rds")) %>%
   select(
@@ -224,6 +212,7 @@ data_tte <-
   ) %>%
   filter(
     # remove anyone with competing vaccine on first trial day
+    # should not be needed!
     #(competingtreatment_date-1>day0_date) | is.na(competingtreatment_date),
   ) %>%
   mutate(
@@ -400,7 +389,7 @@ local({
         caliper = caliper_variables, std.caliper=FALSE,
         m.order = "data", # data is sorted on (effectively random) patient ID
         #verbose = TRUE,
-        ratio = 1L # irritatingly you can't set this for "exact" method, so have to filter later
+        ratio = 1L # 1:1 matching
       )[[1]]
 
 
@@ -485,7 +474,12 @@ logoutput("max trial day is ", max_trial_time)
 
 ## combine all data together as at recruitment date ----
 
-status_recode <- c(`Boosted, ineligible` = "ineligible", `Boosted, eligible, unmatched`= "unmatched", `Boosted, eligible, matched` = "matched", `Control` = "control")
+status_recode <- c(
+  `Boosted, ineligible` = "ineligible",
+  `Boosted, eligible, unmatched`= "unmatched",
+  `Boosted, eligible, matched` = "matched",
+  `Control` = "control"
+)
 
 ## create variables-at-time-zero dataset - one row per trial per arm per patient ----
 data_merged <-

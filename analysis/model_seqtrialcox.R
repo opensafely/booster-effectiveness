@@ -4,7 +4,8 @@
 # imports merged matching data
 # adds outcome variable and restricts follow-up
 # fits the Cox models with time-varying effects
-# The script must be accompanied by two arguments:
+# The script must be accompanied by three arguments:
+# `treatment` - the treatment variable, "pfizer" or "moderna"
 # `outcome` - the dependent variable in the regression model
 # `subgroup` - the subgroup variable for the regression model followed by a hyphen and the level of the subgroup
 
@@ -12,19 +13,29 @@
 
 # Preliminaries ----
 
+## Import libraries ----
+library('tidyverse')
+library('here')
+library('glue')
+library('survival')
 
-# import command-line arguments ----
+## import study parameters, dates, and functions ----
+source(here("analysis", "design.R"))
+source(here("lib", "functions", "utility.R"))
+source(here("lib", "functions", "survival.R"))
+source(here("lib", "functions", "redaction.R"))
+
+## import command-line arguments ----
 
 args <- commandArgs(trailingOnly=TRUE)
-
 
 if(length(args)==0){
   # use for interactive testing
   removeobjects <- FALSE
   treatment <- "pfizer"
   outcome <- "postest"
-  subgroup <- "none"
-  #subgroup <- "vax12_type-pfizer-pfizer"
+  #subgroup <- "none"
+  subgroup <- "vax12_type-pfizer-pfizer"
   #subgroup <- "prior_covid_infection-TRUE"
 } else {
   removeobjects <- TRUE
@@ -34,28 +45,13 @@ if(length(args)==0){
 }
 
 
-## Import libraries ----
-library('tidyverse')
-library('here')
-library('glue')
-library('survival')
-
-## Import custom user functions from lib
-
-source(here("lib", "functions", "utility.R"))
-source(here("lib", "functions", "survival.R"))
-source(here("lib", "functions", "redaction.R"))
-
-# derive subgroup info
-subgroup_variable <-  str_split_fixed(subgroup,"-",2)[,1]
-subgroup_level <- str_split_fixed(subgroup,"-",2)[,2]
-subgroup_dummy <- paste0(subgroup_variable,"_",subgroup_level)
+# derive subgroup info from "subgroup" parameter
+subgroup_variable <-  str_split_fixed(subgroup,"-",2)[,1] # the name name of the subgroup variable
+subgroup_level <- str_split_fixed(subgroup,"-",2)[,2] # the level of the subgroup variable
+subgroup_dummy <- paste0(subgroup_variable,"_",subgroup_level) # to replicate column names set by `fastDummies::dummy_cols` -- see below
 
 
-postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
-matching_variables <- read_rds(here("lib", "design", "matching_variables.rds"))
-
-# create output directories ----
+## create output directories ----
 
 output_dir <- here("output", "models", "seqtrialcox", treatment, outcome, subgroup)
 fs::dir_create(output_dir)
@@ -86,16 +82,14 @@ logoutput_table <- function(x){
   cat("\n", file = fs::path(output_dir, glue("model_log.txt")), sep = "\n  ", append = TRUE)
 }
 
-## import globally defined study dates and convert to "Date"
-study_dates <-
-  jsonlite::read_json(path=here("lib", "design", "study-dates.json")) %>%
-  map(as.Date)
+# import matched data ----
 
-
-
-## import metadata ----
-events <- read_rds(here("lib", "design", "event-variables.rds"))
-
+# import data
+# add:
+# - undefined subgroups
+# - treatment-specific patient_id (some patients are in both unboosted and boosted treatment groups)
+# - length of follow-up
+# select only subgroup-level of interest
 data_matched <-
   read_rds(here("output", "match", treatment, "match_data_merged.rds")) %>%
   filter(matched %in% 1L) %>%
@@ -112,8 +106,8 @@ data_tte <-
   read_rds(here("output", "match", treatment, "match_data_tte.rds")) %>%
   filter(patient_id %in% data_matched$patient_id)
 
-## create outcome variables ----
 
+## create outcome variables ----
 data_timevaryingoutcomes <- local({
 
   data_join <-
@@ -237,6 +231,8 @@ write_rds(data_seqtrialcox, fs::path(output_dir, "model_data_seqtrialcox.rds"), 
 outcomes_per_treated <- table(days = data_seqtrialcox$fup_period, outcome=data_seqtrialcox$ind_outcome, treated=data_seqtrialcox$treated)
 logoutput_table(outcomes_per_treated)
 
+
+
 ## define model formulae ----
 
 treated_period_variables <- data_seqtrialcox %>% select(starts_with("treated_period")) %>% names()
@@ -285,11 +281,19 @@ if(outcome=="postest"){
 # remove matching variables from formulae, as treatment groups are already balanced
 formula_remove_matching <- as.formula(paste(". ~ . - ", paste(matching_variables, collapse=" -"), "- poly(age, degree=2, raw=TRUE)"))
 
+# unadjusted
 formula0_pw <- formula_vaxonly %>% update(formula_remove_matching)
+
+# with stratification
 formula1_pw <- formula_vaxonly %>% update(formula_strata) %>% update(formula_remove_matching)
+
+# add demographic variables
 formula2_pw <- formula_vaxonly %>% update(formula_strata) %>% update(formula_demog) %>% update(formula_remove_matching)
+
+# add clinical variables
 formula3_pw <- formula_vaxonly %>% update(formula_strata) %>% update(formula_demog) %>% update(formula_clinical) %>% update(formula_timedependent) %>% update(formula_remove_outcome) %>% update(formula_remove_matching)
 
+# look-up for model description
 model_descr = c(
   "Unadjusted" = "0",
   #"region- and trial-stratified" = "1",
@@ -302,7 +306,6 @@ model_descr = c(
 
 ### event counts within each covariate level ----
 
-
 tbltab0 <-
   data_seqtrialcox %>%
   select(ind_outcome, treated, fup_period, all_of(all.vars(formula3_pw)), -starts_with("treated_period")) %>%
@@ -313,7 +316,6 @@ tbltab0 <-
       ~as.character(.)
     ),
   )
-
 
 event_counts <-
   tbltab0 %>%
@@ -407,8 +409,7 @@ write_csv(event_counts_strata, fs::path(output_dir, "model_preflight_strata.csv"
 #   )
 
 
-## fit models ----
-
+# fit models ----
 
 opt_control <- coxph.control(iter.max = 30)
 
@@ -424,12 +425,8 @@ cox_model <- function(timesplit, number, formula_cox){
     control = opt_control
   )
 
+  # use this because warnings aren't printed by default when hit inside a custom function call
   print(warnings())
-  # logoutput(
-  #   glue("model{number} data size = ", coxmod$n),
-  #   glue("model{number} memory usage = ", format(object.size(coxmod), units="GB", standard="SI", digits=3L)),
-  #   glue("convergence status: ", coxmod$info[["convergence"]])
-  # )
 
   tidy <-
     broom.helpers::tidy_plus_plus(

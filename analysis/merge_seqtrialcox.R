@@ -8,10 +8,11 @@
 
 # # # # # # # # # # # # # # # # # # # # #
 
+# Preliminaries ----
+
 # import command-line arguments ----
 
 args <- commandArgs(trailingOnly=TRUE)
-
 
 if(length(args)==0){
   # use for interactive testing
@@ -30,17 +31,15 @@ library('here')
 library('glue')
 library('survival')
 
-## Import custom user functions from lib
-
+## import study parameters, dates, and functions ----
+source(here("analysis", "design.R"))
 source(here("lib", "functions", "utility.R"))
 source(here("lib", "functions", "survival.R"))
 source(here("lib", "functions", "redaction.R"))
 
-postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 
 
-
-# create output directories ----
+## create output directories ----
 
 output_dir <- here("output", "match", treatment)
 fs::dir_create(output_dir)
@@ -71,16 +70,6 @@ logoutput_table <- function(x){
   cat("\n", file = fs::path(output_dir, glue("merge_log.txt")), sep = "\n  ", append = TRUE)
 }
 
-## import globally defined study dates and convert to "Date"
-study_dates <-
-  jsonlite::read_json(path=here("lib", "design", "study-dates.json")) %>%
-  map(as.Date)
-
-
-
-## import metadata ----
-events <- read_rds(here("lib", "design", "event-variables.rds"))
-
 
 ## import matching info ----
 data_matchstatus <- read_rds(fs::path(output_dir, "match_data_matchstatus.rds"))
@@ -103,7 +92,12 @@ logoutput_datasize(data_matched)
 # matching coverage per trial / day of follow up
 
 
-status_recode <- c(`Boosted, ineligible` = "ineligible", `Boosted, eligible, unmatched`= "unmatched", `Boosted, eligible, matched` = "matched", `Control` = "control")
+status_recode <- c(
+  `Boosted, ineligible` = "ineligible",
+  `Boosted, eligible, unmatched`= "unmatched",
+  `Boosted, eligible, matched` = "matched",
+  `Control` = "control"
+)
 
 
 # matching coverage for boosted people
@@ -616,6 +610,10 @@ data_criteria <-
 
     is_control = control %in% 1L,
   )
+
+
+
+## update flowchart data with info on people who were actually matched
 
 data_flowchart <-
   data_criteria %>%

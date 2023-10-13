@@ -1,7 +1,7 @@
 
 # # # # # # # # # # # # # # # # # # # # #
 # This script:
-# imports processed data
+# imports processed data and applies study selection criteria
 # filters out people who are excluded from the main analysis
 # outputs inclusion/exclusions flowchart data
 # # # # # # # # # # # # # # # # # # # # #
@@ -13,23 +13,15 @@ library('tidyverse')
 library('here')
 library('glue')
 
+## import study parameters, dates, and functions ----
 source(here("lib", "functions", "utility.R"))
+source(here("analysis", "design.R"))
 
-## import command-line arguments ----
-args <- commandArgs(trailingOnly=TRUE)
 
 ## create output directories ----
 fs::dir_create(here("output", "data"))
 
-
-## import globally defined study dates and convert to "Date"
-study_dates <-
-  jsonlite::read_json(path=here("lib", "design", "study-dates.json")) %>%
-  map(as.Date)
-
-
 ## Import processed data ----
-
 data_processed <- read_rds(here("output", "data", "data_processed.rds"))
 
 
@@ -88,14 +80,19 @@ data_criteria <- data_processed %>%
     ),
   )
 
+# apply selection criteria
 data_cohort <- data_criteria %>%
   filter(include) %>%
   select(patient_id) %>%
   left_join(data_processed, by="patient_id") %>%
   droplevels()
 
+# save
 write_rds(data_cohort, here("output", "data", "data_cohort.rds"), compress="gz")
-arrow::write_feather(data_cohort, here("output", "data", "data_cohort.feather"))
+#arrow::write_feather(data_cohort, here("output", "data", "data_cohort.feather"))
+
+
+# create flowchart info ----
 
 data_flowchart <- data_criteria %>%
   transmute(

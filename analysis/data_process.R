@@ -9,27 +9,24 @@
 ######################################
 
 
+# Preliminaries ----
 
-
-# Import libraries ----
+## Import libraries ----
 library('tidyverse')
 library('lubridate')
 library('arrow')
 library('here')
 
+## import study parameters, dates, and functions ----
 source(here("lib", "functions", "utility.R"))
+source(here("analysis", "design.R"))
 
-# import globally defined study dates and convert to "Date"
-study_dates <-
-  jsonlite::read_json(path=here("lib", "design", "study-dates.json")) %>%
-  map(as.Date)
-
-# output processed data to rds ----
+## create output directory ----
 
 fs::dir_create(here("output", "data"))
 
 
-# process ----
+# import extract data ----
 
 # use externally created dummy data if not running in the server
 # check variables are as they should be
@@ -40,9 +37,7 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
 
   data_studydef_dummy <- read_feather(here("output", "input.feather")) %>%
     # because date types are not returned consistently by cohort extractor
-    mutate(across(ends_with("_date"), ~ as.Date(.))) %>%
-    # because of a bug in cohort extractor -- remove once pulled new version
-    mutate(patient_id = as.integer(patient_id))
+    mutate(across(ends_with("_date"), as.Date))
 
   data_custom_dummy <- read_feather(here("lib", "dummydata", "dummyinput.feather")) %>%
     mutate(
@@ -86,13 +81,15 @@ if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
 
   data_extract <- data_custom_dummy %>%
     # because dummy data for days in critical care is factor, so that we can do zero-inflation
-    mutate(across(starts_with("covidadmitted_ccdays"), ~ as.numeric(as.character(.))))
+    mutate(across(starts_with("admitted_covid_ccdays"), ~ as.numeric(as.character(.))))
 } else {
+  # extract actual study def data when running in the server
   data_extract <- read_feather(here("output", "input.feather")) %>%
-    #because date types are not returned consistently by cohort extractor
-    mutate(across(ends_with("_date"),  as.Date))
+    # because date types are not returned consistently by cohort extractor
+    mutate(across(ends_with("_date"), as.Date))
 }
 
+# process extracted data ----
 
 data_processed <- data_extract %>%
   mutate(
@@ -138,17 +135,6 @@ data_processed <- data_extract %>%
 
     imd_Q5 = factor(imd_Q5, levels = c("1 (most deprived)", "2", "3", "4", "5 (least deprived)", "Unknown")),
 
-    # imd = as.integer(as.character(imd)), # imd is a factor, so convert to character then integer to get underlying values
-    # imd = if_else(imd<=0, NA_integer_, imd),
-    # imd_Q5 = fct_case_when(
-    #   (imd >=1) & (imd < 32844*1/5) ~ "1 most deprived",
-    #   (imd >= 32844*1/5) & (imd < 32844*2/5) ~ "2",
-    #   (imd >= 32844*2/5) & (imd < 32844*3/5) ~ "3",
-    #   (imd >= 32844*3/5) & (imd < 32844*4/5) ~ "4",
-    #   (imd >= 32844*4/5) ~ "5 least deprived",
-    #   TRUE ~ NA_character_
-    # ),
-
     rural_urban_group = fct_case_when(
       rural_urban %in% c(1,2) ~ "Urban conurbation",
       rural_urban %in% c(3,4) ~ "Urban city or town",
@@ -158,16 +144,18 @@ data_processed <- data_extract %>%
 
     care_home_combined = care_home_tpp | care_home_code, # any carehome flag
 
-    # clinically at-risk group
+    # clinically at-risk groups
     cv = immunosuppressed | chronic_kidney_disease | chronic_resp_disease | diabetes | chronic_liver_disease |
       chronic_neuro_disease | chronic_heart_disease | asplenia | learndis | sev_mental,
 
+    # clinically extremely vulnerable or clinically at risk
     cev_cv = fct_case_when(
       cev ~ "Clinically extremely vulnerable",
       cv ~ "Clinically at-risk",
       TRUE ~ "Not clinically at-risk"
     ) %>% fct_rev(),
 
+    # multimorbidity
     multimorb =
       (sev_obesity) +
       (chronic_heart_disease) +
@@ -224,13 +212,15 @@ data_processed <- data_extract %>%
       "16-39 years"="10b"
     ),
 
-
     prior_tests_cat = cut(prior_covid_test_frequency, breaks=c(0, 1, 2, 3, Inf), labels=c("0", "1", "2", "3+"), right=FALSE),
 
     prior_covid_infection0 = (!is.na(positive_test_0_date)) | (!is.na(admitted_covid_0_date)) | (!is.na(primary_care_covid_case_0_date)),
 
-
     #covidemergency_1_date = pmin(covidemergency_1_date, covidadmitted_1_date, na.rm=TRUE),
+
+
+    ## this is an old way of extracting critical care admissions because of study def limits.
+    # it's now possible to _filter_ on admissions to critical care in study defs, so this can all be simplified
 
     # because this value is returned as a factor by the study definition
     admitted_covid_ccdays_1 = as.numeric(as.character(admitted_covid_ccdays_1)),
@@ -272,7 +262,6 @@ data_processed <- data_extract %>%
     anycovid_1_date = pmin(positive_test_1_date, covidemergency_1_date, admitted_covid_1_date, covidcc_1_date, coviddeath_date, na.rm=TRUE),
 
     noncoviddeath_date = if_else(!is.na(death_date) & is.na(coviddeath_date), death_date, as.Date(NA_character_)),
-
 
     cause_of_death = fct_case_when(
       !is.na(coviddeath_date) ~ "covid-related",
@@ -366,6 +355,7 @@ data_vax_wide = data_vax %>%
     names_glue = "covid_vax_{vax_index}_{.value}"
   )
 
+# join wide reformatted vaccination data onto main patient data
 data_processed <- data_processed %>%
   left_join(data_vax_wide, by ="patient_id") %>%
   mutate(
@@ -421,7 +411,6 @@ data_processed <- data_processed %>%
 select(
   -starts_with("covid_vax_"),
 )
-
 
 write_rds(data_processed, here("output", "data", "data_processed.rds"), compress="gz")
 

@@ -2,7 +2,7 @@
 
 # What this script does:
 # imports data created by the `data_process.R` script
-# converts wide-form time-varying variables into long format
+# converts wide-form time-varying variables (except vaccination dates) into long format
 # saves as a one-row-per-event dataset
 
 ######################################
@@ -15,28 +15,22 @@ library('here')
 library('glue')
 library('survival')
 
-# Import custom user functions from lib
+## import study parameters, dates, and functions ----
 source(here("lib", "functions", "utility.R"))
+source(here("analysis", "design.R"))
 
 ## create output directories ----
 fs::dir_create(here("output", "data"))
 
+#Import data ----
+
 ## Import processed data ----
 
-data_processed <- read_rds(here("output", "data", "data_processed.rds")) %>%
-  mutate(
-    stop=10000L
-  )
+data_processed <- read_rds(here("output", "data", "data_processed.rds"))
 
-# import globally defined study dates and convert to "Date"
-study_dates <-
-  jsonlite::read_json(path=here("lib", "design", "study-dates.json")) %>%
-  map(as.Date)
-
-
-## create one-row-per-event datasets ----
-# for vaccination, positive test, hospitalisation/discharge, covid in primary care, death
-
+## create one-row-per-event datasets for each event ----
+# for positive test, hospitalisation/discharge, covid in primary care, death, etc
+# includes both outcome and other variables needed at "baseline"
 
 data_admitted_unplanned <- data_processed %>%
   select(patient_id, matches("^admitted\\_unplanned\\_\\d+\\_date"), matches("^discharged\\_unplanned\\_\\d+\\_date")) %>%
@@ -62,6 +56,7 @@ data_admitted_planned <- data_processed %>%
   #select(patient_id, index, admitted_date=admitted_planned, discharged_date = discharged_planned) %>%
   arrange(patient_id, date)
 
+# UNUSED
 # data_pr_probable_covid <- data_processed %>%
 #   select(patient_id, matches("^primary_care_probable_covid\\_\\d+\\_date")) %>%
 #   pivot_longer(
@@ -174,12 +169,9 @@ data_death <- data_processed %>%
   arrange(patient_id, date)%>%
   mutate(event="death")
 
-# data_death <- data_processed %>%
-#   select(patient_id, date=death_date, cause_of_death) %>%
-#   filter(!is.na(date)) %>%
-#   arrange(patient_id)
 
-## long format ----
+
+## Bind all events together in long format ----
 
 data_allevents <-
   bind_rows(
@@ -200,7 +192,7 @@ data_allevents <-
     time = as.integer(date - (study_dates$index_date - 1)),
   )
 
-
+# create one-row-per-event-per-patient dataset
 
 data_timevarying <-
   data_processed %>%
@@ -209,9 +201,14 @@ data_timevarying <-
   tmerge(
     # initialise tmerge run
     data1 = .,
-    data2 = data_processed,
+    data2 = data_processed %>%
+      mutate(
+        # "big M" end time for time-dependent datasets. scale days since index date. needs to be bigger than max possible follow up date minus index date
+        # cannot put in tmerge call because "tstop and id must be the same length"
+        stop=10000L
+      ),
     id = patient_id,
-    tstart = -10000L,
+    tstart = -10000L, # any time before index date
     tstop = stop
   ) %>%
   tmerge(
@@ -242,6 +239,7 @@ data_timevarying <-
     options=list(tdcstart=0L)
   ) %>%
   mutate(
+    # derive covidhosp proxy events
     id=NULL,
     covidadmittedproxy1 = covidemergencyhosp,
     covidadmittedproxy2 = if_else((mostrecent_anycovid<=tstop) & (mostrecent_anycovid>=tstop-14), emergencyhosp, 0L)
@@ -249,7 +247,7 @@ data_timevarying <-
 
 write_rds(data_timevarying, here("output", "data", "data_long_timevarying.rds"), compress="gz")
 
-
+# add derived covidhospproxy events into allevent dataset
 data_allevents <-
  data_allevents %>%
   bind_rows(
@@ -260,16 +258,3 @@ data_allevents <-
 
 write_rds(data_allevents, here("output", "data", "data_long_allevents.rds"), compress="gz")
 
-
-
-# write_rds(data_pr_probable_covid, here("output", cohort, "data", "data_long_pr_probable_covid_dates.rds"), compress="gz")
-
-#write_rds(data_admitted_unplanned, here("output", "data", "data_long_admitted_unplanned_dates.rds"), compress="gz")
-#write_rds(data_admitted_planned, here("output", "data", "data_long_admitted_planned_dates.rds"), compress="gz")
-#write_rds(data_postest, here("output", "data", "data_long_postest_dates.rds"), compress="gz")
-#write_rds(data_covidemergency, here("output", "data", "data_long_covidemergency_dates.rds"), compress="gz")
-#write_rds(data_covidadmitted, here("output", "data", "data_long_covidadmitted_dates.rds"), compress="gz")
-#write_rds(data_covidcc, here("output", "data", "data_long_covidcc_dates.rds"), compress="gz")
-#write_rds(data_coviddeath, here("output", "data", "data_long_coviddeath_dates.rds"), compress="gz")
-#write_rds(data_noncoviddeath, here("output", "data", "data_long_noncoviddeath_dates.rds"), compress="gz")
-#write_rds(data_death, here("output", "data", "data_long_death_dates.rds"), compress="gz")

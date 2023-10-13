@@ -12,6 +12,20 @@
 
 # Preliminaries ----
 
+## Import libraries ----
+library('tidyverse')
+library('here')
+library('glue')
+library('survival')
+library('cmprsk')
+
+## import study parameters, dates, and functions ----
+source(here("analysis", "design.R"))
+source(here("lib", "functions", "utility.R"))
+source(here("lib", "functions", "survival.R"))
+source(here("lib", "functions", "redaction.R"))
+
+
 ## import command-line arguments ----
 
 args <- commandArgs(trailingOnly=TRUE)
@@ -31,27 +45,14 @@ if(length(args)==0){
 }
 
 
-## Import libraries ----
-library('tidyverse')
-library('here')
-library('glue')
-library('survival')
-library('cmprsk')
 
-## Import custom user functions
-source(here("lib", "functions", "utility.R"))
-source(here("lib", "functions", "survival.R"))
-source(here("lib", "functions", "redaction.R"))
-
+## define input / output directories ----
 output_dir_matched <- here("output", "match", treatment)
 output_dir <- here("output", "models", "seqtrialcox", treatment, outcome, subgroup)
 
-data_seqtrialcox <- read_rds(fs::path(output_dir, "model_data_seqtrialcox.rds"))
 
-## import globally defined study dates and convert to "Date"
-study_dates <-
-  jsonlite::read_json(path=here("lib", "design", "study-dates.json")) %>%
-  map(as.Date)
+# import data ----
+data_seqtrialcox <- read_rds(fs::path(output_dir, "model_data_seqtrialcox.rds"))
 
 
 # report model info ----
@@ -62,8 +63,6 @@ fs::file_copy(fs::path(output_dir, "model_glance.csv"), fs::path(output_dir, "re
 
 
 ## report model effects ----
-
-postbaselinecuts <- read_rds(here("lib", "design", "postbaselinecuts.rds"))
 
 model_tidy <- read_csv(fs::path(output_dir, "model_tidy.csv"))
 
@@ -155,6 +154,7 @@ write_csv(model_metaeffects, path = fs::path(output_dir, "report_metaeffects.csv
 
 
 ## meta analysis of period-specific hazards ----
+## use for wider follow-up periods
 
 model_meta2effects <- model_effects %>%
   mutate(
@@ -429,7 +429,7 @@ kmdiffall <- kmdiff(km_incidence, c(0,last(postbaselinecuts)))
 
 
 
-## Cumulative incidence function (accountign for competing risks ----
+## Cumulative incidence function (accounting for competing risks) ----
 
 data_tte <- read_rds(fs::path(output_dir_matched, "match_data_tte.rds"))
 
